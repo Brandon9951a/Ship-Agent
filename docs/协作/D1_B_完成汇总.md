@@ -4,11 +4,11 @@
 
 ## 分支和提交
 
-本次从最新main基线`9f00970`创建独立分支`codex/b-d1-vessel-data`。不向main直接提交、不自动合并。较早的`codex/b-compute-validation`保留原计划记录，不覆盖或删除。
+本次从最新main基线`9f00970`创建独立分支，现统一命名为`codex/b-d1-lwj`。不向main直接提交、不自动合并。较早的计划分支现命名为`codex/b-plan-lwj`，原计划提交完整保留。
 
 提交标题：`D1: add vessel fact audit and historical data inspector`。在GitHub Desktop顶部的Current branch查看当前分支；Changes查看待提交文件，History查看提交。发布后由A审查，再决定是否合入main。
 
-后续每日从同步后的main建立任务分支，例如`codex/b-d2-energy-baseline`，提交标题以`D2:`开头，D3至D7同理。D1–D7是任务日标签，不必创建同名目录或七个空提交。若后续任务依赖尚未合并的D1代码，先确认依赖分支和PR顺序，不丢弃成果。
+后续每日从同步后的main建立任务分支，统一使用简洁名称`codex/b-d2-lwj`至`codex/b-d7-lwj`，所有成员B分支以`-lwj`结尾。提交标题以`D2:`开头，D3至D7同理。D1–D7是任务日标签，不必创建同名目录或七个空提交。若后续任务依赖尚未合并的D1代码，先确认依赖分支和PR顺序，不丢弃成果。
 
 ## 本次交付与边界
 
