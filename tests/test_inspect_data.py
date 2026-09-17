@@ -143,3 +143,45 @@ def test_broken_workbook_reports_failure(tmp_path):
     path = tmp_path / "data.xlsx"
     path.write_bytes(b"not a workbook")
     assert inspect_file(path)["status"] == "failed"
+
+
+def test_elapsed_seconds_preserve_zero_and_never_invent_calendar_time():
+    report = inspect_rows([["seconds"], ["0"], ["5"], ["5"], ["2"], ["400"]], {"time_column": "seconds", "time_format": "elapsed_seconds"})
+    time = report["time"]
+    assert time["min_seconds"] == 0 and time["max_seconds"] == 400
+    assert time["min"] is None and time["max"] is None
+    assert time["timezone_known"] is None
+    assert time["counts"]["duplicate"] == 1
+    assert time["counts"]["zero_interval"] == 1
+    assert time["unique_valid_timestamps"] == 4
+    assert time["counts"]["valid"] == 5
+    assert time["counts"]["out_of_order"] == 1
+    assert time["counts"]["large_gap"] == 1
+
+
+@pytest.mark.parametrize("value", ["inf", "-1", "bad"])
+def test_bad_elapsed_time_is_flagged(value):
+    report = inspect_rows([["seconds"], [value]], {"time_column": "seconds", "time_format": "elapsed_seconds"})
+    assert report["time"]["counts"]["invalid"] == 1
+
+
+def test_elapsed_time_cannot_have_invented_timezone():
+    with pytest.raises(ValueError):
+        inspect_rows([["seconds"], ["0"]], {"time_column": "seconds", "time_format": "elapsed_seconds", "timezone_offset": "+08:00"})
+
+
+def test_blank_record_breaks_adjacent_time_intervals():
+    report = inspect_rows([["t"], ["0"], [], ["1000"]], {"time_column": "t", "time_format": "elapsed_seconds"})
+    assert report["records_after_header"] == 3
+    assert report["data_rows"] == 2 and report["blank_rows"] == 1
+    assert report["time"]["max_interval_seconds"] is None
+
+
+def test_cli_refuses_to_overwrite_mapping_file(tmp_path):
+    path = tmp_path / "sample.csv"
+    path.write_text("a,b\n1,2\n", encoding="utf-8")
+    mapping = tmp_path / "mapping.json"
+    mapping.write_text("{}", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main([str(path), "--mapping", str(mapping), "--output", str(mapping)])
+    assert mapping.read_text(encoding="utf-8") == "{}"

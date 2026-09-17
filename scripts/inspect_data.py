@@ -155,9 +155,14 @@ def select_column(selector: Any, headers: list[str]) -> int:
     raise ValueError(f"Unknown or ambiguous column selector: {selector!r}; use a zero-based index")
 
 
-def parse_time(value: Any, mapping: dict[str, Any], epoch_1904: bool) -> datetime:
+def parse_time(value: Any, mapping: dict[str, Any], epoch_1904: bool) -> datetime | float:
     text = str(value).strip()
     fmt = mapping.get("time_format", "iso")
+    if fmt == "elapsed_seconds":
+        seconds = float(text)
+        if not math.isfinite(seconds) or seconds < 0:
+            raise ValueError("Elapsed seconds must be finite and nonnegative")
+        return seconds
     if fmt == "excel_serial":
         serial = float(text)
         if not math.isfinite(serial) or serial < 0:
@@ -192,6 +197,11 @@ def inspect_rows(rows: Iterable[list[Any]], mapping: dict[str, Any] | None = Non
         raise ValueError("time_format must be a string")
     if mapping.get("timezone_offset") is not None and not isinstance(mapping["timezone_offset"], str):
         raise ValueError("timezone_offset must be a string")
+    relative_time = mapping.get("time_format") == "elapsed_seconds"
+    if relative_time and mapping.get("timezone_offset") is not None:
+        raise ValueError("Elapsed seconds have no calendar origin or timezone")
+    if not math.isfinite(gap_seconds) or gap_seconds <= 0:
+        raise ValueError("gap_seconds must be finite and positive")
     iterator = iter(rows)
     header_row = mapping.get("header_row", 1)
     if type(header_row) is not int or header_row < 1:
@@ -216,7 +226,7 @@ def inspect_rows(rows: Iterable[list[Any]], mapping: dict[str, Any] | None = Non
             raise ValueError(f"{name}: unit must be confirmed explicitly")
     count = blank_rows = duplicate_rows = ragged_rows = 0
     row_hashes: set[bytes] = set()
-    times: set[datetime] = set()
+    times: set[datetime | float] = set()
     intervals: list[float] = []
     time_errors = Counter()
     first = last = previous = None
@@ -224,6 +234,7 @@ def inspect_rows(rows: Iterable[list[Any]], mapping: dict[str, Any] | None = Non
     for row in iterator:
         if not any(str(v).strip() for v in row if v is not None):
             blank_rows += 1
+            previous = None
             continue
         if len(row) != len(headers):
             ragged_rows += 1
@@ -275,35 +286,44 @@ def inspect_rows(rows: Iterable[list[Any]], mapping: dict[str, Any] | None = Non
             time_errors["invalid"] += 1
             previous = None
             continue
-        aware = stamp.tzinfo is not None
-        if timezone_known is None:
+        aware = isinstance(stamp, datetime) and stamp.tzinfo is not None
+        if not relative_time and timezone_known is None:
             timezone_known = aware
-        if aware != timezone_known:
+        if not relative_time and aware != timezone_known:
             time_errors["mixed_timezone"] += 1
             previous = None
             continue
         time_errors["duplicate"] += int(stamp in times)
+        time_errors["valid"] += 1
         times.add(stamp)
-        first = min(first, stamp) if first else stamp
-        last = max(last, stamp) if last else stamp
+        first = min(first, stamp) if first is not None else stamp
+        last = max(last, stamp) if last is not None else stamp
         if previous is not None:
-            dt = (stamp - previous).total_seconds()
+            dt = stamp - previous if relative_time else (stamp - previous).total_seconds()
             if dt < 0:
                 time_errors["out_of_order"] += 1
+            elif dt == 0:
+                time_errors["zero_interval"] += 1
             elif dt > 0:
                 intervals.append(dt)
                 time_errors["large_gap"] += int(dt > gap_seconds)
         previous = stamp
     counts = Counter(headers)
-    return {"data_rows": count, "blank_rows": blank_rows, "header_columns": len(headers),
+    return {"data_rows": count, "blank_rows": blank_rows, "records_after_header": count + blank_rows,
+            "row_count_policy": "data_rows excludes entirely blank records; records_after_header includes them",
+            "header_columns": len(headers),
             "observed_columns": len(columns), "ragged_rows": ragged_rows,
             "duplicate_rows": duplicate_rows,
             "unnamed_columns": [c.index for c in columns if not c.name or c.name.lower().startswith("unnamed")],
             "duplicate_headers": [h for h, n in counts.items() if n > 1],
             "columns": [c.report(count) for c in columns],
             "time": {"status": "inspected" if time_index is not None else "unmapped",
-                     "min": first.isoformat() if first else None, "max": last.isoformat() if last else None,
+                     "kind": "elapsed_seconds" if relative_time else "calendar",
+                     "min": first.isoformat() if isinstance(first, datetime) else None,
+                     "max": last.isoformat() if isinstance(last, datetime) else None,
+                     "min_seconds": first if relative_time else None, "max_seconds": last if relative_time else None,
                      "timezone_known": timezone_known,
+                     "unique_valid_timestamps": len(times), "positive_interval_count": len(intervals),
                      "counts": dict(time_errors), "gap_threshold_seconds": gap_seconds,
                      "median_interval_seconds": statistics.median(intervals) if intervals else None,
                      "max_interval_seconds": max(intervals) if intervals else None},
@@ -372,13 +392,18 @@ def main(argv: list[str] | None = None) -> int:
         if not isinstance(mapping, dict):
             raise ValueError("mapping must be an object")
         paths = args.paths or discover_files(args.search_root)
-        if args.output.resolve() in {p.resolve() for p in paths}:
+        protected = {p.resolve() for p in paths}
+        if args.mapping:
+            protected.add(args.mapping.resolve())
+        if args.output.resolve() in protected:
             parser.error("Output must not overwrite an input file")
         files = [inspect_file(p, mapping.get("files", {}).get(p.name, mapping), args.gap_seconds) for p in paths]
         present = {p.name for p in paths}
         missing = [name for name in DEFAULT_FILES if name not in present] if not args.paths else []
         status = "failed" if any(f["status"] == "failed" for f in files) else ("missing_data" if missing or any(f["status"] == "missing" for f in files) else "inspected")
         report = {"status": status, "files": files, "missing_expected_files": missing,
+                  "report_format_version": 2,
+                  "mapping": {"file": args.mapping.name, "sha256": hashlib.sha256(args.mapping.read_bytes()).hexdigest()} if args.mapping else None,
                   "generated_at": datetime.now(timezone.utc).isoformat(),
                   "scope": "D1 data inventory; not model accuracy or ship validation"}
         args.output.parent.mkdir(parents=True, exist_ok=True)

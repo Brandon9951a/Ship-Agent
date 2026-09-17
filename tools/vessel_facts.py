@@ -11,6 +11,14 @@ REQUIRED = ("capacity_kwh", "max_power_kw", "auxiliary_power_kw", "soc_min")
 UNITS = {"capacity_kwh": "kWh", "max_power_kw": "kW", "auxiliary_power_kw": "kW",
          "max_speed_kmh": "km/h", "economic_speed_kmh": "km/h", "draft_m": "m",
          "charging_power_kw": "kW", "battery_group_capacity_kwh": "kWh"}
+LIMIT_FIELDS = {"soc_min", "soc_alarm", "soc_shutdown"}
+
+
+def finite_number(value: Any) -> bool:
+    try:
+        return not isinstance(value, bool) and isinstance(value, (int, float)) and isfinite(value)
+    except OverflowError:
+        return False
 
 
 def load_config(path: Path) -> dict[str, Any]:
@@ -48,13 +56,22 @@ def audit_facts(facts: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]
         errors.append("Unsupported format_version")
     if limits.get("soc_unit") != "fraction":
         errors.append("SOC must use fraction (0-1)")
+    from schemas.types import SourceRef
+    from schemas.validate import require_valid
+    for key, definition in sources.items():
+        try:
+            if not isinstance(definition, dict):
+                raise ValueError("source definition must be an object")
+            require_valid(SourceRef.from_dict(definition))
+        except (ValueError, TypeError) as exc:
+            errors.append(f"sources.{key}: {exc}")
 
     for group, entries in (("parameters", parameters), ("limits", records)):
         for name, record in entries.items():
             if not isinstance(record, dict):
                 errors.append(f"{group}.{name}: expected object")
                 continue
-            unit = "fraction" if group == "limits" else UNITS.get(name)
+            unit = ("fraction" if name in LIMIT_FIELDS else None) if group == "limits" else UNITS.get(name)
             if unit is None or record.get("unit") != unit:
                 errors.append(f"{name}: unknown field or incorrect unit")
             candidates = record.get("candidates", [])
@@ -68,6 +85,11 @@ def audit_facts(facts: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]
                 source_id = candidate.get("source")
                 if not isinstance(source_id, str) or source_id not in sources or not isinstance(candidate.get("locator"), str) or not candidate["locator"].strip():
                     errors.append(f"{name}: candidate source/locator is missing")
+                candidate_value = candidate.get("value")
+                if not finite_number(candidate_value):
+                    errors.append(f"{name}: candidate value must be finite numeric")
+                elif group == "limits" and not 0 <= candidate_value <= 1:
+                    errors.append(f"{name}: candidate SOC must use fraction")
             choice = record.get("adopted")
             if choice is None:
                 pending.append(name)
@@ -76,12 +98,10 @@ def audit_facts(facts: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]
             if not isinstance(choice, dict):
                 errors.append(f"{name}: adopted must be {{value, source}} or null")
                 continue
+            if record.get("confirmation_status") != "approved_A":
+                errors.append(f"{name}: adopted value requires confirmation_status=approved_A")
             value = choice.get("value")
-            try:
-                finite = not isinstance(value, bool) and isinstance(value, (int, float)) and isfinite(value)
-            except OverflowError:
-                finite = False
-            if not finite:
+            if not finite_number(value):
                 errors.append(f"{name}: adopted value must be finite numeric")
                 continue
             if (group == "limits" and not 0 <= value <= 1) or (group == "parameters" and (value < 0 or (name != "auxiliary_power_kw" and value == 0))):
@@ -90,8 +110,6 @@ def audit_facts(facts: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]
             if not isinstance(source, dict):
                 errors.append(f"{name}: adopted source is required")
             else:
-                from schemas.types import SourceRef
-                from schemas.validate import require_valid
                 try:
                     ref = SourceRef.from_dict(source)
                     require_valid(ref)
@@ -127,7 +145,8 @@ def audit_facts(facts: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]
     ready = not errors and all(name in adopted for name in REQUIRED) and not any(name.startswith("policy.") for name in pending)
     return {"status": "invalid_input" if errors else ("ok" if ready else "need_clarification"),
             "vessel_id": facts.get("vessel_id"), "errors": errors, "pending": pending,
-            "adopted": adopted, "calculation_ready": ready}
+            "adopted": adopted, "calculation_ready": ready,
+            "readiness_scope": "minimum_energy_budget_inputs_only; not complete VesselState or ship safety approval"}
 
 
 def main(argv: list[str] | None = None) -> int:
