@@ -1,0 +1,83 @@
+{
+  "format_version": 1,
+  "vessel_id": "豫交投001",
+  "serialization": "JSON-compatible YAML 1.2; load with json.load, no extra dependency",
+  "sources": {
+    "design": {
+      "source_id": "docs/团队资料/04_船舶与航线/豫交投001参数.docx",
+      "kind": "document", "confirmed": true,
+      "note": "已核对仓库原文；仅确认文档载明内容，未确认实船采用参数"
+    },
+    "survey_summary": {
+      "source_id": "docs/团队资料/02_当前设计/技术方案汇总.md",
+      "kind": "document", "confirmed": false,
+      "note": "第6.1节转述调研；原始调研报告未在仓库中，尚未直接核对"
+    }
+  },
+  "parameters": {
+    "capacity_kwh": {
+      "unit": "kWh", "use_case": "有效容量与SOC预算", "proposed_value": 1567,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [
+        {"value": 1567, "source": "design", "locator": "表1 电池电源 电池容量", "meaning": "30TEU船文档标称容量，不等于有效可用容量"},
+        {"value": 1567.86, "source": "design", "locator": "表1 电池电源 电池容量附注", "meaning": "36TEU相关箱式电源总容量，适用本船待确认"}
+      ],
+      "decision_needed": "确认本船有效容量、SOH/损耗边界，批准采用值"
+    },
+    "battery_group_capacity_kwh": {
+      "unit": "kWh", "use_case": "电池拓扑核查", "proposed_value": null,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [
+        {"value": 783.93, "source": "design", "locator": "表1 电池电源 附注", "meaning": "36TEU相关电源每组容量；2组独立输出；非已确认本船拓扑"}
+      ],
+      "decision_needed": "索取本船拓扑，禁止将总容量加两组容量重复统计"
+    },
+    "max_power_kw": {
+      "unit": "kW", "use_case": "与模型峰值功率同边界的上限", "proposed_value": null,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [
+        {"value": 140, "source": "design", "locator": "表1 航行动力 电机功率", "meaning": "原文仅称电机功率，未说明额定/峰值和计量边界"},
+        {"value": 250, "source": "survey_summary", "locator": "第6.1节 电机功率", "meaning": "调研额定功率转述，尚未核对原报告"},
+        {"value": 200, "source": "survey_summary", "locator": "第6.1节 电机功率", "meaning": "调研最大约200kW转述，与额定250kW关系待确认"}
+      ],
+      "decision_needed": "区分额定/运行/峰值、轴侧/电池侧，说明效率换算"
+    },
+    "max_speed_kmh": {
+      "unit": "km/h", "use_case": "船舶设计能力，航段限速由C提供", "proposed_value": 13,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [{"value": 13, "source": "design", "locator": "表1 航行动力 最大航速", "meaning": "最大航速，不自动作为航段允许限速"}],
+      "decision_needed": "确认适用载况和环境"
+    },
+    "economic_speed_kmh": {
+      "unit": "km/h", "use_case": "固定航速对照候选", "proposed_value": 6,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [{"value": 6, "source": "design", "locator": "表1 航行动力 续航力", "meaning": "经济航速6km/h，与6节不同；续航12h的载况/环境未知"}],
+      "decision_needed": "固定航速对比仍须满足同一任务硬约束"
+    },
+    "auxiliary_power_kw": {
+      "unit": "kW", "use_case": "航行和等待辅助能量预算", "proposed_value": null,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [],
+      "decision_needed": "15kW发电机额定容量不是实际辅助功率；设备铭牌不能直接求和当恒定运行值"
+    },
+    "draft_m": {
+      "unit": "m", "use_case": "按载况确认吃水与水深边界", "proposed_value": null,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [
+        {"value": 2.52, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "A级载货"},
+        {"value": 2.65, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "B级载货"},
+        {"value": 2.90, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "C级载货"},
+        {"value": 2.40, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "A级装载集装箱"},
+        {"value": 1.5, "source": "survey_summary", "locator": "第6.1节 吃水", "meaning": "调研空载转述"},
+        {"value": 3.2, "source": "survey_summary", "locator": "第6.1节 吃水", "meaning": "调研满载转述；设计原文3.20m为型深，不能改称设计吃水"}
+      ],
+      "decision_needed": "由用户载况或有依据映射选择；不可直接采用型深"
+    },
+    "charging_power_kw": {
+      "unit": "kW", "use_case": "真实补能可行性", "proposed_value": null,
+      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "candidates": [],
+      "decision_needed": "充满8-10h转述不能推断沿途充电功率，需站点、可用性和充电曲线"
+    }
+  }
+}

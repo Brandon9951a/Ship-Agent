@@ -1,0 +1,29 @@
+{
+  "format_version": 1,
+  "soc_unit": "fraction",
+  "limits": {
+    "soc_min": {
+      "unit": "fraction", "adopted": null, "confirmed_by": null,
+      "decision_needed": "A确认规划安全下限，不能由停机线自动赋值"
+    },
+    "soc_alarm": {
+      "unit": "fraction", "adopted": null, "confirmed_by": null,
+      "candidate": {"value": 0.25, "source_id": "docs/团队资料/02_当前设计/技术方案汇总.md", "kind": "document", "locator": "第6.1节 SOC阈值", "confirmed": false},
+      "decision_needed": "原调研报告到位后确认25%报警线"
+    },
+    "soc_shutdown": {
+      "unit": "fraction", "adopted": null, "confirmed_by": null,
+      "candidate": {"value": 0.20, "source_id": "docs/团队资料/02_当前设计/技术方案汇总.md", "kind": "document", "locator": "第6.1节 SOC阈值", "confirmed": false},
+      "decision_needed": "原调研报告确认20%停机线；不等于允许规划至此"
+    }
+  },
+  "policy": {
+    "unknown_values": "null",
+    "power_boundary": null,
+    "capacity_boundary": null,
+    "battery_topology": null,
+    "energy_scope": null,
+    "auxiliary_in_waiting": "must_account_once",
+    "charging_capability": "requires_site_evidence"
+  }
+}
