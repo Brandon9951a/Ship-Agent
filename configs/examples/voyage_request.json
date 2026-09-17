@@ -1,0 +1,11 @@
+{
+  "origin": "平顶山港",
+  "destination": "军李船闸",
+  "departure_at": "2026-09-18T09:00:00+08:00",
+  "arrival_deadline": null,
+  "max_duration_h": 6,
+  "soc_initial": 0.85,
+  "load_state": "半载",
+  "draft_m": null,
+  "environment": {}
+}
