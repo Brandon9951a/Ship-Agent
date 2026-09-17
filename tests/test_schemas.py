@@ -285,3 +285,149 @@ def test_management_cannot_relax_adopted_soc_limit(plan):
 def test_soc_trajectory_must_match_selected_segments(plan):
     management = replace(plan.management, soc_trajectory=[SocPoint("wrong", 0.89)])
     assert validate(replace(plan, management=management)).status == Status.INVALID_INPUT
+
+
+@pytest.mark.parametrize("tool", ["Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement"])
+def test_success_tool_envelope_validates_standard_payload(plan, tool):
+    payloads = {
+        "Tdata": plan.data.to_dict(),
+        "Tseg": {"segments": [item.to_dict() for item in plan.segments]},
+        "Tenergy": {"candidate_results": [item.to_dict() for item in plan.optimization.energy_results]},
+        "Tspeed": plan.optimization.to_dict(),
+        "Tmanagement": plan.management.to_dict(),
+    }
+    assert validate(ToolResponse(tool, Status.OK, payloads[tool])).valid
+
+
+@pytest.mark.parametrize("tool", ["Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement"])
+def test_success_tool_rejects_arbitrary_payload(tool):
+    response = ToolResponse(tool, Status.OK, {"unrelated": "not a business result"})
+    assert validate(response).status == Status.INVALID_INPUT
+
+
+@pytest.mark.parametrize("tool,key", [("Tseg", "segments"), ("Tenergy", "candidate_results")])
+def test_success_tool_rejects_empty_result_list(tool, key):
+    assert not validate(ToolResponse(tool, Status.OK, {key: []})).valid
+
+
+def test_speed_infeasible_payload_cannot_be_wrapped_as_ok():
+    payload = OptimizationResult(False, "total", infeasible_type=InfeasibleType.TIME,
+                                 reason="测试时间不可行").to_dict()
+    assert validate(ToolResponse("Tspeed", Status.OK, payload)).status == Status.INVALID_INPUT
+
+
+def test_unsafe_management_payload_cannot_be_wrapped_as_ok(plan):
+    payload = replace(plan.management, safe=False).to_dict()
+    assert validate(ToolResponse("Tmanagement", Status.OK, payload)).status == Status.INVALID_INPUT
+
+
+def test_tool_standard_name_is_required(plan):
+    response = ToolResponse("tspeed", Status.OK, plan.optimization.to_dict())
+    assert validate(response).status == Status.INVALID_INPUT
+
+
+def test_calculation_tool_cannot_wait_for_user_choice():
+    response = ToolResponse("Tspeed", Status.AWAITING_CHOICE, reason="请调整")
+    assert validate(response).status == Status.INVALID_INPUT
+
+
+@pytest.mark.parametrize("status", [
+    Status.NEED_CLARIFICATION, Status.INVALID_INPUT, Status.INFEASIBLE,
+    Status.FAILED, Status.AWAITING_CHOICE,
+])
+def test_partial_plan_status_does_not_require_success_payload(status):
+    partial = VoyagePlan(
+        VoyageRequest(origin="测试港A"), status,
+        clarification_questions=["初始 SOC 是多少？"],
+        reason="仅用于测试的诊断状态",
+    )
+    assert validate(partial).valid
+    assert VoyagePlan.from_dict(partial.to_dict()) == partial
+
+
+def test_partial_plan_still_rejects_malformed_nested_types():
+    partial = VoyagePlan(VoyageRequest(soc_initial=float("nan")), Status.FAILED,
+                         reason="测试失败")
+    assert validate(partial).status == Status.INVALID_INPUT
+
+
+def test_clarification_plan_requires_question():
+    partial = VoyagePlan(VoyageRequest(), Status.NEED_CLARIFICATION)
+    assert not validate(partial).valid
+
+
+@pytest.mark.parametrize("status", [Status.INVALID_INPUT, Status.INFEASIBLE, Status.FAILED])
+def test_failed_or_rejected_plan_requires_reason(status):
+    assert not validate(VoyagePlan(VoyageRequest(), status)).valid
+
+
+def test_unknown_charging_need_cannot_be_safe(plan):
+    result = validate(replace(plan.management, charge_required_kwh=None))
+    assert "charge_required_kwh" in result.missing_fields
+
+
+def test_unknown_auxiliary_energy_cannot_be_safe(plan):
+    result = validate(replace(plan.management, auxiliary_energy_kwh=None))
+    assert "auxiliary_energy_kwh" in result.missing_fields
+
+
+def test_energy_budget_cannot_exceed_capacity_after_reserve(plan):
+    management = replace(plan.management, available_energy_kwh=100.0)
+    result = validate(management)
+    assert result.status == Status.INVALID_INPUT
+    assert any(item.field == "available_energy_kwh" for item in result.issues)
+
+
+def test_soc_change_must_equal_battery_side_consumption(plan):
+    management = replace(plan.management, soc_final=0.5, soc_trajectory=[SocPoint("s1", 0.5)])
+    result = validate(management)
+    assert result.status == Status.INVALID_INPUT
+    assert any(item.field == "soc_final" for item in result.issues)
+
+
+def test_consumption_plan_cannot_invent_soc_increase(plan):
+    management = replace(plan.management, soc_trajectory=[
+        SocPoint("s1", 0.8), SocPoint("s2", 0.89),
+    ])
+    assert validate(management).status == Status.INVALID_INPUT
+
+
+def test_extremely_large_integer_is_rejected_without_crash(voyage_request):
+    payload = voyage_request.to_dict()
+    payload["soc_initial"] = 10 ** 400
+    decoded, result = parse_request(payload)
+    assert decoded is None
+    assert result.status == Status.INVALID_INPUT
+
+
+def test_optional_nested_decode_preserves_field_path(plan):
+    payload = plan.to_dict()
+    payload["data"]["vessel"]["sources"]["capacity_kwh"]["kind"] = "unknown"
+    with pytest.raises(SchemaValidationError) as error:
+        VoyagePlan.from_dict(payload)
+    assert error.value.result.issues[0].field == "data.vessel.sources.capacity_kwh.kind"
+
+
+@pytest.mark.parametrize("scope", ["total", "propulsion"])
+def test_each_segment_soc_must_account_for_segment_energy(plan, scope):
+    source = plan.segments[0].source
+    segments = [
+        Segment("s1", "测试港A", "测试中间点", 0.4, max_speed_kmh=20, waiting_h=0, source=source),
+        Segment("s2", "测试中间点", "测试港B", 0.6, max_speed_kmh=20, waiting_h=0, source=source),
+    ]
+    energies = [
+        EnergyResult("s1", 10, 10, 0.04, 0.4, scope, "synthetic", peak_power_kw=10),
+        EnergyResult("s2", 10, 10, 0.06, 0.6, scope, "synthetic", peak_power_kw=10),
+    ]
+    optimization = replace(plan.optimization, energy_scope=scope, energy_results=energies)
+    management = replace(plan.management, soc_trajectory=[
+        SocPoint("s1", 0.896), SocPoint("s2", 0.89),
+    ])
+    correct = replace(plan, segments=segments, optimization=optimization, management=management)
+    assert validate(correct).valid
+    wrong = replace(management, soc_trajectory=[SocPoint("s1", 0.897), SocPoint("s2", 0.89)])
+    assert validate(replace(correct, management=wrong)).status == Status.INVALID_INPUT
+
+
+def test_auxiliary_energy_cannot_exceed_total_consumption(plan):
+    assert validate(replace(plan.management, auxiliary_energy_kwh=2)).status == Status.INVALID_INPUT

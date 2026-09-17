@@ -67,6 +67,15 @@ def _path(parent: str, name: str) -> str:
     return f"{parent}.{name}" if parent else name
 
 
+def _finite_number(value: Any) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return isfinite(value)
+    except OverflowError:
+        return False
+
+
 def _decode(expected: Any, value: Any, path: str) -> Any:
     def fail(code: str, message: str) -> None:
         raise SchemaValidationError(_result([ValidationIssue(path, code, message)]))
@@ -75,7 +84,7 @@ def _decode(expected: Any, value: Any, path: str) -> Any:
         # Tool payloads must remain JSON-compatible, including finite numbers.
         if value is None or isinstance(value, (str, bool)):
             return value
-        if isinstance(value, (int, float)) and isfinite(value):
+        if _finite_number(value):
             return value
         if isinstance(value, list):
             return [_decode(Any, item, f"{path}[{i}]") for i, item in enumerate(value)]
@@ -84,6 +93,12 @@ def _decode(expected: Any, value: Any, path: str) -> Any:
         fail("invalid_type", "需要可序列化的 JSON 值，数值必须有限。")
     origin, args = get_origin(expected), get_args(expected)
     if origin in (Union, UnionType):
+        if type(None) in args:
+            if value is None:
+                return None
+            remaining = [option for option in args if option is not type(None)]
+            if len(remaining) == 1:
+                return _decode(remaining[0], value, path)
         for option in args:
             try:
                 return _decode(option, value, path)
@@ -131,7 +146,7 @@ def _decode(expected: Any, value: Any, path: str) -> Any:
                 ]))
         return expected(**decoded)
     if expected is float:
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value):
+        if not _finite_number(value):
             fail("invalid_type", "需要有限数值，不能使用布尔值或数值字符串。")
         return float(value)
     if expected is str:
@@ -202,6 +217,37 @@ def validate(model: SchemaModel) -> ValidationResult:
         if len(present) != len(checks):
             issue(path, "inconsistent_value", "约束名称重复。")
 
+    def check_tool_payload(response: ToolResponse, path: str) -> None:
+        if response.payload is None:
+            return
+        records = {
+            "Tdata": DataContext, "Tspeed": OptimizationResult,
+            "Tmanagement": ManagementPlan,
+        }
+        try:
+            if response.tool in records:
+                content = _decode(records[response.tool], response.payload, path)
+            elif response.tool in ("Tseg", "Tenergy"):
+                key, record = (("segments", Segment) if response.tool == "Tseg"
+                               else ("candidate_results", EnergyResult))
+                if set(response.payload) != {key}:
+                    issue(path, "invalid_type", f"payload 必须仅包含 {key} 列表。")
+                    return
+                content = _decode(list[record], response.payload[key], _path(path, key))
+                if not content:
+                    issue(_path(path, key), "missing", "成功工具结果列表不能为空。")
+                path = _path(path, key)
+            else:
+                return
+        except SchemaValidationError as exc:
+            issues.extend(exc.result.issues)
+            return
+        if isinstance(content, OptimizationResult) and not content.feasible:
+            issue(path, "inconsistent_value", "不可行计算应返回 infeasible，不能标为 ok。")
+        if isinstance(content, ManagementPlan) and content.safe is not True:
+            issue(_path(path, "safe"), "inconsistent_value", "能量管理未确认安全，不能标为 ok。")
+        walk(content, path)
+
     def walk(value: Any, path: str = "") -> None:
         p = lambda name: _path(path, name)
         if isinstance(value, SourceRef):
@@ -244,7 +290,7 @@ def validate(model: SchemaModel) -> ValidationResult:
             for name in value.missing_fields:
                 issue(p(name), "missing", "取数仍有缺项。")
             for conflict in value.conflicts:
-                if not conflict.resolution:
+                if not conflict.resolution or not conflict.resolution.strip():
                     issue(p("conflicts." + conflict.field_name), "missing", "参数冲突尚未处理。")
             for name, parameter in value.parameters.items():
                 if parameter.value is None:
@@ -317,7 +363,8 @@ def validate(model: SchemaModel) -> ValidationResult:
                 positive(getattr(value, name), p(name), zero=name != "capacity_kwh")
             if value.safe is True:
                 for name in ("soc_initial", "soc_final", "soc_min", "capacity_kwh",
-                             "available_energy_kwh", "required_energy_kwh"):
+                             "available_energy_kwh", "required_energy_kwh",
+                             "auxiliary_energy_kwh", "charge_required_kwh"):
                     required(getattr(value, name), p(name))
                 checks_ok(value.checks, p("checks"), {"soc"})
                 if not value.soc_trajectory:
@@ -338,12 +385,38 @@ def validate(model: SchemaModel) -> ValidationResult:
                 if value.available_energy_kwh is not None and value.required_energy_kwh is not None:
                     if value.required_energy_kwh > value.available_energy_kwh + 1e-6:
                         issue(p("required_energy_kwh"), "inconsistent_value", "需求超过可用预算。")
+                if value.auxiliary_energy_kwh is not None and value.required_energy_kwh is not None:
+                    if value.auxiliary_energy_kwh > value.required_energy_kwh + 1e-6:
+                        issue(p("auxiliary_energy_kwh"), "inconsistent_value", "辅助能耗不能超过总能耗。")
+                if all(item is not None for item in (
+                    value.capacity_kwh, value.soc_initial, value.soc_min,
+                    value.available_energy_kwh,
+                )):
+                    maximum = value.capacity_kwh * max(value.soc_initial - value.soc_min, 0)
+                    if value.available_energy_kwh > maximum + 1e-6:
+                        issue(p("available_energy_kwh"), "inconsistent_value", "可用预算超过扣除安全储备后的电量。")
+                if all(item is not None for item in (
+                    value.capacity_kwh, value.soc_initial, value.soc_final,
+                    value.required_energy_kwh,
+                )):
+                    consumed = value.capacity_kwh * (value.soc_initial - value.soc_final)
+                    if not isclose(consumed, value.required_energy_kwh, rel_tol=1e-6, abs_tol=1e-6):
+                        issue(p("soc_final"), "inconsistent_value", "SOC 变化与电池侧总能耗不一致。")
+                if value.soc_initial is not None:
+                    previous = value.soc_initial
+                    for point in value.soc_trajectory:
+                        if point.soc > previous + 1e-6:
+                            issue(p("soc_trajectory"), "inconsistent_value", "未执行补能的消耗方案不能凭空增加 SOC。")
+                        previous = point.soc
         elif isinstance(value, ToolResponse):
             required(value.tool, p("tool"))
+            if value.tool not in {"Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement"}:
+                issue(p("tool"), "invalid_value", "tool 必须使用五工具的标准名称。")
             if value.status == Status.OK:
                 required(value.payload, p("payload"))
                 if value.missing_fields or value.questions or value.infeasible_type:
                     issue(p("status"), "inconsistent_value", "成功状态包含缺参或不可行信息。")
+                check_tool_payload(value, p("payload"))
             elif value.status == Status.NEED_CLARIFICATION:
                 if not value.missing_fields or not value.questions:
                     issue(path, "inconsistent_value", "追问状态需给出缺失字段和问题。")
@@ -352,7 +425,20 @@ def validate(model: SchemaModel) -> ValidationResult:
                 required(value.infeasible_type, p("infeasible_type"))
             elif value.status in (Status.FAILED, Status.INVALID_INPUT):
                 required(value.reason, p("reason"))
+            elif value.status == Status.AWAITING_CHOICE:
+                issue(p("status"), "invalid_value", "awaiting_choice 仅用于编排方案，不用于计算工具。")
         elif isinstance(value, VoyagePlan):
+            if value.status != Status.OK:
+                if value.status == Status.NEED_CLARIFICATION:
+                    if not value.clarification_questions or not all(
+                        question.strip() for question in value.clarification_questions
+                    ):
+                        issue(p("clarification_questions"), "missing", "追问方案必须提供明确问题。")
+                else:
+                    required(value.reason, p("reason"))
+                # Partial/failure plans are diagnostic records. Structural decoding
+                # above already checks every nested type; readiness applies to OK.
+                return
             if value.status == Status.OK:
                 for name in ("data", "optimization", "management"):
                     required(getattr(value, name), p(name))
@@ -428,6 +514,19 @@ def validate(model: SchemaModel) -> ValidationResult:
                         expected, management.required_energy_kwh, rel_tol=1e-6, abs_tol=1e-6
                     ):
                         issue(p("management.required_energy_kwh"), "inconsistent_value", "优化与能量预算口径不一致。")
+                if opt and management and management.capacity_kwh is not None:
+                    if management.capacity_kwh > 0 and value.request.soc_initial is not None:
+                        previous = value.request.soc_initial
+                        for energy, point in zip(opt.energy_results, management.soc_trajectory):
+                            consumed = management.capacity_kwh * (previous - point.soc)
+                            consistent = (
+                                isclose(consumed, energy.energy_kwh, rel_tol=1e-6, abs_tol=1e-6)
+                                if opt.energy_scope == "total"
+                                else consumed + 1e-6 >= energy.energy_kwh
+                            )
+                            if not consistent:
+                                issue(p("management.soc_trajectory"), "inconsistent_value", "分段 SOC 与对应电池侧能耗不一致。")
+                            previous = point.soc
         if is_dataclass(value):
             for definition in fields(value):
                 walk(getattr(value, definition.name), p(definition.name))
