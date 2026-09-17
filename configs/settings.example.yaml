@@ -1,0 +1,12 @@
+app:
+  name: agent_v2
+  environment: development
+
+agent:
+  default_task: status
+  tool_chain:
+    - Tdata
+    - Tseg
+    - Tenergy
+    - Tspeed
+    - Tmanagement
