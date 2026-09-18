@@ -1,0 +1,47 @@
+{
+  "aliases": {
+    "平顶山港": {
+      "canonical": "平顶山港",
+      "kind": "port"
+    },
+    "军李船闸": {
+      "canonical": "军李船闸",
+      "kind": "lock"
+    },
+    "马湾船闸": {
+      "canonical": "马湾船闸",
+      "kind": "lock"
+    },
+    "漯河船闸": {
+      "canonical": "漯河船闸",
+      "kind": "lock"
+    },
+    "漯河港": {
+      "canonical": "漯河港",
+      "kind": "port"
+    },
+    "大路李船闸": {
+      "canonical": "大路李船闸",
+      "kind": "lock"
+    },
+    "葫芦湾船闸": {
+      "canonical": "葫芦湾船闸",
+      "kind": "lock"
+    },
+    "周口船闸": {
+      "canonical": "周口船闸",
+      "kind": "lock"
+    },
+    "周口港": {
+      "canonical": "周口港",
+      "kind": "port"
+    }
+  },
+  "rules": {
+    "unknown_place": "need_clarification",
+    "port_and_lock_are_distinct": true,
+    "unresolved_conflict": "need_clarification",
+    "reverse_route": "reverse_explicit_segment_order"
+  }
+}
+

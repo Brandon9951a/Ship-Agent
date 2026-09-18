@@ -1,0 +1,359 @@
+{
+  "format_version": 1,
+  "serialization": "JSON-compatible YAML 1.2; read with Python standard-library json.load",
+  "route_id": "yj001_pingdingshan_zhoukou_forward",
+  "status": "distance_source_checked_constraints_pending",
+  "distance_unit": "km",
+  "source_fingerprints": {
+    "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx": "772b8e62d6778c8ee0549b62a8fa98892cb9690ca18960b82e7e46f8ef129e31"
+  },
+  "routes": {
+    "forward": {
+      "origin": "平顶山港",
+      "destination": "周口港",
+      "segment_ids": [
+        "s01_pingdingshan_gang_to_junli",
+        "s02_junli_to_mawan",
+        "s03_mawan_to_luohe",
+        "s04_luohe_lock_to_luohe_port",
+        "s05_luohe_port_to_daluli",
+        "s06_daluli_to_huluwan",
+        "s07_huluwan_to_zhoukou_lock",
+        "s08_zhoukou_lock_to_zhoukou_port"
+      ]
+    },
+    "reverse": {
+      "origin": "周口港",
+      "destination": "平顶山港",
+      "segment_ids": [
+        "s08_zhoukou_lock_to_zhoukou_port_reverse",
+        "s07_huluwan_to_zhoukou_lock_reverse",
+        "s06_daluli_to_huluwan_reverse",
+        "s05_luohe_port_to_daluli_reverse",
+        "s04_luohe_lock_to_luohe_port_reverse",
+        "s03_mawan_to_luohe_reverse",
+        "s02_junli_to_mawan_reverse",
+        "s01_pingdingshan_gang_to_junli_reverse"
+      ],
+      "note": "Reverse order is explicit; shared distances do not confirm reverse navigation conditions."
+    }
+  },
+  "segments": [
+    {
+      "id": "s01_pingdingshan_gang_to_junli",
+      "origin": "平顶山港",
+      "destination": "军李船闸",
+      "distance_km": 25.5,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第1页：平顶山港—军李船闸，25.5km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s02_junli_to_mawan",
+      "origin": "军李船闸",
+      "destination": "马湾船闸",
+      "distance_km": 25,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第2页：军李船闸—马湾船闸，25km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s03_mawan_to_luohe",
+      "origin": "马湾船闸",
+      "destination": "漯河船闸",
+      "distance_km": 44.1,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第3页：马湾船闸—漯河船闸，44.1km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s04_luohe_lock_to_luohe_port",
+      "origin": "漯河船闸",
+      "destination": "漯河港",
+      "distance_km": 0.689,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第4页：漯河船闸—漯河港，689m；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s05_luohe_port_to_daluli",
+      "origin": "漯河港",
+      "destination": "大路李船闸",
+      "distance_km": 22.6,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第5页：漯河港—大路李船闸，22.6km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s06_daluli_to_huluwan",
+      "origin": "大路李船闸",
+      "destination": "葫芦湾船闸",
+      "distance_km": 24.9,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第6页：大路李船闸—葫芦湾船闸，24.9km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s07_huluwan_to_zhoukou_lock",
+      "origin": "葫芦湾船闸",
+      "destination": "周口船闸",
+      "distance_km": 27.4,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第7页：葫芦湾船闸—周口船闸，27.4km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s08_zhoukou_lock_to_zhoukou_port",
+      "origin": "周口船闸",
+      "destination": "周口港",
+      "distance_km": 19.6,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第8页：周口船闸—周口港，19.6km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": []
+    },
+    {
+      "id": "s08_zhoukou_lock_to_zhoukou_port_reverse",
+      "origin": "周口港",
+      "destination": "周口船闸",
+      "distance_km": 19.6,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第8页：周口船闸—周口港，19.6km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    },
+    {
+      "id": "s07_huluwan_to_zhoukou_lock_reverse",
+      "origin": "周口船闸",
+      "destination": "葫芦湾船闸",
+      "distance_km": 27.4,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第7页：葫芦湾船闸—周口船闸，27.4km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    },
+    {
+      "id": "s06_daluli_to_huluwan_reverse",
+      "origin": "葫芦湾船闸",
+      "destination": "大路李船闸",
+      "distance_km": 24.9,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第6页：大路李船闸—葫芦湾船闸，24.9km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    },
+    {
+      "id": "s05_luohe_port_to_daluli_reverse",
+      "origin": "大路李船闸",
+      "destination": "漯河港",
+      "distance_km": 22.6,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第5页：漯河港—大路李船闸，22.6km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    },
+    {
+      "id": "s04_luohe_lock_to_luohe_port_reverse",
+      "origin": "漯河港",
+      "destination": "漯河船闸",
+      "distance_km": 0.689,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第4页：漯河船闸—漯河港，689m；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    },
+    {
+      "id": "s03_mawan_to_luohe_reverse",
+      "origin": "漯河船闸",
+      "destination": "马湾船闸",
+      "distance_km": 44.1,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第3页：马湾船闸—漯河船闸，44.1km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    },
+    {
+      "id": "s02_junli_to_mawan_reverse",
+      "origin": "马湾船闸",
+      "destination": "军李船闸",
+      "distance_km": 25,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第2页：军李船闸—马湾船闸，25km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    },
+    {
+      "id": "s01_pingdingshan_gang_to_junli_reverse",
+      "origin": "军李船闸",
+      "destination": "平顶山港",
+      "distance_km": 25.5,
+      "max_speed_kmh": null,
+      "min_speed_kmh": null,
+      "waiting_h": null,
+      "source": {
+        "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+        "kind": "document",
+        "locator": "幻灯片第1页：平顶山港—军李船闸，25.5km；第9页汇总",
+        "confirmed": true,
+        "note": "2026-09-18核对PPT载明的距离；不等同于实船测量或航行条件批准。"
+      },
+      "assumptions": [
+        "返程仅沿用同一航段资料距离并反转节点；逆向通航、限速和等待条件未确认。"
+      ]
+    }
+  ],
+  "sources": {
+    "distance_km": {
+      "source_id": "docs/团队资料/04_船舶与航线/豫交投001港、闸之间距离情况.pptx",
+      "kind": "document",
+      "locator": "幻灯片第1–8页逐段；第9页汇总",
+      "confirmed": true,
+      "note": "仅确认原始PPT载明的距离与单位。未确认通航、安全约束或资料公开权限。"
+    },
+    "waiting_h": {
+      "source_id": "not_yet_available",
+      "kind": "document",
+      "confirmed": false,
+      "note": "Do not encode unknown waiting as zero."
+    },
+    "speed_limits": {
+      "source_id": "not_yet_available",
+      "kind": "document",
+      "confirmed": false,
+      "note": "Missing limits require clarification before calculation."
+    },
+    "charging": {
+      "source_id": "not_yet_available",
+      "kind": "document",
+      "confirmed": false,
+      "note": "No charging location, power, availability or waiting promise is made."
+    }
+  }
+}
+
