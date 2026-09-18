@@ -5,7 +5,7 @@ from zipfile import ZipFile
 
 import pytest
 
-from scripts.prepare_data import ROOT, main, prepare_file, prepare_rows
+from scripts.prepare_data import main, prepare_file, prepare_rows
 
 MAPPING = {"time_column": 0, "time_format": "elapsed_seconds", "fields": {
     "speed": {"column": 1, "role": "speed", "unit": "knots"},
@@ -113,16 +113,24 @@ def test_xlsx_reader_and_unit_conversion(tmp_path):
     assert source.read_bytes() == before
 
 
-def test_cli_protects_non_artifact_output_and_existing_directories(tmp_path):
+def test_cli_protects_non_artifact_output_and_existing_directories(tmp_path, monkeypatch):
+    import scripts.prepare_data as module
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    # Establish the precondition explicitly, never rely on ignored local outputs.
+    artifacts = tmp_path / "artifacts"
+    artifacts.mkdir()
     assert main(["--output-dir", str(tmp_path / "out")]) == 1
     assert not (tmp_path / "out").exists()
-    assert main(["--output-dir", str(ROOT / "artifacts")]) == 1
+    assert main(["--output-dir", str(artifacts)]) == 1
+    assert list(artifacts.iterdir()) == []
 
 
-def test_cli_invalid_mapping_leaves_no_outputs(tmp_path):
+def test_cli_invalid_mapping_leaves_no_outputs(tmp_path, monkeypatch):
+    import scripts.prepare_data as module
+    monkeypatch.setattr(module, "ROOT", tmp_path)
     mapping = tmp_path / "mapping.json"
     mapping.write_text("[]", encoding="utf-8")
-    output = ROOT / "artifacts" / ("test-invalid-" + tmp_path.name)
+    output = tmp_path / "artifacts" / "invalid"
     assert main(["--mapping", str(mapping), "--output-dir", str(output)]) == 1
     assert not output.exists()
 
