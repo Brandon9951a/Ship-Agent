@@ -1,0 +1,13 @@
+{
+  "note": "Synthetic column names demonstrating configuration only; replace using actual headers and source evidence before use",
+  "header_row": 1,
+  "time_column": "time",
+  "time_format": "iso",
+  "timezone_offset": null,
+  "fields": {
+    "speed": {"column": "speed", "role": "speed", "unit": "knots"},
+    "battery1_soc": {"column": "soc1", "role": "soc", "unit": "percent"},
+    "battery2_soc": {"column": "soc2", "role": "soc", "unit": "percent"},
+    "power": {"column": "power", "role": "power", "unit": "kW"}
+  }
+}
