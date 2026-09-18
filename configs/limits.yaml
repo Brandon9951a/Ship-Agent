@@ -1,0 +1,32 @@
+{
+  "format_version": 1,
+  "soc_unit": "fraction",
+  "limits": {
+    "soc_min": {
+      "unit": "fraction", "adopted": null, "confirmed_by": null,
+      "use_case": "规划能量预算硬约束", "proposed_value": null, "confirmation_status": "pending_A", "candidates": [],
+      "decision_needed": "A确认规划安全下限，不能由停机线自动赋值"
+    },
+    "soc_alarm": {
+      "unit": "fraction", "adopted": null, "confirmed_by": null,
+      "use_case": "SOC预警", "proposed_value": null, "confirmation_status": "pending_A",
+      "candidates": [{"value": 0.25, "source": "survey_summary", "locator": "第6.1节 SOC阈值", "meaning": "25%报警线的间接转述，原报告待核对"}],
+      "decision_needed": "原调研报告到位后确认25%报警线"
+    },
+    "soc_shutdown": {
+      "unit": "fraction", "adopted": null, "confirmed_by": null,
+      "use_case": "实船硬保护阈值，不自动等于规划下限", "proposed_value": null, "confirmation_status": "pending_A",
+      "candidates": [{"value": 0.20, "source": "survey_summary", "locator": "第6.1节 SOC阈值", "meaning": "20%停机线的间接转述，原报告待核对"}],
+      "decision_needed": "原调研报告确认20%停机线；不等于允许规划至此"
+    }
+  },
+  "policy": {
+    "unknown_values": "null",
+    "power_boundary": null,
+    "capacity_boundary": null,
+    "battery_topology": null,
+    "energy_scope": null,
+    "auxiliary_in_waiting": "must_account_once",
+    "charging_capability": "requires_site_evidence"
+  }
+}

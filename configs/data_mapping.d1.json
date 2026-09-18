@@ -1,0 +1,36 @@
+{
+  "note": "D1 inspection only. Header units are recorded, not proof of sensor boundary. CSV units and battery_capacity meaning remain unconfirmed; raw fields are not converted or adopted. Calendar timezone and XLSX calendar origin remain unknown.",
+  "header_row": 1,
+  "time_column": "timestamp",
+  "time_format": "iso",
+  "timezone_offset": null,
+  "fields": {
+    "speed_raw": {"column": "speed_over_ground", "role": "other", "unit": null, "intended_role": "speed"},
+    "motor_power_raw": {"column": "motor_power", "role": "other", "unit": null, "intended_role": "power"},
+    "motor_voltage_raw": {"column": "motor_voltage", "role": "other", "unit": null, "intended_role": "voltage"},
+    "motor_current_raw": {"column": "motor_current", "role": "other", "unit": null, "intended_role": "current"},
+    "battery1_capacity_raw": {"column": "one_battery_capacity", "role": "other", "unit": null, "intended_role": "soc_candidate"},
+    "battery2_capacity_raw": {"column": "two_battery_capacity", "role": "other", "unit": null, "intended_role": "soc_candidate"},
+    "latitude": {"column": "latitude", "role": "position", "unit": null},
+    "longitude": {"column": "longitude", "role": "position", "unit": null}
+  },
+  "files": {
+    "data.xlsx": {
+      "header_row": 1,
+      "time_column": 0,
+      "time_format": "elapsed_seconds",
+      "timezone_offset": null,
+      "unit_evidence": "Sheet1 row 1: timestamp（s）, motor_power(kW), motor_voltage(V), motor_current(A), speed_over_ground(knots)",
+      "fields": {
+        "speed": {"column": 54, "role": "speed", "unit": "knots"},
+        "motor_power": {"column": 2, "role": "power", "unit": "kW"},
+        "motor_voltage": {"column": 4, "role": "voltage", "unit": "V"},
+        "motor_current": {"column": 5, "role": "current", "unit": "A"},
+        "battery1_capacity_raw": {"column": 35, "role": "other", "unit": null, "intended_role": "soc_candidate"},
+        "battery2_capacity_raw": {"column": 41, "role": "other", "unit": null, "intended_role": "soc_candidate"},
+        "latitude": {"column": 52, "role": "position", "unit": null},
+        "longitude": {"column": 53, "role": "position", "unit": null}
+      }
+    }
+  }
+}
