@@ -23,7 +23,7 @@ from scripts.inspect_data import (
 
 PRIORITY = (
     "blank_record", "ragged_record", "missing_time", "invalid_time",
-    "mixed_timezone", "out_of_order", "duplicate_timestamp",
+    "mixed_timezone", "out_of_order", "time_gap", "duplicate_timestamp",
     "duplicate_record", "missing_numeric", "invalid_numeric", "out_of_range",
     "unconfirmed_units", "negative_power", "stopped", "candidate",
 )
@@ -31,12 +31,16 @@ UNITS = {"speed": "km/h", "power": "kW", "current": "A",
          "voltage": "V", "soc": "fraction"}
 
 
-def prepare_rows(rows, mapping, *, epoch_1904=False):
+def prepare_rows(rows, mapping, *, epoch_1904=False, allow_sparse_tail=False,
+                 max_gap_seconds=300):
     """Return one audit record per source logical record, with exhaustive counts.
 
     Repeated timestamps quarantine *all* members, not just subsequent records.
     Candidate means structurally usable, NOT stable cruising or approved training.
     """
+    if (isinstance(max_gap_seconds, bool) or not isinstance(max_gap_seconds, (int, float))
+            or not math.isfinite(max_gap_seconds) or max_gap_seconds <= 0):
+        raise ValueError("max_gap_seconds must be a finite positive number")
     iterator = iter(rows)
     header_row = mapping.get("header_row", 1)
     if type(header_row) is not int or header_row < 1:
@@ -58,14 +62,22 @@ def prepare_rows(rows, mapping, *, epoch_1904=False):
     # A speed-power pair is still required for structural sample candidacy.
     unresolved = not {"speed", "power"}.issubset({spec["role"] for _, spec, _ in specs})
     records, stamps, fingerprints = [], Counter(), Counter()
-    previous = awareness = None
+    required_indexes = [time_index] + [index for _, spec, index in specs if spec["role"] in UNITS]
+    high_water = awareness = None
+    continuity_group = 0
     for number, row in enumerate(iterator, header_row + 1):
         flags, values = set(), {}
         text = [str(v).strip() if v is not None else "" for v in row]
         if not any(text):
             flags.add("blank_record")
-        if len(row) != len(headers):
+        if (len(row) > len(headers) or
+                (len(row) < len(headers) and
+                 (not allow_sparse_tail or max(required_indexes) >= len(row)))):
             flags.add("ragged_record")
+        if allow_sparse_tail and len(text) < len(headers):
+            # XLSX omits empty trailing cells. Only represent absent cells as blanks;
+            # never fill measured numeric values or relax CSV record structure.
+            text.extend([""] * (len(headers) - len(text)))
         fingerprint = hashlib.sha256(json.dumps(text, ensure_ascii=False).encode()).hexdigest()
         fingerprints[fingerprint] += 1
         raw_time = text[time_index] if time_index < len(text) else ""
@@ -82,12 +94,22 @@ def prepare_rows(rows, mapping, *, epoch_1904=False):
                     flags.add("mixed_timezone")
                     stamp = None
                 else:
-                    if previous is not None and stamp < previous:
+                    if high_water is None:
+                        continuity_group += 1
+                    elif stamp < high_water:
                         flags.add("out_of_order")
+                    else:
+                        elapsed = stamp - high_water
+                        seconds = elapsed.total_seconds() if isinstance(stamp, datetime) else elapsed
+                        if seconds > max_gap_seconds:
+                            flags.add("time_gap")
+                            continuity_group += 1
+                    high_water = stamp if high_water is None else max(high_water, stamp)
                     stamps[stamp] += 1
             except (ValueError, OverflowError):
                 flags.add("invalid_time")
-        previous = None if "blank_record" in flags else stamp
+        if stamp is None or "blank_record" in flags:
+            high_water = None  # Next valid record starts a separately identified block.
         if unresolved:
             flags.add("unconfirmed_units")
         for name, spec, index in specs:
@@ -114,6 +136,7 @@ def prepare_rows(rows, mapping, *, epoch_1904=False):
             if role == "speed" and value == 0:
                 flags.add("stopped")
         records.append({"source_logical_record": number, "_stamp": stamp,
+                        "continuity_group": continuity_group if stamp is not None else None,
                         "_fingerprint": fingerprint, "_flags": flags, "values": values})
     primary, flag_counts = Counter({key: 0 for key in PRIORITY}), Counter()
     for record in records:
@@ -136,6 +159,9 @@ def prepare_rows(rows, mapping, *, epoch_1904=False):
                "counts_reconciled": sum(primary.values()) == len(records),
                "duplicate_policy": "quarantine_all_members; no first/last/mean selection",
                "time_kind": mapping.get("time_format", "iso"),
+               "max_gap_seconds": max_gap_seconds,
+               "gap_policy": "flag_right_boundary_and_start_new_continuity_group",
+               "row_width_policy": "xlsx_sparse_optional_tail" if allow_sparse_tail else "strict",
                "numeric_channels": {name: {"role": spec["role"], "unit": UNITS[spec["role"]]}
                                     for name, spec, _ in specs if spec["role"] in UNITS},
                "unresolved_channels": [name for name, spec, _ in specs if spec["role"] == "other"],
@@ -146,13 +172,13 @@ def prepare_rows(rows, mapping, *, epoch_1904=False):
     return records, summary
 
 
-def prepare_file(path, mapping):
+def prepare_file(path, mapping, *, max_gap_seconds=300):
     before = hashlib.sha256(path.read_bytes()).hexdigest()
     tables = []
     if path.suffix.lower() in (".csv", ".tsv"):
         encoding, rows, stream = csv_rows(path)
         try:
-            records, summary = prepare_rows(rows, mapping)
+            records, summary = prepare_rows(rows, mapping, max_gap_seconds=max_gap_seconds)
         finally:
             stream.close()
         tables.append(("csv", records, summary))
@@ -161,7 +187,8 @@ def prepare_file(path, mapping):
             sheets, strings, epoch = xlsx_sheets(archive)
             for name, target in sheets:
                 selected = mapping.get("sheets", {}).get(name, mapping)
-                records, summary = prepare_rows(xlsx_rows(archive, target, strings), selected, epoch_1904=epoch)
+                records, summary = prepare_rows(xlsx_rows(archive, target, strings), selected,
+                    epoch_1904=epoch, allow_sparse_tail=True, max_gap_seconds=max_gap_seconds)
                 tables.append((name, records, summary))
     else:
         raise ValueError("Supported input formats: CSV, TSV, XLSX")
@@ -177,6 +204,8 @@ def main(argv=None):
     parser.add_argument("--search-root", type=Path, default=ROOT)
     parser.add_argument("--mapping", type=Path, default=ROOT / "configs/data_mapping.d1.json")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "artifacts/d2-prepared")
+    parser.add_argument("--max-gap-seconds", type=float, default=300,
+                        help="Quality-review gap threshold, not a vessel safety limit (default: 300)")
     args = parser.parse_args(argv)
     try:
         # Limit automatic output to ignored local artifacts, protecting configs/source trees.
@@ -190,7 +219,8 @@ def main(argv=None):
         paths = args.paths or discover_files(args.search_root)
         if not paths:
             raise ValueError("No input files found")
-        prepared = [prepare_file(path, mapping.get("files", {}).get(path.name, mapping)) for path in paths]
+        prepared = [prepare_file(path, mapping.get("files", {}).get(path.name, mapping),
+                                 max_gap_seconds=args.max_gap_seconds) for path in paths]
         missing = [name for name in DEFAULT_FILES if name not in {path.name for path in paths}] if not args.paths else []
         report = {"status": "prepared_partial" if missing else "prepared_for_review", "training_ready": False,
                   "missing_expected_files": missing,

@@ -106,10 +106,11 @@ def test_xlsx_reader_and_unit_conversion(tmp_path):
     with ZipFile(source, "w") as archive:
         archive.writestr("xl/workbook.xml", '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="S" r:id="r1"/></sheets></workbook>')
         archive.writestr("xl/_rels/workbook.xml.rels", '<Relationships><Relationship Id="r1" Target="worksheets/sheet1.xml"/></Relationships>')
-        archive.writestr("xl/worksheets/sheet1.xml", '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row><c t="inlineStr"><is><t>t</t></is></c><c t="inlineStr"><is><t>v</t></is></c><c t="inlineStr"><is><t>p</t></is></c></row><row><c><v>0</v></c><c><v>2</v></c><c><v>3000</v></c></row></sheetData></worksheet>')
+        archive.writestr("xl/worksheets/sheet1.xml", '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row><c t="inlineStr"><is><t>t</t></is></c><c t="inlineStr"><is><t>v</t></is></c><c t="inlineStr"><is><t>p</t></is></c><c t="inlineStr"><is><t>optional</t></is></c></row><row><c><v>0</v></c><c><v>2</v></c><c><v>3000</v></c></row></sheetData></worksheet>')
     before = source.read_bytes()
     _, tables = prepare_file(source, MAPPING)
     assert tables[0][1][0]["values"]["power"] == 3
+    assert tables[0][1][0]["disposition"] == "candidate"
     assert source.read_bytes() == before
 
 
@@ -167,3 +168,83 @@ def test_cli_reports_incomplete_default_inventory(tmp_path, monkeypatch):
     assert main(["--mapping", str(mapping), "--output-dir", str(output)]) == 2
     report = json.loads((output / "summary.json").read_text())
     assert report["status"] == "prepared_partial" and len(report["missing_expected_files"]) == 3
+
+
+def test_sparse_optional_tail_is_only_relaxed_for_xlsx():
+    source = [["t", "v", "p", "optional"], [0, 2, 3000]]
+    sparse, stats = prepare_rows(source, MAPPING, allow_sparse_tail=True)
+    strict, _ = prepare_rows(source, MAPPING)
+    assert sparse[0]["disposition"] == "candidate"
+    assert strict[0]["disposition"] == "ragged_record"
+    assert stats["row_width_policy"] == "xlsx_sparse_optional_tail"
+
+
+def test_sparse_tail_cannot_hide_missing_mapped_numeric_or_extra_cells():
+    rows, _ = prepare_rows([["t", "v", "p", "optional"], [0, 2],
+                            [5, 2, 3000, None, "extra"]], MAPPING, allow_sparse_tail=True)
+    assert all(row["disposition"] == "ragged_record" for row in rows)
+    assert rows[0]["values"]["power"] is None
+
+
+def test_sparse_unknown_and_position_tail_are_not_required_or_exported():
+    mapping = dict(MAPPING, fields=dict(MAPPING["fields"],
+        unknown={"column": 3, "role": "other"}, gps={"column": 4, "role": "position"}))
+    rows, _ = prepare_rows([["t", "v", "p", "unknown", "gps"], [0, 2, 3000]],
+                           mapping, allow_sparse_tail=True)
+    assert rows[0]["disposition"] == "candidate"
+    assert set(rows[0]["values"]) == {"speed", "power"}
+
+
+def test_out_of_order_recovery_retains_high_water_mark():
+    rows, _ = prepare_rows([["t", "v", "p"]] + [[t, 2, 3000] for t in [0, 5, 4, 4.5, 6]], MAPPING)
+    assert [row["disposition"] for row in rows] == ["candidate", "candidate", "out_of_order",
+                                                    "out_of_order", "candidate"]
+    assert [row["time"] for row in rows if row["disposition"] == "candidate"] == [0, 5, 6]
+
+
+def test_calendar_out_of_order_recovery_retains_high_water_mark():
+    times = ["2025-01-01T00:00:05", "2025-01-01T00:00:04", "2025-01-01T00:00:04.5"]
+    rows, _ = prepare_rows([["t", "v", "p"]] + [[t, 2, 3000] for t in times],
+                           dict(MAPPING, time_format="iso"))
+    assert [row["disposition"] for row in rows] == ["candidate", "out_of_order", "out_of_order"]
+
+
+def test_invalid_time_starts_new_identified_block():
+    rows, _ = prepare_rows([["t", "v", "p"], [5, 2, 3000], ["bad", 2, 3000], [0, 2, 3000]], MAPPING)
+    assert [row["continuity_group"] for row in rows] == [1, None, 2]
+    assert rows[2]["disposition"] == "candidate"
+
+
+@pytest.mark.parametrize("time_format,times", [
+    ("elapsed_seconds", [0, 300, 601, 606]),
+    ("iso", ["2025-01-01T00:00:00Z", "2025-01-01T00:05:00Z",
+             "2025-01-01T00:10:01Z", "2025-01-01T00:10:06Z"]),
+])
+def test_gap_boundary_uses_seconds_and_strict_threshold(time_format, times):
+    rows, stats = prepare_rows([["t", "v", "p"]] + [[t, 2, 3000] for t in times],
+                               dict(MAPPING, time_format=time_format), max_gap_seconds=300)
+    assert [row["continuity_group"] for row in rows] == [1, 1, 2, 2]
+    assert [row["disposition"] for row in rows] == ["candidate", "candidate", "time_gap", "candidate"]
+    assert stats["flag_counts_overlapping"]["time_gap"] == 1 and stats["counts_reconciled"]
+
+
+@pytest.mark.parametrize("threshold", [0, -1, True, None, "300", float("inf"), float("nan")])
+def test_invalid_gap_threshold_refused(threshold):
+    with pytest.raises(ValueError, match="max_gap_seconds"):
+        prepare_rows([["t", "v", "p"], [0, 2, 3000]], MAPPING, max_gap_seconds=threshold)
+
+
+def test_cli_gap_threshold_is_forwarded(tmp_path, monkeypatch):
+    import scripts.prepare_data as module
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    source = tmp_path / "sample.csv"
+    source.write_text("t,v,p\n0,2,3000\n10,2,3000\n", encoding="utf-8")
+    mapping = tmp_path / "mapping.json"
+    mapping.write_text(json.dumps(MAPPING), encoding="utf-8")
+    output = tmp_path / "artifacts" / "gap"
+    assert main([str(source), "--mapping", str(mapping), "--output-dir", str(output),
+                 "--max-gap-seconds", "5"]) == 0
+    report = json.loads((output / "summary.json").read_text())
+    assert report["files"][0]["tables"][0]["max_gap_seconds"] == 5
+    records = [json.loads(row) for row in (output / "quality-1-1.jsonl").read_text().splitlines()]
+    assert records[1]["disposition"] == "time_gap"
