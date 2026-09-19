@@ -10,14 +10,20 @@
     "soc_alarm": {
       "unit": "fraction", "adopted": null, "confirmed_by": null,
       "use_case": "SOC预警", "proposed_value": null, "confirmation_status": "pending_A",
-      "candidates": [{"value": 0.25, "source": "survey_summary", "locator": "第6.1节 SOC阈值", "meaning": "25%报警线的间接转述，原报告待核对"}],
-      "decision_needed": "原调研报告到位后确认25%报警线"
+      "candidates": [
+        {"value": 0.25, "source": "survey_summary", "locator": "第6.1节 SOC阈值", "meaning": "25%报警线的间接转述"},
+        {"value": 0.25, "source": "survey", "locator": "四（2）电池报警与续航（XML文本段落43）", "meaning": "原文SOC低于25%开始报警；原文已核验，当前BMS设置和A采用仍待确认"}
+      ],
+      "decision_needed": "原文已核对，A确认适用电池组和当前BMS报警设置"
     },
     "soc_shutdown": {
       "unit": "fraction", "adopted": null, "confirmed_by": null,
       "use_case": "实船硬保护阈值，不自动等于规划下限", "proposed_value": null, "confirmation_status": "pending_A",
-      "candidates": [{"value": 0.20, "source": "survey_summary", "locator": "第6.1节 SOC阈值", "meaning": "20%停机线的间接转述，原报告待核对"}],
-      "decision_needed": "原调研报告确认20%停机线；不等于允许规划至此"
+      "candidates": [
+        {"value": 0.20, "source": "survey_summary", "locator": "第6.1节 SOC阈值", "meaning": "20%停机线的间接转述"},
+        {"value": 0.20, "source": "survey", "locator": "四（2）电池报警与续航（XML文本段落43）", "meaning": "原文SOC低于20%直接断电；原文已核验，不是独立规划安全下限"}
+      ],
+      "decision_needed": "原文已核对，A确认当前保护设置；规划下限必须独立批准"
     }
   },
   "policy": {
