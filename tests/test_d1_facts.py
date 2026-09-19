@@ -16,19 +16,25 @@ def approved(facts, limits):
               "confirmed": False, "note": "Synthetic values for code tests, not vessel facts"}
     for name, value in (("capacity_kwh", 100), ("max_power_kw", 50), ("auxiliary_power_kw", 0)):
         facts["parameters"][name].update(adopted={"value": value, "source": deepcopy(source)}, confirmed_by="A-test-fixture", confirmation_status="approved_A")
+    facts["parameters"]["battery_group_capacity_kwh"].update(
+        adopted={"value": 50, "source": deepcopy(source)},
+        confirmed_by="A-test-fixture", confirmation_status="approved_A",
+    )
     limits["limits"]["soc_min"].update(adopted={"value": .3, "source": source}, confirmed_by="A-test-fixture", confirmation_status="approved_A")
     limits["policy"].update(power_boundary="battery-electrical", capacity_boundary="effective-battery-capacity",
                             battery_topology="one-budget-no-switching", energy_scope="total")
 
 
-def test_repository_config_has_no_implicit_adoption():
+def test_repository_config_records_explicit_A_D2_adoptions():
     facts, limits = configs()
     report = audit_facts(facts, limits)
     assert not report["errors"]
-    assert report["status"] == "need_clarification"
-    assert report["adopted"] == {}
-    assert "soc_min" in report["pending"]
-    assert not report["calculation_ready"]
+    assert report["status"] == "ok"
+    assert report["adopted"]["capacity_kwh"] == 1567.85
+    assert report["adopted"]["max_power_kw"] == 200
+    assert report["adopted"]["auxiliary_power_kw"] == 30
+    assert report["adopted"]["soc_min"] == .30
+    assert report["calculation_ready"]
 
 
 def test_explicit_test_approval_can_be_ready_without_duplicate_capacity():
@@ -37,7 +43,15 @@ def test_explicit_test_approval_can_be_ready_without_duplicate_capacity():
     result = audit_facts(facts, limits)
     assert result["status"] == "ok"
     assert result["adopted"]["capacity_kwh"] == 100
-    assert "battery_group_capacity_kwh" not in result["adopted"]
+    assert result["adopted"]["battery_group_capacity_kwh"] * 2 == 100
+
+
+def test_adopted_group_capacities_cannot_double_count_total_capacity():
+    facts, limits = configs()
+    facts["parameters"]["battery_group_capacity_kwh"]["adopted"]["value"] = 1567.85
+    result = audit_facts(facts, limits)
+    assert result["status"] == "invalid_input"
+    assert "total capacity must equal two adopted group capacities" in result["errors"]
 
 
 @pytest.mark.parametrize("value", [True, "100", float("nan"), float("inf"), -1, 0, 10**1000])
@@ -93,13 +107,13 @@ def test_candidate_source_must_be_a_string():
     assert audit_facts(facts, limits)["status"] == "invalid_input"
 
 
-def test_soc_candidate_is_audited_and_not_implicitly_adopted():
+def test_malformed_soc_candidate_is_reported_without_changing_approved_value():
     facts, limits = configs()
     assert limits["limits"]["soc_alarm"]["candidates"][0]["value"] == .25
     limits["limits"]["soc_alarm"]["candidates"][0]["value"] = 25
     result = audit_facts(facts, limits)
     assert result["status"] == "invalid_input"
-    assert "soc_alarm" not in result["adopted"]
+    assert result["adopted"]["soc_alarm"] == .35
 
 
 def test_unknown_limit_name_is_rejected():

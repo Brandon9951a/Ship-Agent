@@ -3,7 +3,9 @@ name = "agent-v2"
 version = "0.1.0"
 description = "Second implementation skeleton for the ship energy optimization agent."
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+  "langgraph==1.2.11",
+]
 
 [project.optional-dependencies]
 dev = [

@@ -11,34 +11,59 @@
     "survey_summary": {
       "source_id": "docs/团队资料/02_当前设计/技术方案汇总.md",
       "kind": "document", "confirmed": false,
-      "note": "第6.1节转述调研；原始调研报告未在仓库中，尚未直接核对"
+      "note": "第6.1节为间接转述；原报告现已核对，直接证据另列survey，不升级转述为实船采用值"
+    },
+    "survey": {
+      "source_id": "docs/团队资料/04_船舶与航线/豫交投001纯电动船调研报告.docx",
+      "kind": "document", "confirmed": true,
+      "note": "2025-08-01调研原文及图1/图9已只读核对；图1实际是通风机铭牌。确认文档内容，不代表参数采用或实船安全批准；定位用章节和图号，未核实页码"
+    },
+    "A_D2_decision": {
+      "source_id": "docs/协作/D2_A_决策与实现记录.md",
+      "kind": "assumption", "confirmed": false,
+      "note": "A于2026-09-19批准的软件演示参数；必须与文档/实测事实分开标注"
     }
   },
   "parameters": {
     "capacity_kwh": {
-      "unit": "kWh", "use_case": "有效容量与SOC预算", "proposed_value": 1567,
-      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "unit": "kWh", "use_case": "标称总容量；有效容量另按SOH计算", "proposed_value": 1567.85,
+      "adopted": {
+        "value": 1567.85,
+        "source": {"source_id": "docs/团队资料/04_船舶与航线/豫交投001纯电动船调研报告.docx", "kind": "document", "locator": "四（1）图9 集装箱式移动电源铭牌", "confirmed": true, "note": "铭牌电池系统容量；不得再乘以电池组数量"}
+      },
+      "confirmation_status": "approved_A", "confirmed_by": "A，2026-09-19",
       "candidates": [
         {"value": 1567, "source": "design", "locator": "表1 电池电源 电池容量", "meaning": "30TEU船文档标称容量，不等于有效可用容量"},
-        {"value": 1567.86, "source": "design", "locator": "表1 电池电源 电池容量附注", "meaning": "36TEU相关箱式电源总容量，适用本船待确认"}
+        {"value": 1567.86, "source": "design", "locator": "表1 电池电源 电池容量附注", "meaning": "36TEU相关箱式电源总容量，适用本船待确认"},
+        {"value": 1567.85, "source": "survey", "locator": "四（1）图9 集装箱式移动电源铭牌", "meaning": "照片标注电池系统容量1567.85kWh；箱式电源含两组，但不能据此将两组再乘2，也不是当前有效可用容量"}
       ],
       "decision_needed": "确认本船有效容量、SOH/损耗边界，批准采用值"
     },
     "battery_group_capacity_kwh": {
-      "unit": "kWh", "use_case": "电池拓扑核查", "proposed_value": null,
-      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "unit": "kWh", "use_case": "双组演示容量预算", "proposed_value": 783.925,
+      "adopted": {
+        "value": 783.925,
+        "source": {"source_id": "A-D2-energy-management-decision", "kind": "assumption", "locator": "2026-09-19双电池确认", "confirmed": false, "note": "A批准演示中两组平均分配1567.85kWh；不是电池组独立铭牌测量值"}
+      },
+      "confirmation_status": "approved_A", "confirmed_by": "A，2026-09-19",
       "candidates": [
         {"value": 783.93, "source": "design", "locator": "表1 电池电源 附注", "meaning": "36TEU相关电源每组容量；2组独立输出；非已确认本船拓扑"}
       ],
       "decision_needed": "索取本船拓扑，禁止将总容量加两组容量重复统计"
     },
     "max_power_kw": {
-      "unit": "kW", "use_case": "与模型峰值功率同边界的上限", "proposed_value": null,
-      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "unit": "kW", "use_case": "演示推进运行功率上限；不是电池侧总功率上限", "proposed_value": 200,
+      "adopted": {
+        "value": 200,
+        "source": {"source_id": "docs/团队资料/04_船舶与航线/豫交投001纯电动船调研报告.docx", "kind": "document", "locator": "三（2）航速与功率（XML文本段落28）", "confirmed": true, "note": "原文称功率拉满最大约200kW；250kW保留为额定候选"}
+      },
+      "confirmation_status": "approved_A", "confirmed_by": "A，2026-09-19",
       "candidates": [
         {"value": 140, "source": "design", "locator": "表1 航行动力 电机功率", "meaning": "原文仅称电机功率，未说明额定/峰值和计量边界"},
-        {"value": 250, "source": "survey_summary", "locator": "第6.1节 电机功率", "meaning": "调研额定功率转述，尚未核对原报告"},
-        {"value": 200, "source": "survey_summary", "locator": "第6.1节 电机功率", "meaning": "调研最大约200kW转述，与额定250kW关系待确认"}
+        {"value": 250, "source": "survey_summary", "locator": "第6.1节 电机功率", "meaning": "调研额定功率的历史转述，直接原文证据另列survey"},
+        {"value": 200, "source": "survey_summary", "locator": "第6.1节 电机功率", "meaning": "调研最大约200kW转述，与额定250kW关系待确认"},
+        {"value": 250, "source": "survey", "locator": "一 船舶基本信息（XML文本段落4）", "meaning": "原文称主推电机额定250kW；所引图1是通风机铭牌，未获得主推电机铭牌佐证，不能当电池侧峰值上限"},
+        {"value": 200, "source": "survey", "locator": "三（2）航速与功率（XML文本段落28）", "meaning": "原文称功率拉满最大可达到200kW；计量侧、条件与额定250kW关系未说明"}
       ],
       "decision_needed": "区分额定/运行/峰值、轴侧/电池侧，说明效率换算"
     },
@@ -49,27 +74,44 @@
       "decision_needed": "确认适用载况和环境"
     },
     "economic_speed_kmh": {
-      "unit": "km/h", "use_case": "固定航速对照候选", "proposed_value": 6,
-      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
-      "candidates": [{"value": 6, "source": "design", "locator": "表1 航行动力 续航力", "meaning": "经济航速6km/h，与6节不同；续航12h的载况/环境未知"}],
+      "unit": "km/h", "use_case": "固定航速对照与演示默认候选", "proposed_value": 11.112,
+      "adopted": {
+        "value": 11.112,
+        "source": {"source_id": "docs/团队资料/04_船舶与航线/豫交投001纯电动船调研报告.docx", "kind": "document", "locator": "三（2）航速与功率（XML文本段落28）", "confirmed": true, "note": "经济航速约6kn，按1kn=1.852km/h换算"}
+      },
+      "confirmation_status": "approved_A", "confirmed_by": "A，2026-09-19",
+      "candidates": [
+        {"value": 6, "source": "design", "locator": "表1 航行动力 续航力", "meaning": "经济航速6km/h，与6节不同；续航12h的载况/环境未知"},
+        {"value": 11.112, "source": "survey", "locator": "三（2）航速与功率（XML文本段落28）", "meaning": "原文经济航速约6knot，按1.852换算；对应日常功率约90kW，载况与功率计量侧未说明"}
+      ],
       "decision_needed": "固定航速对比仍须满足同一任务硬约束"
     },
     "auxiliary_power_kw": {
-      "unit": "kW", "use_case": "航行和等待辅助能量预算", "proposed_value": null,
-      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
-      "candidates": [],
-      "decision_needed": "15kW发电机额定容量不是实际辅助功率；设备铭牌不能直接求和当恒定运行值"
+      "unit": "kW", "use_case": "软件验证阶段经济航行工况的辅助负载演示值", "proposed_value": 30,
+      "adopted": {
+        "value": 30,
+        "source": {"source_id": "A-D2-energy-management-decision", "kind": "assumption", "locator": "2026-09-19辅助负载确认", "confirmed": false, "note": "A批准演示：推进90kW、总功率约120kW时辅助约30kW；25%是总能耗占比假设，不外推为所有瞬时工况比例"}
+      },
+      "confirmation_status": "approved_A", "confirmed_by": "A，2026-09-19",
+      "candidates": [{"value": 30, "source": "A_D2_decision", "locator": "辅助负载演示口径", "meaning": "仅供软件验证；尚无独立辅助负载测量"}],
+      "decision_needed": "实船应用前补充辅助负载测量，演示值不得写成实测恒定功率"
     },
     "draft_m": {
-      "unit": "m", "use_case": "按载况确认吃水与水深边界", "proposed_value": null,
-      "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
+      "unit": "m", "use_case": "演示默认半载吃水；用户或传感器输入优先", "proposed_value": 2.35,
+      "adopted": {
+        "value": 2.35,
+        "source": {"source_id": "A-D2-energy-management-decision", "kind": "assumption", "locator": "2026-09-19载况确认", "confirmed": false, "note": "按空载1.5m和满载3.2m线性中点作为半载演示值；不是实测吃水"}
+      },
+      "confirmation_status": "approved_A", "confirmed_by": "A，2026-09-19",
       "candidates": [
         {"value": 2.52, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "A级载货"},
         {"value": 2.65, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "B级载货"},
         {"value": 2.90, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "C级载货"},
         {"value": 2.40, "source": "design", "locator": "表1 主尺度 吃水", "meaning": "A级装载集装箱"},
         {"value": 1.5, "source": "survey_summary", "locator": "第6.1节 吃水", "meaning": "调研空载转述"},
-        {"value": 3.2, "source": "survey_summary", "locator": "第6.1节 吃水", "meaning": "调研满载转述；设计原文3.20m为型深，不能改称设计吃水"}
+        {"value": 3.2, "source": "survey_summary", "locator": "第6.1节 吃水", "meaning": "调研满载转述；设计原文3.20m为型深，不能改称设计吃水"},
+        {"value": 1.5, "source": "survey", "locator": "三（4）吃水情况（XML文本段落34）", "meaning": "原文空载吃水；无本次测量方法或载况映射"},
+        {"value": 3.2, "source": "survey", "locator": "三（4）吃水情况（XML文本段落34）", "meaning": "原文满载吃水，与设计吃水候选仍有冲突，不等于采用设计型深"}
       ],
       "decision_needed": "由用户载况或有依据映射选择；不可直接采用型深"
     },
@@ -77,7 +119,7 @@
       "unit": "kW", "use_case": "真实补能可行性", "proposed_value": null,
       "adopted": null, "confirmation_status": "pending_A", "confirmed_by": null,
       "candidates": [],
-      "decision_needed": "充满8-10h转述不能推断沿途充电功率，需站点、可用性和充电曲线"
+      "decision_needed": "原调研四（3）已直接核对充满8-10h及已知地点，但不能推断沿途充电功率；需当前站点可用性、岸电/船载桩能力和充电曲线"
     }
   }
 }
