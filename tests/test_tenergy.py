@@ -18,6 +18,10 @@ def test_demo_tenergy_returns_valid_contract_and_is_labeled():
     assert response.status == Status.OK and validate(response).valid
     first = response.payload["candidate_results"][0]
     assert first["duration_h"] == 2.5 and first["energy_kwh"] == 21
+    assert first["propulsion_energy_kwh"] == 16
+    assert first["auxiliary_energy_kwh"] == 5
+    assert first["peak_power_kw"] == 10
+    assert first["source"]["source_id"] == "route-test"
     assert "synthetic_demo_only" in first["assumptions"][0]
 
 
@@ -65,6 +69,32 @@ def test_approved_model_requires_per_segment_waiting_and_reference():
     response = run_tenergy(SEGMENTS, [4], model)
     assert response.status == Status.INVALID_INPUT
     assert "不得用默认等待时间" in response.reason
+
+
+def test_approved_model_refuses_unconfirmed_segment_source():
+    segment = Segment(
+        "s1", "甲", "乙", 8, max_speed_kmh=10, waiting_h=0,
+        source=SourceRef("route-assumption", "assumption", confirmed=False),
+        assumptions=["尚未核实的演示航段"],
+    )
+    model = EnergyModel("approved-v1", .125, 2, "total", "approved", "A-D2-decision")
+    response = run_tenergy([segment], [4], model)
+    assert response.status == Status.NEED_CLARIFICATION
+    assert response.missing_fields == ["segments[0].source.confirmed"]
+
+
+def test_segment_assumptions_and_approval_reference_are_preserved():
+    segment = Segment(
+        "s1", "甲", "乙", 8, max_speed_kmh=10, waiting_h=0,
+        source=SourceRef("route-approved", "user", confirmed=True),
+        assumptions=["人工确认等待为零"],
+    )
+    model = EnergyModel("approved-v1", .125, 2, "total", "approved", "A-D2-decision")
+    response = run_tenergy([segment], [4], model)
+    assert response.status == Status.OK
+    result = response.payload["candidate_results"][0]
+    assert result["assumptions"] == ["人工确认等待为零"]
+    assert result["model_approval_ref"] == "A-D2-decision"
 
 
 @pytest.mark.parametrize("speeds", [[0], [4, 4], [True], [float("inf")]])

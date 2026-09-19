@@ -87,6 +87,12 @@ def run_tenergy(segments: list[Segment], candidate_speeds_kmh: list[float],
         if segment.waiting_h is None and model.default_waiting_h is None:
             missing.append(f"segments[{index}].waiting_h")
             questions.append(f"请确认航段{segment.segment_id}的等待时长；未知值不能按0计算。")
+        if (model.usage == "approved"
+                and (segment.source is None or not segment.source.confirmed)):
+            missing.append(f"segments[{index}].source.confirmed")
+            questions.append(
+                f"航段{segment.segment_id}的来源尚未确认，不能生成approved结果。"
+            )
     if missing:
         return _clarification(missing, questions)
 
@@ -113,7 +119,7 @@ def run_tenergy(segments: list[Segment], candidate_speeds_kmh: list[float],
                     raise ValueError(f"{segment.segment_id}: candidate speed above limit")
                 values = segment_energy(segment.distance_km, speed, waiting, coefficient,
                                         auxiliary, scope=model.energy_scope)
-                assumptions = []
+                assumptions = list(segment.assumptions)
                 if model.usage == "synthetic_demo":
                     assumptions.append("synthetic_demo_only: 非实船标定结果，禁止用于安全或可行性结论")
                     if segment.waiting_h is None:
@@ -121,7 +127,11 @@ def run_tenergy(segments: list[Segment], candidate_speeds_kmh: list[float],
                 results.append(EnergyResult(
                     segment.segment_id, speed, values["power_kw"], values["duration_h"],
                     values["energy_kwh"], model.energy_scope, model.model_id,
-                    peak_power_kw=None, assumptions=assumptions,
+                    peak_power_kw=values["peak_power_kw"], assumptions=assumptions,
+                    propulsion_energy_kwh=values["propulsion_kwh"],
+                    auxiliary_energy_kwh=values["auxiliary_kwh"],
+                    source=segment.source,
+                    model_approval_ref=model.approval_ref,
                 ))
     except (TypeError, ValueError, OverflowError) as exc:
         return ToolResponse("Tenergy", Status.INVALID_INPUT, reason=str(exc))

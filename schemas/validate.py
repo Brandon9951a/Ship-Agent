@@ -312,13 +312,34 @@ def validate(model: SchemaModel) -> ValidationResult:
                 required(getattr(value, name), p(name))
             for name in ("speed_kmh", "duration_h"):
                 positive(getattr(value, name), p(name))
-            for name in ("power_kw", "energy_kwh", "peak_power_kw"):
+            for name in (
+                "power_kw", "energy_kwh", "peak_power_kw",
+                "propulsion_energy_kwh", "auxiliary_energy_kwh",
+            ):
                 positive(getattr(value, name), p(name), zero=True)
             if not isclose(value.energy_kwh, value.power_kw * value.duration_h,
                            rel_tol=1e-6, abs_tol=1e-6):
                 issue(p("energy_kwh"), "inconsistent_value", "能耗与平均功率 × 总耗时不一致。")
             if value.peak_power_kw is not None and value.peak_power_kw < value.power_kw:
                 issue(p("peak_power_kw"), "invalid_value", "峰值功率不能低于平均功率。")
+            if value.propulsion_energy_kwh is not None:
+                if value.energy_scope == "propulsion" and not isclose(
+                    value.energy_kwh, value.propulsion_energy_kwh,
+                    rel_tol=1e-6, abs_tol=1e-6,
+                ):
+                    issue(p("propulsion_energy_kwh"), "inconsistent_value",
+                          "推进口径总能耗必须等于推进能耗分项。")
+                if (value.energy_scope == "total"
+                        and value.auxiliary_energy_kwh is not None
+                        and not isclose(
+                            value.energy_kwh,
+                            value.propulsion_energy_kwh + value.auxiliary_energy_kwh,
+                            rel_tol=1e-6, abs_tol=1e-6,
+                        )):
+                    issue(p("energy_kwh"), "inconsistent_value",
+                          "总能耗必须等于推进与辅助能耗分项之和。")
+            if value.source is not None:
+                walk(value.source, p("source"))
         elif isinstance(value, OptimizationResult):
             timestamp(value.eta, p("eta"))
             for name in ("total_energy_kwh", "total_duration_h"):

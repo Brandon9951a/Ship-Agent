@@ -2,7 +2,7 @@
 
 import argparse
 import json
-from math import isfinite
+from math import isclose, isfinite
 from pathlib import Path
 from typing import Any
 
@@ -130,6 +130,12 @@ def audit_facts(facts: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]
     for name in REQUIRED:
         if name not in adopted and name not in pending:
             pending.append(name)
+    if "capacity_kwh" in adopted and "battery_group_capacity_kwh" in adopted:
+        if not isclose(
+            adopted["capacity_kwh"], 2 * adopted["battery_group_capacity_kwh"],
+            rel_tol=1e-9, abs_tol=1e-6,
+        ):
+            errors.append("total capacity must equal two adopted group capacities")
     for lower, upper in (("soc_shutdown", "soc_min"), ("soc_min", "soc_alarm")):
         if lower in adopted and upper in adopted and adopted[lower] > adopted[upper]:
             errors.append(f"{lower} must not exceed {upper}")

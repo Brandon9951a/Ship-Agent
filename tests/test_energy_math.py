@@ -36,7 +36,8 @@ def test_waiting_auxiliary_once_and_average_same_scope():
     assert propulsion["energy_kwh"] == 16
     assert total["auxiliary_kwh"] == 5 and total["energy_kwh"] == 21
     assert total["energy_kwh"] == total["power_kw"] * total["duration_h"]
-    assert total["peak_power_kw"] is None
+    assert propulsion["peak_power_kw"] == 8
+    assert total["peak_power_kw"] == 10
 
 
 def test_zero_distance_waiting_is_auxiliary_only():

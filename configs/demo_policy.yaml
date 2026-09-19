@@ -1,0 +1,78 @@
+{
+  "format_version": 1,
+  "approved_by": "A",
+  "approved_at": "2026-09-19",
+  "scope": "software_demo_only",
+  "battery": {
+    "container_count": 1,
+    "group_count": 2,
+    "total_nominal_capacity_kwh": 1567.85,
+    "group_nominal_capacity_kwh": 783.925,
+    "initial_soh": 0.90,
+    "total_effective_capacity_kwh": 1411.065,
+    "group_effective_capacity_kwh": 705.5325,
+    "roles": {
+      "group_1": "propulsion_priority",
+      "group_2": "auxiliary_priority_and_propulsion_assist"
+    },
+    "parallel_supply_allowed": true,
+    "real_vessel_actuation": false
+  },
+  "power_and_energy": {
+    "economic_speed_knot": 6.0,
+    "economic_speed_kmh": 11.112,
+    "economic_propulsion_power_kw": 90.0,
+    "demo_auxiliary_power_kw": 30.0,
+    "demo_total_power_kw": 120.0,
+    "auxiliary_energy_share_of_total": 0.25,
+    "auxiliary_share_rule": "scenario_energy_assumption_not_instantaneous_scaling",
+    "operational_propulsion_max_kw": 200.0,
+    "rated_motor_power_candidate_kw": 250.0
+  },
+  "soc": {
+    "normal_min": 0.35,
+    "planning_min": 0.30,
+    "warning_min": 0.25,
+    "critical_min": 0.20,
+    "below_critical": "emergency_operator_and_BMS_handling",
+    "hardware_cutoff": null,
+    "software_power_off_command": false
+  },
+  "dispatch": {
+    "modes": ["normal_roles", "parallel_assist", "protective_transfer"],
+    "parallel_enter_propulsion_kw": 120.0,
+    "parallel_exit_propulsion_kw": 100.0,
+    "soc_balance_enter_delta": 0.10,
+    "soc_balance_exit_delta": 0.05,
+    "allocation_objectives": ["meet_power", "respect_group_roles", "balance_soc", "avoid_frequent_switching"],
+    "dwell_rule": "continuous_samples; sample_count_pending_data_frequency"
+  },
+  "draft": {
+    "empty_m": 1.5,
+    "full_m": 3.2,
+    "half_load_demo_m": 2.35,
+    "input_priority": ["user", "sensor_if_integrated", "demo_default"]
+  },
+  "charging": {
+    "demo_nodes": ["平顶山港", "漯河港", "周口港", "前航船厂"],
+    "luohe_equipment_assumption": "same_as_other_confirmed_demo_nodes",
+    "full_charge_hours_evidence_range": [8, 10],
+    "conservative_full_charge_hours": 10,
+    "rated_charging_power_kw": null,
+    "partial_charge_duration": "manual_or_explicit_demo_assumption"
+  },
+  "locks": {
+    "henan_default_queue_wait_h": 0.0,
+    "outside_henan_queue_wait": "required_user_input",
+    "entry_speed_kmh": 2.0,
+    "exit_speed_kmh": 2.5,
+    "transit_time_requires": "lock_passage_distance_or_confirmed_total_transit_time",
+    "queue_wait_and_transit_time_are_separate": true
+  },
+  "environment": {
+    "mode": "historical_contiguous_window_replay",
+    "label": "historical_data_driven_simulation",
+    "preserve_source_file_time_range_and_seed": true,
+    "unknown_unit_fields_in_engineering_calculation": false
+  }
+}

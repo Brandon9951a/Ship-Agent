@@ -44,13 +44,19 @@ def segment_energy(distance_km, speed_kmh, waiting_h, coefficient, auxiliary_kw,
         raise ValueError("Positive distance requires positive speed")
     moving = distance / speed if speed else 0
     duration = number(moving + waiting, "duration_h", minimum=0)
-    propulsion = number(cubic_power(speed, coefficient) * moving, "propulsion_kwh", minimum=0)
+    propulsion_power = cubic_power(speed, coefficient)
+    propulsion = number(propulsion_power * moving, "propulsion_kwh", minimum=0)
     aux_energy = number(auxiliary * duration, "auxiliary_kwh", minimum=0)
     energy = number(propulsion + (aux_energy if scope == "total" else 0), "energy_kwh", minimum=0)
+    moving_power = propulsion_power + (auxiliary if scope == "total" else 0)
+    waiting_power = auxiliary if scope == "total" and waiting > 0 else 0
+    peak_power = number(max(moving_power, waiting_power), "peak_power_kw", minimum=0)
     return {"duration_h": duration, "energy_kwh": energy,
             "power_kw": number(energy / duration if duration else 0, "power_kw", minimum=0),
             "propulsion_kwh": propulsion, "auxiliary_kwh": aux_energy,
-            "energy_scope": scope, "peak_power_kw": None}
+            "propulsion_power_kw": propulsion_power,
+            "auxiliary_power_kw": auxiliary,
+            "energy_scope": scope, "peak_power_kw": peak_power}
 
 
 def integrate_power(samples, *, max_gap_seconds):

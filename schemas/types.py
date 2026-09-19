@@ -131,6 +131,10 @@ class EnergyResult(SchemaModel):
     model_id: str
     peak_power_kw: float | None = None
     assumptions: list[str] = field(default_factory=list)
+    propulsion_energy_kwh: float | None = None
+    auxiliary_energy_kwh: float | None = None
+    source: SourceRef | None = None
+    model_approval_ref: str | None = None
 
 
 @dataclass(frozen=True)
