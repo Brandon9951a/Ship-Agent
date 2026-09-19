@@ -1,0 +1,12 @@
+{
+  "tool": "Tseg",
+  "status": "need_clarification",
+  "payload": null,
+  "missing_fields": [
+    "segments.s01_pingdingshan_gang_to_junli.max_speed_kmh",
+    "segments.s01_pingdingshan_gang_to_junli.waiting_h"
+  ],
+  "questions": ["请确认所选航段的限速和等待时间；未知值不能按 0 计算。"],
+  "reason": null,
+  "infeasible_type": null
+}
