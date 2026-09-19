@@ -38,3 +38,14 @@ XLSX读取器允许省略末尾空单元格：D2只在已映射时间及已知�
 时间顺序按当前连续块的最高时间比较，`0,5,4,4.5,6`中4和4.5都标记倒序。无效/缺失时间之后重新建立块，并输出不同`continuity_group`，因此跨块也不能盲目积分。分组号仅是质量连续块，不是已确认的独立航次或训练分组。
 
 准备程序新增`--max-gap-seconds`（默认300秒，沿用D1检查的质量审查阈值，不是已批准安全阈值或采样协议）。相邻时间上界间隔严格大于阈值时，右侧记录标记`time_gap`并开始新连续块；重复时间仍全部隔离，记录不删除。API `prepare_rows`/`prepare_file`同样接受该阈值。
+
+## 成员B：D3航速搜索与SOC预算人工链路
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.validate_d3
+.\.venv\Scripts\python.exe -m pytest tests/test_d3_planning.py -q
+```
+
+`validate_d3`只连接`Tenergy → Tspeed → Tmanagement`，使用100kWh容量、人工三次方系数等测试参数，并输出`real_ship_validation=false`、单位、来源和完整假设。它不包含parser、Tdata、Tseg或orchestrator，也不使用当前待审批的豫交投001参数。
+
+Tspeed仅在显式候选网格内穷举，按总能量需求、耗时和航速序列排序；逐段核对限速与模型峰值，并检查时间和SOC预算。Tmanagement不模拟途中补能，只计算同一有效容量下的SOC轨迹、报警和最低补能缺口。`total`口径不重复加入辅助能耗；`propulsion`口径按已提供辅助功率补入。缺少来源、采用值或路线约束时返回追问，不填默认值。
