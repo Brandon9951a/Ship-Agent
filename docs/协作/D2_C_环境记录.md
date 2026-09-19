@@ -1,6 +1,6 @@
 # D2 C 环境记录
 
-日期：2026-09-19  
+日期：2026-09-19
 分支：`d2-lgz`
 
 ## 检查结果
@@ -41,5 +41,4 @@ C:\Users\Lucien\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\
 
 ## 全量测试说明
 
-全量测试未形成可交付的全通过结果。既有 `test_inspect_data.py` 和 `test_llm_layer.py` 出现错误，涉及数据/模型测试环境；D2 专项测试、schema 测试和路由证据测试已分别通过。错误没有被隐瞒为通过，需后续由 A/B 按测试环境补齐。
-
+C 提交时未形成全量测试通过结果。A 集成到最新 `main`、补齐项目环境并修正规则后，全量测试结果为 353 passed。

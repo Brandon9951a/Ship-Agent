@@ -21,6 +21,7 @@ def segment(
     *,
     route_config: dict[str, Any],
     aliases_config: dict[str, Any],
+    demo_policy_config: dict[str, Any] | None = None,
 ) -> ToolResponse:
     origin = _canonical(request.origin, aliases_config)
     destination = _canonical(request.destination, aliases_config)
@@ -56,24 +57,39 @@ def segment(
         )
     unknown: list[str] = []
     segments: list[Segment] = []
+    locks_policy = (demo_policy_config or {}).get("locks", {})
+    henan_route_ids = set(locks_policy.get("henan_route_ids", []))
+    default_queue_wait_h = locks_policy.get("henan_default_queue_wait_h")
+    uses_henan_demo_wait = (
+        data.route_id in henan_route_ids and default_queue_wait_h is not None
+    )
     for item_id in selected:
         item = by_id[item_id]
         if item.get("max_speed_kmh") is None:
             unknown.append(f"segments.{item_id}.max_speed_kmh")
-        if item.get("waiting_h") is None:
+        waiting_h = item.get("waiting_h")
+        assumptions = list(item.get("assumptions", []))
+        if waiting_h is None and uses_henan_demo_wait:
+            waiting_h = default_queue_wait_h
+            assumptions.append(
+                "河南境内船闸演示默认排队等待0小时，可人工覆盖；"
+                "该值不包含船闸内部通行时间。"
+            )
+        elif waiting_h is None:
             unknown.append(f"segments.{item_id}.waiting_h")
         source = SourceRef.from_dict(item["source"])
         segments.append(Segment(
             segment_id=item["id"], origin=item["origin"], destination=item["destination"],
             distance_km=item["distance_km"], max_speed_kmh=item.get("max_speed_kmh"),
-            min_speed_kmh=item.get("min_speed_kmh"), waiting_h=item.get("waiting_h"),
-            source=source, assumptions=item.get("assumptions", []),
+            min_speed_kmh=item.get("min_speed_kmh"), waiting_h=waiting_h,
+            source=source, assumptions=assumptions,
         ))
     if unknown:
         return ToolResponse(
             tool="Tseg", status=Status.NEED_CLARIFICATION,
+            payload={"segments": [item.to_dict() for item in segments]},
             missing_fields=unknown,
-            questions=["请确认所选航段的限速和等待时间；未知值不能按 0 计算。"],
+            questions=["请确认所选航段仍缺失的限速或等待时间；未批准的未知值不能按0计算。"],
         )
     response = ToolResponse(tool="Tseg", status=Status.OK,
                             payload={"segments": [item.to_dict() for item in segments]})
@@ -83,4 +99,3 @@ def segment(
                             reason="Tseg 结果未通过契约校验：" + "; ".join(
                                 issue.message for issue in result.issues))
     return response
-

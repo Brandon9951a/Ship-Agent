@@ -62,6 +62,7 @@
     "partial_charge_duration": "manual_or_explicit_demo_assumption"
   },
   "locks": {
+    "henan_route_ids": ["yj001_pingdingshan_zhoukou_forward"],
     "henan_default_queue_wait_h": 0.0,
     "outside_henan_queue_wait": "required_user_input",
     "entry_speed_kmh": 2.0,

@@ -86,6 +86,7 @@ def collect(
     aliases_config: dict[str, Any],
     vessel_config: dict[str, Any],
     limits_config: dict[str, Any],
+    demo_policy_config: dict[str, Any],
 ) -> ToolResponse:
     """Build a Tdata response; unresolved facts become clarification items."""
     missing: list[str] = []
@@ -107,8 +108,9 @@ def collect(
         "source_id", "route_facts"
     )
     names_units = {
-        "capacity_kwh": "kWh", "max_power_kw": "kW", "auxiliary_power_kw": "kW",
-        "draft_m": "m", "max_speed_kmh": "km/h", "economic_speed_kmh": "km/h",
+        "capacity_kwh": "kWh", "battery_group_capacity_kwh": "kWh",
+        "max_power_kw": "kW", "auxiliary_power_kw": "kW", "draft_m": "m",
+        "max_speed_kmh": "km/h", "economic_speed_kmh": "km/h",
     }
     values: dict[str, float | None] = {}
     for name, unit in names_units.items():
@@ -124,16 +126,31 @@ def collect(
             questions.append(f"请确认船舶参数 {name} 及其来源。")
         conflicts.extend(new_conflicts)
 
-    soc_min_raw = limits_config.get("limits", {}).get("soc_min", {})
-    if soc_min_raw.get("adopted") is None:
-        missing.append("vessel.soc_min")
-        questions.append("请由 A 确认规划 SOC 安全下限，不能用停机线代替。")
-    else:
-        adopted = soc_min_raw["adopted"]
+    for config_name, field_name, question in (
+        ("soc_min", "soc_min", "请由 A 确认规划 SOC 安全下限，不能用停机线代替。"),
+        ("soc_alarm", "soc_alarm", "请确认软件 SOC 关注阈值。"),
+    ):
+        raw = limits_config.get("limits", {}).get(config_name, {})
+        adopted = raw.get("adopted")
+        if not isinstance(adopted, dict) or adopted.get("value") is None:
+            missing.append(f"vessel.{field_name}")
+            questions.append(question)
+            continue
         source = _source(adopted.get("source", {}), fallback="limits")
-        parameters["soc_min"] = _parameter(adopted.get("value"), "fraction", source)
-        sources["soc_min"] = source
-        values["soc_min"] = adopted.get("value")
+        parameters[field_name] = _parameter(adopted["value"], "fraction", source)
+        sources[field_name] = source
+        values[field_name] = adopted["value"]
+
+    initial_soh = demo_policy_config.get("battery", {}).get("initial_soh")
+    if initial_soh is not None:
+        source = SourceRef(
+            source_id="configs/demo_policy.yaml",
+            kind="assumption",
+            locator="battery.initial_soh",
+            confirmed=False,
+            note="A批准的软件演示初始值；实船部署前须由测量或BMS数据替换。",
+        )
+        parameters["soh_initial"] = _parameter(initial_soh, "fraction", source)
 
     for name, value, unit, source_kind in (
         ("soc_initial", request.soc_initial, "fraction", "user"),
@@ -151,17 +168,39 @@ def collect(
     if request.load_state is None and request.draft_m is None:
         missing.append("load_state_or_draft_m")
         questions.append("请补充载况或吃水。")
-    for field_name, config_name in (("max_speed_kmh", "speed_limits"), ("waiting_h", "waiting_h")):
-        if not route_config.get("sources", {}).get(config_name, {}).get("confirmed", False):
-            missing.append(f"route.{field_name}")
-            questions.append("请确认航段限速和船闸等待时间后再计算。")
+    if not route_config.get("sources", {}).get("speed_limits", {}).get("confirmed", False):
+        missing.append("route.max_speed_kmh")
+        questions.append("请确认所选航段限速；未知值不能作为安全约束参与计算。")
+
+    locks_policy = demo_policy_config.get("locks", {})
+    henan_route_ids = set(locks_policy.get("henan_route_ids", []))
+    default_queue_wait_h = locks_policy.get("henan_default_queue_wait_h")
+    uses_henan_demo_wait = route_id in henan_route_ids and default_queue_wait_h is not None
+    assumptions = ["路线距离来自已核对资料；未知运营约束未填充。"]
+    if uses_henan_demo_wait:
+        source = SourceRef(
+            source_id="configs/demo_policy.yaml",
+            kind="assumption",
+            locator="locks.henan_default_queue_wait_h",
+            confirmed=False,
+            note="仅表示河南境内演示的排队等待默认值；可人工覆盖，不包含船闸内部通行时间。",
+        )
+        parameters["default_queue_wait_h"] = _parameter(
+            default_queue_wait_h, "h", source
+        )
+        assumptions.append(
+            "河南境内船闸演示默认排队等待0小时，可人工覆盖；船闸内部通行时间另计。"
+        )
+    elif not route_config.get("sources", {}).get("waiting_h", {}).get("confirmed", False):
+        missing.append("route.waiting_h")
+        questions.append("请确认船闸排队等待时间；未知值不能按0小时计算。")
 
     vessel = VesselState(
         vessel_id=vessel_config.get("vessel_id", "unknown"),
         capacity_kwh=values.get("capacity_kwh"),
         soc_initial=values.get("soc_initial"),
         soc_min=values.get("soc_min"),
-        soc_alarm=None,
+        soc_alarm=values.get("soc_alarm"),
         max_power_kw=values.get("max_power_kw"),
         auxiliary_power_kw=values.get("auxiliary_power_kw"),
         draft_m=values.get("draft_m"),
@@ -174,7 +213,7 @@ def collect(
         parameters=parameters,
         conflicts=conflicts,
         missing_fields=sorted(set(missing)),
-        assumptions=["路线距离来自已核对资料；未知运营约束未填充。"],
+        assumptions=assumptions,
     )
     status = Status.NEED_CLARIFICATION if missing or conflicts else Status.OK
     response = ToolResponse(
@@ -196,7 +235,7 @@ def tdata(request: VoyageRequest, **configs: dict[str, Any]) -> ToolResponse:
         "aliases_config": load_config(ROOT / "configs/aliases.yaml"),
         "vessel_config": load_config(ROOT / "configs/vessel_facts.yaml"),
         "limits_config": load_config(ROOT / "configs/limits.yaml"),
+        "demo_policy_config": load_config(ROOT / "configs/demo_policy.yaml"),
     }
     defaults.update(configs)
     return collect(request, **defaults)
-

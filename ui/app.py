@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
 from schemas.validate import parse_request
 from tools.tdata import load_config, tdata
 from tools.tseg import segment
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def run(payload: dict) -> dict:
@@ -23,17 +27,19 @@ def run(payload: dict) -> dict:
         result["tseg"] = segment(
             request,
             context,
-            route_config=load_config("configs/route_facts.yaml"),
-            aliases_config=load_config("configs/aliases.yaml"),
+            route_config=load_config(ROOT / "configs/route_facts.yaml"),
+            aliases_config=load_config(ROOT / "configs/aliases.yaml"),
+            demo_policy_config=load_config(ROOT / "configs/demo_policy.yaml"),
         ).to_dict()
     return result
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ship-Agent D2 text UI skeleton")
-    parser.add_argument("--input", default="configs/examples/voyage_request.json")
+    parser.add_argument("--input", default=ROOT / "configs/examples/voyage_request.json")
     args = parser.parse_args()
-    print(json.dumps(run(json.load(open(args.input, encoding="utf-8"))), ensure_ascii=False, indent=2))
+    payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
+    print(json.dumps(run(payload), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
