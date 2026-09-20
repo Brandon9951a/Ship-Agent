@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "scope": "source_snapshot_reproduction",
+  "source_commit": "4cfb7b0",
+  "archive_method": "git archive --format=zip HEAD",
+  "snapshot_checks": {
+    "git_directory_present": false,
+    "artifacts_directory_present": false,
+    "full_test_count": 408,
+    "full_test_status": "passed",
+    "d6_audit_passed_checks": 5,
+    "d6_audit_total_checks": 5,
+    "pip_check": "No broken requirements found"
+  },
+  "dependency_environment": {
+    "reinstalled_in_snapshot": false,
+    "used_existing_project_virtual_environment": true,
+    "python_version": "3.13.3",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "real_ship_validation": false,
+  "limitations": [
+    "该检查证明提交内源码、测试和冻结证据可从无.git、无本地artifacts的快照运行。",
+    "该检查复用项目现有虚拟环境中的依赖，不是全新环境安装，不能替代C的独立安装复现。",
+    "该检查不验证真实船舶能耗精度、航行安全、界面录制或最终提交材料。"
+  ]
+}

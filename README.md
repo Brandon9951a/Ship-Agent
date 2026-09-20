@@ -153,6 +153,7 @@ Tdata → Tseg → Tenergy → Tspeed → Tmanagement
 - [D5冻结实验汇总](docs/验证/D5_B_冻结证据/aggregate.json)
 - [成员B的D6数字与证据复核记录](docs/协作/D6_B_数字与证据复核.md)
 - [D6机器可读审计报告](docs/验证/D6_B_审计报告.json)
+- [D6源码快照复现记录](docs/验证/D6_B_源码快照复现.json)
 - [原始调研核验及参数采用缺口（B）](docs/数据/原始调研核验_2026-09-18.md)
 - [第一天任务与验收（2026-09-18）](docs/团队资料/00_必读/D1_2026-09-18_任务与验收.md)
 - [团队资料导航](docs/团队资料/README_团队资料导航.md)
