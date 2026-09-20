@@ -1,5 +1,6 @@
 from schemas.messages import ToolStepResult
 from schemas.types import Status, ToolResponse
+from tools.tdata import load_config
 
 
 def complete_request():
@@ -74,12 +75,38 @@ def test_tool_clarification_is_propagated_and_stops():
     assert state["questions"] == ["请提供已批准的能耗模型。"]
 
 
-def test_default_graph_labels_placeholder_completion_honestly():
+def test_default_graph_runs_real_synthetic_demo_chain_and_builds_plan():
     from core.orchestrator import run_workflow
 
-    state = run_workflow(complete_request())
+    state = run_workflow(
+        "从平顶山港到军李船闸，2026-09-21 08:00出发，"
+        "2026-09-21 11:00到达，SOC85%，半载"
+    )
     assert state["status"] == "ok"
-    assert "占位实现" in state["final_message"]
+    assert state["plan"]["management"]["safe"] is True
+    assert state["plan"]["optimization"]["eta"].startswith("2026-09-21T10:45")
+    assert "synthetic_demo" in state["final_message"]
+
+
+def test_default_graph_stops_on_tight_time_constraint():
+    from core.orchestrator import run_workflow
+
+    state = run_workflow("从平顶山港到军李船闸，SOC85%，半载，2小时内到达")
+    assert state["status"] == Status.INFEASIBLE.value
+    assert state["failed_tool"] == "Tspeed"
+    assert "plan" not in state
+
+
+def test_demo_model_is_explicit_single_point_synthetic_anchor():
+    from pathlib import Path
+
+    config = load_config(Path(__file__).resolve().parents[1] / "configs/demo_policy.yaml")
+    model = config["voyage_demo"]["energy_model"]
+    assert model["usage"] == "synthetic_demo"
+    assert model["energy_scope"] == "propulsion"
+    assert model["historical_data_role"] == "coverage_check_only_not_calibration"
+    modeled = model["coefficient_kw_per_kmh3"] * model["anchor_speed_kmh"] ** 3
+    assert abs(modeled - model["anchor_propulsion_power_kw"]) < 1e-9
 
 
 def test_adapter_names_must_match_contract():

@@ -1,4 +1,4 @@
-"""D2 text UI skeleton for C-owned Tdata/Tseg status display."""
+"""Text UI for the real five-tool synthetic-demo workflow."""
 
 from __future__ import annotations
 
@@ -6,36 +6,32 @@ import argparse
 import json
 from pathlib import Path
 
-from schemas.validate import parse_request
-from tools.tdata import load_config, tdata
-from tools.tseg import segment
+from core.orchestrator import run_structured_workflow
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def run(payload: dict) -> dict:
-    request, validation = parse_request(payload)
-    if request is None or not validation.valid:
-        return {"status": validation.status.value, "missing_fields": validation.missing_fields,
-                "questions": validation.questions}
-    data_response = tdata(request)
-    result = {"tdata": data_response.to_dict()}
-    if data_response.payload:
-        from schemas.types import DataContext
-        context = DataContext.from_dict(data_response.payload)
-        result["tseg"] = segment(
-            request,
-            context,
-            route_config=load_config(ROOT / "configs/route_facts.yaml"),
-            aliases_config=load_config(ROOT / "configs/aliases.yaml"),
-            demo_policy_config=load_config(ROOT / "configs/demo_policy.yaml"),
-        ).to_dict()
+    state = run_structured_workflow(payload)
+    result = {
+        "status": state["status"],
+        "missing_fields": state.get("missing_fields", []),
+        "questions": state.get("questions", []),
+        "task_understanding": state.get("task_understanding", {}),
+        "final_message": state["final_message"],
+        "trace": state.get("trace", []),
+    }
+    for response in state.get("tool_results", []):
+        result[response["tool"].lower()] = response
+    if "plan" in state:
+        result["plan"] = state["plan"]
+        result["report"] = state["report"]
     return result
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Ship-Agent D2 text UI skeleton")
+    parser = argparse.ArgumentParser(description="绿航智算 D3 文本演示界面")
     parser.add_argument("--input", default=ROOT / "configs/examples/voyage_request.json")
     args = parser.parse_args()
     payload = json.loads(Path(args.input).read_text(encoding="utf-8"))

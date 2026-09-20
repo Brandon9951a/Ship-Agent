@@ -126,6 +126,51 @@ def collect(
             questions.append(f"请确认船舶参数 {name} 及其来源。")
         conflicts.extend(new_conflicts)
 
+    voyage_demo = demo_policy_config.get("voyage_demo", {})
+    demo_route_id = voyage_demo.get("route_id")
+    demo_speed_cap = voyage_demo.get("operating_speed_cap_kmh")
+    uses_demo_speed_cap = route_id == demo_route_id and isinstance(
+        demo_speed_cap, (int, float)
+    ) and not isinstance(demo_speed_cap, bool) and demo_speed_cap > 0
+    if uses_demo_speed_cap:
+        demo_source = SourceRef(
+            source_id="docs/协作/D3_A_演示参数决策与集成记录.md",
+            kind="assumption",
+            locator="决策：软件演示运行上限",
+            confirmed=False,
+            note="仅用于synthetic_demo离散搜索，不是航道法定限速或实船批准速度。",
+        )
+        parameters["max_speed_kmh"] = _parameter(demo_speed_cap, "km/h", demo_source)
+        sources["max_speed_kmh"] = demo_source
+        values["max_speed_kmh"] = float(demo_speed_cap)
+        missing = [field for field in missing if field != "vessel.max_speed_kmh"]
+        questions = [
+            question for question in questions
+            if question != "请确认船舶参数 max_speed_kmh 及其来源。"
+        ]
+
+    effective_capacity = demo_policy_config.get("battery", {}).get(
+        "total_effective_capacity_kwh"
+    )
+    if isinstance(effective_capacity, (int, float)) and not isinstance(
+        effective_capacity, bool
+    ) and effective_capacity > 0:
+        nominal = parameters.get("capacity_kwh")
+        if nominal is not None:
+            parameters["nominal_capacity_kwh"] = nominal
+        effective_source = SourceRef(
+            source_id="docs/协作/D2_A_决策与实现记录.md",
+            kind="assumption",
+            locator="A批准的软件演示规则：初始SOH与有效总容量",
+            confirmed=False,
+            note="1567.85kWh标称总容量乘90%初始SOH一次；不与两组容量重复相加。",
+        )
+        parameters["capacity_kwh"] = _parameter(
+            effective_capacity, "kWh", effective_source
+        )
+        sources["capacity_kwh"] = effective_source
+        values["capacity_kwh"] = float(effective_capacity)
+
     for config_name, field_name, question in (
         ("soc_min", "soc_min", "请由 A 确认规划 SOC 安全下限，不能用停机线代替。"),
         ("soc_alarm", "soc_alarm", "请确认软件 SOC 关注阈值。"),
@@ -152,6 +197,37 @@ def collect(
         )
         parameters["soh_initial"] = _parameter(initial_soh, "fraction", source)
 
+    demo_source = SourceRef(
+        source_id="configs/demo_policy.yaml",
+        kind="assumption",
+        locator="A批准的软件演示规则",
+        confirmed=False,
+        note="仅用于软件演示；实船部署前须以当前BMS、设备协议和船东批准参数替换。",
+    )
+    for name, value, unit in (
+        ("soc_warning", demo_policy_config.get("soc", {}).get("warning_min"), "fraction"),
+        ("soc_critical", demo_policy_config.get("soc", {}).get("critical_min"), "fraction"),
+        ("parallel_enter_propulsion_kw",
+         demo_policy_config.get("dispatch", {}).get("parallel_enter_propulsion_kw"), "kW"),
+        ("parallel_exit_propulsion_kw",
+         demo_policy_config.get("dispatch", {}).get("parallel_exit_propulsion_kw"), "kW"),
+    ):
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            parameters[name] = _parameter(float(value), unit, demo_source)
+    battery_demo = demo_policy_config.get("battery", {})
+    group_effective = battery_demo.get("group_effective_capacity_kwh")
+    if isinstance(group_effective, (int, float)) and not isinstance(group_effective, bool):
+        parameters["battery_group_effective_capacity_kwh"] = _parameter(
+            float(group_effective), "kWh", demo_source
+        )
+    roles = battery_demo.get("roles", {})
+    for key, parameter_name in (
+        ("group_1", "battery_group_1_role"),
+        ("group_2", "battery_group_2_role"),
+    ):
+        if isinstance(roles.get(key), str) and roles[key].strip():
+            parameters[parameter_name] = _parameter(roles[key], None, demo_source)
+
     for name, value, unit, source_kind in (
         ("soc_initial", request.soc_initial, "fraction", "user"),
         ("draft_m", request.draft_m, "m", "user"),
@@ -168,7 +244,10 @@ def collect(
     if request.load_state is None and request.draft_m is None:
         missing.append("load_state_or_draft_m")
         questions.append("请补充载况或吃水。")
-    if not route_config.get("sources", {}).get("speed_limits", {}).get("confirmed", False):
+    if (not uses_demo_speed_cap
+            and not route_config.get("sources", {}).get("speed_limits", {}).get(
+                "confirmed", False
+            )):
         missing.append("route.max_speed_kmh")
         questions.append("请确认所选航段限速；未知值不能作为安全约束参与计算。")
 
@@ -177,6 +256,11 @@ def collect(
     default_queue_wait_h = locks_policy.get("henan_default_queue_wait_h")
     uses_henan_demo_wait = route_id in henan_route_ids and default_queue_wait_h is not None
     assumptions = ["路线距离来自已核对资料；未知运营约束未填充。"]
+    if uses_demo_speed_cap:
+        assumptions.append(
+            f"synthetic_demo软件运行上限为{float(demo_speed_cap):g}km/h；"
+            "不是航道法定限速或实船批准速度。"
+        )
     if uses_henan_demo_wait:
         source = SourceRef(
             source_id="configs/demo_policy.yaml",

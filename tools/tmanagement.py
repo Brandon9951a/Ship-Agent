@@ -93,9 +93,40 @@ def run_tmanagement(request: VoyageRequest, data: DataContext,
     charge = max(required_energy - available, 0)
     safe = charge <= 1e-9 and all(point.soc >= soc_min - 1e-9 for point in trajectory)
     warnings = []
-    if vessel.soc_alarm is not None and trajectory and trajectory[-1].soc < vessel.soc_alarm:
-        warnings.append("预计到达SOC低于报警阈值；即使高于规划下限也需明确提示。")
+    final_soc = trajectory[-1].soc if trajectory else initial
+    warning_value = data.parameters.get("soc_warning")
+    critical_value = data.parameters.get("soc_critical")
+    warning_soc = warning_value.value if warning_value is not None else None
+    critical_soc = critical_value.value if critical_value is not None else None
+    if isinstance(critical_soc, (int, float)) and final_soc < critical_soc:
+        warnings.append(
+            f"预计SOC低于{critical_soc:.0%}临界线；软件停止给出自动处置建议，"
+            "交由操作员和BMS处理。"
+        )
+    elif isinstance(warning_soc, (int, float)) and final_soc < warning_soc:
+        warnings.append(f"预计SOC低于{warning_soc:.0%}警告线；原方案不可继续作为安全计划。")
+    elif vessel.soc_alarm is not None and final_soc < vessel.soc_alarm:
+        warnings.append(
+            f"预计到达SOC低于{vessel.soc_alarm:.0%}软件关注线；"
+            "即使高于规划下限也需提示。"
+        )
     assumptions = list(optimization.assumptions)
+    assumptions.append(
+        "双电池演示策略：组1推进优先，组2日常负载优先且必要时辅助推进；"
+        "允许并联供电，但系统只输出建议，不下发断电或接触器控制命令。"
+    )
+    parallel_threshold = data.parameters.get("parallel_enter_propulsion_kw")
+    threshold = parallel_threshold.value if parallel_threshold is not None else None
+    if isinstance(threshold, (int, float)) and optimization.energy_results:
+        peak = max(item.peak_power_kw or 0 for item in optimization.energy_results)
+        if peak > threshold:
+            assumptions.append(
+                f"推进峰值{peak:g}kW超过{threshold:g}kW演示进入阈值，列为两组并联协同候选。"
+            )
+        else:
+            assumptions.append(
+                f"推进峰值{peak:g}kW未超过{threshold:g}kW演示进入阈值，建议保持常规角色分工。"
+            )
     if optimization.energy_scope == "total":
         assumptions.append("辅助能耗已包含在total能耗中；分项由采用辅助功率乘总时长估算，不重复加入总需求")
     else:

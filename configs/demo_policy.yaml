@@ -29,6 +29,26 @@
     "operational_propulsion_max_kw": 200.0,
     "rated_motor_power_candidate_kw": 250.0
   },
+  "voyage_demo": {
+    "route_id": "yj001_pingdingshan_zhoukou_forward",
+    "operating_speed_cap_kmh": 11.112,
+    "operating_speed_cap_basis": "synthetic_demo_operating_cap_not_legal_waterway_limit",
+    "candidate_speeds_kmh": [7.408, 9.26, 11.112],
+    "energy_model": {
+      "model_id": "synthetic_demo_survey_anchor_v1",
+      "coefficient_kw_per_kmh3": 0.06559425611908812,
+      "coefficient_unit": "kW/(km/h)^3",
+      "auxiliary_power_kw": 30.0,
+      "energy_scope": "propulsion",
+      "usage": "synthetic_demo",
+      "approval_ref": "docs/协作/D3_A_演示参数决策与集成记录.md",
+      "anchor_speed_kmh": 11.112,
+      "anchor_propulsion_power_kw": 90.0,
+      "source_id": "docs/团队资料/04_船舶与航线/豫交投001纯电动船调研报告.docx",
+      "source_locator": "三（2）航速与功率",
+      "historical_data_role": "coverage_check_only_not_calibration"
+    }
+  },
   "soc": {
     "normal_min": 0.35,
     "planning_min": 0.30,
