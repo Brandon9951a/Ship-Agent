@@ -68,3 +68,14 @@ Tspeed仅在显式候选网格内穷举，按总能量需求、耗时和航速�
 `validate_d4`连接当前Tdata/Tseg部分结果与`Tenergy → Tspeed → Tmanagement`计算链，在同一条50.5km资料航线、同一候选航速网格及同一功率/SOC边界下运行正常、时间不可行和低SOC三类场景。输出目录必须不存在；程序生成`results.json`和`summary.csv`并拒绝覆盖旧结果。
 
 演示使用A批准的1411.065kWh有效容量、30%规划SOC下限、30kW辅助功率，以及由经济航速11.112km/h和推进功率90kW推导的三次方系数。系数未由独立实船航次标定；逐段真实限速仍未知，11.112km/h只作为软件演示搜索上界。所有结果均为`real_ship_validation=false`，不可作为实船航行、安全或补能结论。
+
+## 成员B：D5批量验证与同条件对照
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.validate_d5 --output-dir artifacts/d5-new
+.\.venv\Scripts\python.exe -m pytest tests/test_d4_scenarios.py tests/test_d5_experiments.py -q
+```
+
+`validate_d5`展开8条正/返向子航线与5组时间/SOC条件，共40项软件实验。每项结果都由独立有限网格穷举复核状态、不可行分类和最低能耗选择；可行项再与相同航线、候选网格、时间、SOC、功率和限速约束下的“最快可行”策略比较。
+
+输出目录必须不存在。程序生成`raw_results.json`、`aggregate.json`、`cases.csv`、`energy_comparison.svg`和`evidence_manifest.json`，最后一项记录其余文件的SHA-256。仓库冻结证据位于`docs/验证/D5_B_冻结证据/`。图表和差异比例只表示当前演示模型及离散网格内的软件对照，不是实船节能率、模型精度或运营收益。

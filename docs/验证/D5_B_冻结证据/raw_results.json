@@ -1,0 +1,2666 @@
+{
+  "status": "passed",
+  "mode": "software_demo_batch_evidence",
+  "real_ship_validation": false,
+  "config_source": "configs/examples/d5_experiments.json",
+  "environment": {
+    "python_version": "3.13.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+    "model_service_used": false,
+    "gpu_required": false
+  },
+  "units": {
+    "distance": "km",
+    "speed": "km/h",
+    "power": "kW",
+    "energy": "kWh",
+    "duration": "h",
+    "soc": "fraction",
+    "elapsed": "ms"
+  },
+  "baseline": {
+    "id": "fastest_feasible_same_constraints",
+    "definition": "同一航线、候选网格、时间、SOC、功率与限速约束下，总耗时最短的可行组合；先按耗时、再按总需求能量和航速序列排序。"
+  },
+  "adopted_demo_boundaries": {
+    "effective_capacity_kwh": 1411.065,
+    "soc_min": 0.3,
+    "propulsion_power_limit_kw": 200.0,
+    "auxiliary_power_kw": 30.0,
+    "source": "configs/demo_policy.yaml"
+  },
+  "aggregate": {
+    "case_count": 40,
+    "verified_case_count": 40,
+    "status_counts": {
+      "ok": 30,
+      "infeasible/soc": 10
+    },
+    "comparable_case_count": 30,
+    "baseline_required_energy_sum_kwh": 14352.802822693842,
+    "optimized_required_energy_sum_kwh": 11960.149437502518,
+    "aggregate_energy_difference_kwh": 2392.6533851913246,
+    "aggregate_energy_difference_percent": 16.67028673596906,
+    "mean_case_elapsed_ms": 9.641597498921328,
+    "max_case_elapsed_ms": 17.157399997813627,
+    "comparison_interpretation": "同一批软件演示任务的重复样本汇总，仅比较离散网格内最快可行策略与最低能耗策略；不是实船节能率、运营收益或模型精度。"
+  },
+  "results": [
+    {
+      "case_id": "forward_west__tight_high_soc",
+      "route_id": "forward_west",
+      "profile_id": "tight_high_soc",
+      "origin": "平顶山港",
+      "destination": "马湾船闸",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.544636429085673,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.5446364290856724,
+        "propulsion_energy_kwh": 409.01727861771064,
+        "auxiliary_energy_kwh": 136.33909287257018,
+        "required_energy_kwh": 545.3563714902808,
+        "soc_final": 0.46351435157821874
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 545.3563714902808,
+        "optimized_required_energy_kwh": 545.3563714902808,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 11.840099992696196,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_west__balanced_high_soc",
+      "route_id": "forward_west",
+      "profile_id": "balanced_high_soc",
+      "origin": "平顶山港",
+      "destination": "马湾船闸",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 6.362491000719943,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          8.0,
+          8.0
+        ],
+        "duration_h": 6.3125,
+        "propulsion_energy_kwh": 212.0006357768928,
+        "auxiliary_energy_kwh": 189.375,
+        "required_energy_kwh": 401.3756357768928,
+        "soc_final": 0.5655512780935728
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            8.0,
+            8.0
+          ],
+          "duration_h": 6.3125,
+          "propulsion_energy_kwh": 212.0006357768928,
+          "auxiliary_energy_kwh": 189.375,
+          "required_energy_kwh": 401.3756357768928,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 545.3563714902808,
+        "optimized_required_energy_kwh": 401.3756357768928,
+        "energy_difference_kwh": 143.98073571338801,
+        "energy_difference_percent": 26.401220053583625
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.919899999862537,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_west__relaxed_high_soc",
+      "route_id": "forward_west",
+      "profile_id": "relaxed_high_soc",
+      "origin": "平顶山港",
+      "destination": "马湾船闸",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 9.089272858171347,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 8.416666666666668,
+        "propulsion_energy_kwh": 119.2503576245022,
+        "auxiliary_energy_kwh": 252.50000000000003,
+        "required_energy_kwh": 371.7503576245022,
+        "soc_final": 0.5865462557539856
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 8.416666666666668,
+          "propulsion_energy_kwh": 119.2503576245022,
+          "auxiliary_energy_kwh": 252.50000000000003,
+          "required_energy_kwh": 371.7503576245022,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 545.3563714902808,
+        "optimized_required_energy_kwh": 371.7503576245022,
+        "energy_difference_kwh": 173.6060138657786,
+        "energy_difference_percent": 31.83349878014079
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.032000005594455,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_west__relaxed_mid_soc",
+      "route_id": "forward_west",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "平顶山港",
+      "destination": "马湾船闸",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 9.089272858171347,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 7.571900001494214,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_west__reserve_only",
+      "route_id": "forward_west",
+      "profile_id": "reserve_only",
+      "origin": "平顶山港",
+      "destination": "马湾船闸",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 9.089272858171347,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 7.0650999987265095,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_west__tight_high_soc",
+      "route_id": "reverse_west",
+      "profile_id": "tight_high_soc",
+      "origin": "马湾船闸",
+      "destination": "平顶山港",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.544636429085673,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.5446364290856724,
+        "propulsion_energy_kwh": 409.01727861771064,
+        "auxiliary_energy_kwh": 136.33909287257018,
+        "required_energy_kwh": 545.3563714902808,
+        "soc_final": 0.46351435157821874
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 545.3563714902808,
+        "optimized_required_energy_kwh": 545.3563714902808,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.515099998679943,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_west__balanced_high_soc",
+      "route_id": "reverse_west",
+      "profile_id": "balanced_high_soc",
+      "origin": "马湾船闸",
+      "destination": "平顶山港",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 6.362491000719943,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          8.0,
+          8.0
+        ],
+        "duration_h": 6.3125,
+        "propulsion_energy_kwh": 212.0006357768928,
+        "auxiliary_energy_kwh": 189.375,
+        "required_energy_kwh": 401.3756357768928,
+        "soc_final": 0.5655512780935728
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            8.0,
+            8.0
+          ],
+          "duration_h": 6.3125,
+          "propulsion_energy_kwh": 212.0006357768928,
+          "auxiliary_energy_kwh": 189.375,
+          "required_energy_kwh": 401.3756357768928,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 545.3563714902808,
+        "optimized_required_energy_kwh": 401.3756357768928,
+        "energy_difference_kwh": 143.98073571338801,
+        "energy_difference_percent": 26.401220053583625
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.378899994771928,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_west__relaxed_high_soc",
+      "route_id": "reverse_west",
+      "profile_id": "relaxed_high_soc",
+      "origin": "马湾船闸",
+      "destination": "平顶山港",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 9.089272858171347,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 8.416666666666668,
+        "propulsion_energy_kwh": 119.2503576245022,
+        "auxiliary_energy_kwh": 252.50000000000003,
+        "required_energy_kwh": 371.7503576245022,
+        "soc_final": 0.5865462557539856
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 8.416666666666668,
+          "propulsion_energy_kwh": 119.2503576245022,
+          "auxiliary_energy_kwh": 252.50000000000003,
+          "required_energy_kwh": 371.7503576245022,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.5446364290856724,
+          "propulsion_energy_kwh": 409.01727861771064,
+          "auxiliary_energy_kwh": 136.33909287257018,
+          "required_energy_kwh": 545.3563714902808,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 545.3563714902808,
+        "optimized_required_energy_kwh": 371.7503576245022,
+        "energy_difference_kwh": 173.6060138657786,
+        "energy_difference_percent": 31.83349878014079
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.786999991978519,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_west__relaxed_mid_soc",
+      "route_id": "reverse_west",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "马湾船闸",
+      "destination": "平顶山港",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 9.089272858171347,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 6.386499997461215,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_west__reserve_only",
+      "route_id": "reverse_west",
+      "profile_id": "reserve_only",
+      "origin": "马湾船闸",
+      "destination": "平顶山港",
+      "route_distance_km": 50.5,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 9.089272858171347,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 6.849700002931058,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_west__tight_high_soc",
+      "route_id": "forward_mid_west",
+      "profile_id": "tight_high_soc",
+      "origin": "马湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.0306875449964,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.0306875449964,
+        "propulsion_energy_kwh": 362.7618790496761,
+        "auxiliary_energy_kwh": 120.92062634989202,
+        "required_energy_kwh": 483.68250539956813,
+        "soc_final": 0.5072216691650858
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 483.68250539956813,
+        "optimized_required_energy_kwh": 483.68250539956813,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.163199996692128,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_west__balanced_high_soc",
+      "route_id": "forward_mid_west",
+      "profile_id": "balanced_high_soc",
+      "origin": "马湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 5.64296256299496,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          8.0,
+          6.0
+        ],
+        "duration_h": 5.6273333333333335,
+        "propulsion_energy_kwh": 186.76022839929215,
+        "auxiliary_energy_kwh": 168.82,
+        "required_energy_kwh": 355.58022839929214,
+        "soc_final": 0.5980057769136842
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            8.0,
+            6.0
+          ],
+          "duration_h": 5.6273333333333335,
+          "propulsion_energy_kwh": 186.76022839929215,
+          "auxiliary_energy_kwh": 168.82,
+          "required_energy_kwh": 355.58022839929214,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 483.68250539956813,
+        "optimized_required_energy_kwh": 355.58022839929214,
+        "energy_difference_kwh": 128.102277000276,
+        "energy_difference_percent": 26.484786108699804
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 12.02180000836961,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_west__relaxed_high_soc",
+      "route_id": "forward_mid_west",
+      "profile_id": "relaxed_high_soc",
+      "origin": "马湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 8.0613750899928,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.464833333333334,
+        "propulsion_energy_kwh": 105.76444094344217,
+        "auxiliary_energy_kwh": 223.94500000000002,
+        "required_energy_kwh": 329.7094409434422,
+        "soc_final": 0.6163400049300052
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.464833333333334,
+          "propulsion_energy_kwh": 105.76444094344217,
+          "auxiliary_energy_kwh": 223.94500000000002,
+          "required_energy_kwh": 329.7094409434422,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 483.68250539956813,
+        "optimized_required_energy_kwh": 329.7094409434422,
+        "energy_difference_kwh": 153.97306445612594,
+        "energy_difference_percent": 31.83349878014079
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 12.882499999250285,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_west__relaxed_mid_soc",
+      "route_id": "forward_mid_west",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "马湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 8.0613750899928,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.464833333333334,
+        "propulsion_energy_kwh": 105.76444094344217,
+        "auxiliary_energy_kwh": 223.94500000000002,
+        "required_energy_kwh": 329.7094409434422,
+        "soc_final": 0.31634000493000525
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.464833333333334,
+          "propulsion_energy_kwh": 105.76444094344217,
+          "auxiliary_energy_kwh": 223.94500000000002,
+          "required_energy_kwh": 329.7094409434422,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            6.0,
+            11.112
+          ],
+          "duration_h": 7.412005039596833,
+          "propulsion_energy_kwh": 109.7178945783792,
+          "auxiliary_energy_kwh": 222.360151187905,
+          "required_energy_kwh": 332.07804576628416,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 332.07804576628416,
+        "optimized_required_energy_kwh": 329.7094409434422,
+        "energy_difference_kwh": 2.3686048228419736,
+        "energy_difference_percent": 0.7132675143809395
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.783699992112815,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_west__reserve_only",
+      "route_id": "forward_mid_west",
+      "profile_id": "reserve_only",
+      "origin": "马湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 8.0613750899928,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 6.745399994542822,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_west__tight_high_soc",
+      "route_id": "reverse_mid_west",
+      "profile_id": "tight_high_soc",
+      "origin": "漯河港",
+      "destination": "马湾船闸",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.0306875449964,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.0306875449964,
+        "propulsion_energy_kwh": 362.7618790496761,
+        "auxiliary_energy_kwh": 120.92062634989202,
+        "required_energy_kwh": 483.68250539956813,
+        "soc_final": 0.5072216691650859
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 483.68250539956813,
+        "optimized_required_energy_kwh": 483.68250539956813,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.916699990048073,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_west__balanced_high_soc",
+      "route_id": "reverse_mid_west",
+      "profile_id": "balanced_high_soc",
+      "origin": "漯河港",
+      "destination": "马湾船闸",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 5.64296256299496,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          8.0
+        ],
+        "duration_h": 5.6273333333333335,
+        "propulsion_energy_kwh": 186.76022839929215,
+        "auxiliary_energy_kwh": 168.82,
+        "required_energy_kwh": 355.58022839929214,
+        "soc_final": 0.5980057769136842
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            8.0
+          ],
+          "duration_h": 5.6273333333333335,
+          "propulsion_energy_kwh": 186.76022839929215,
+          "auxiliary_energy_kwh": 168.82,
+          "required_energy_kwh": 355.58022839929214,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 483.68250539956813,
+        "optimized_required_energy_kwh": 355.58022839929214,
+        "energy_difference_kwh": 128.102277000276,
+        "energy_difference_percent": 26.484786108699804
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 8.136799995554611,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_west__relaxed_high_soc",
+      "route_id": "reverse_mid_west",
+      "profile_id": "relaxed_high_soc",
+      "origin": "漯河港",
+      "destination": "马湾船闸",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 8.0613750899928,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.464833333333334,
+        "propulsion_energy_kwh": 105.76444094344217,
+        "auxiliary_energy_kwh": 223.94500000000002,
+        "required_energy_kwh": 329.7094409434422,
+        "soc_final": 0.6163400049300052
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.464833333333334,
+          "propulsion_energy_kwh": 105.76444094344217,
+          "auxiliary_energy_kwh": 223.94500000000002,
+          "required_energy_kwh": 329.7094409434422,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.0306875449964,
+          "propulsion_energy_kwh": 362.7618790496761,
+          "auxiliary_energy_kwh": 120.92062634989202,
+          "required_energy_kwh": 483.68250539956813,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 483.68250539956813,
+        "optimized_required_energy_kwh": 329.7094409434422,
+        "energy_difference_kwh": 153.97306445612594,
+        "energy_difference_percent": 31.83349878014079
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.603700007777661,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_west__relaxed_mid_soc",
+      "route_id": "reverse_mid_west",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "漯河港",
+      "destination": "马湾船闸",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 8.0613750899928,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.464833333333334,
+        "propulsion_energy_kwh": 105.76444094344217,
+        "auxiliary_energy_kwh": 223.94500000000002,
+        "required_energy_kwh": 329.7094409434422,
+        "soc_final": 0.31634000493000525
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.464833333333334,
+          "propulsion_energy_kwh": 105.76444094344217,
+          "auxiliary_energy_kwh": 223.94500000000002,
+          "required_energy_kwh": 329.7094409434422,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            6.0
+          ],
+          "duration_h": 7.412005039596833,
+          "propulsion_energy_kwh": 109.7178945783792,
+          "auxiliary_energy_kwh": 222.360151187905,
+          "required_energy_kwh": 332.07804576628416,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 332.07804576628416,
+        "optimized_required_energy_kwh": 329.7094409434422,
+        "energy_difference_kwh": 2.3686048228419736,
+        "energy_difference_percent": 0.7132675143809395
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.247800004435703,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_west__reserve_only",
+      "route_id": "reverse_mid_west",
+      "profile_id": "reserve_only",
+      "origin": "漯河港",
+      "destination": "马湾船闸",
+      "route_distance_km": 44.789,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 8.0613750899928,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 7.477699997252785,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_east__tight_high_soc",
+      "route_id": "forward_mid_east",
+      "profile_id": "tight_high_soc",
+      "origin": "漯河港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.274658027357812,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.274658027357811,
+        "propulsion_energy_kwh": 384.71922246220305,
+        "auxiliary_energy_kwh": 128.2397408207343,
+        "required_energy_kwh": 512.9589632829374,
+        "soc_final": 0.48647389504881955
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 512.9589632829374,
+        "optimized_required_energy_kwh": 512.9589632829374,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 7.980900001712143,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_east__balanced_high_soc",
+      "route_id": "forward_mid_east",
+      "profile_id": "balanced_high_soc",
+      "origin": "漯河港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 5.984521238300936,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          8.0,
+          8.0
+        ],
+        "duration_h": 5.9375,
+        "propulsion_energy_kwh": 199.40653860202787,
+        "auxiliary_energy_kwh": 178.125,
+        "required_energy_kwh": 377.53153860202787,
+        "soc_final": 0.582449221969202
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            8.0,
+            8.0
+          ],
+          "duration_h": 5.9375,
+          "propulsion_energy_kwh": 199.40653860202787,
+          "auxiliary_energy_kwh": 178.125,
+          "required_energy_kwh": 377.53153860202787,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 512.9589632829374,
+        "optimized_required_energy_kwh": 377.53153860202787,
+        "energy_difference_kwh": 135.4274246809095,
+        "energy_difference_percent": 26.401220053583618
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 7.205600006273016,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_east__relaxed_high_soc",
+      "route_id": "forward_mid_east",
+      "profile_id": "relaxed_high_soc",
+      "origin": "漯河港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 8.549316054715623,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.916666666666666,
+        "propulsion_energy_kwh": 112.16617796364068,
+        "auxiliary_energy_kwh": 237.49999999999997,
+        "required_energy_kwh": 349.6661779636406,
+        "soc_final": 0.6021969732339469
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.916666666666666,
+          "propulsion_energy_kwh": 112.16617796364068,
+          "auxiliary_energy_kwh": 237.49999999999997,
+          "required_energy_kwh": 349.6661779636406,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 512.9589632829374,
+        "optimized_required_energy_kwh": 349.6661779636406,
+        "energy_difference_kwh": 163.29278531929674,
+        "energy_difference_percent": 31.833498780140797
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 8.084999994025566,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_east__relaxed_mid_soc",
+      "route_id": "forward_mid_east",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "漯河港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 8.549316054715623,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.916666666666666,
+        "propulsion_energy_kwh": 112.16617796364068,
+        "auxiliary_energy_kwh": 237.49999999999997,
+        "required_energy_kwh": 349.6661779636406,
+        "soc_final": 0.302196973233947
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.916666666666666,
+          "propulsion_energy_kwh": 112.16617796364068,
+          "auxiliary_energy_kwh": 237.49999999999997,
+          "required_energy_kwh": 349.6661779636406,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.916666666666666,
+          "propulsion_energy_kwh": 112.16617796364068,
+          "auxiliary_energy_kwh": 237.49999999999997,
+          "required_energy_kwh": 349.6661779636406,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 349.6661779636406,
+        "optimized_required_energy_kwh": 349.6661779636406,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 16.702699998859316,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_mid_east__reserve_only",
+      "route_id": "forward_mid_east",
+      "profile_id": "reserve_only",
+      "origin": "漯河港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 8.549316054715623,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 5.773499986389652,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_east__tight_high_soc",
+      "route_id": "reverse_mid_east",
+      "profile_id": "tight_high_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.274658027357812,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.274658027357811,
+        "propulsion_energy_kwh": 384.71922246220305,
+        "auxiliary_energy_kwh": 128.2397408207343,
+        "required_energy_kwh": 512.9589632829374,
+        "soc_final": 0.4864738950488196
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 512.9589632829374,
+        "optimized_required_energy_kwh": 512.9589632829374,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 17.157399997813627,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_east__balanced_high_soc",
+      "route_id": "reverse_mid_east",
+      "profile_id": "balanced_high_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 5.984521238300936,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          8.0,
+          8.0
+        ],
+        "duration_h": 5.9375,
+        "propulsion_energy_kwh": 199.40653860202787,
+        "auxiliary_energy_kwh": 178.125,
+        "required_energy_kwh": 377.53153860202787,
+        "soc_final": 0.5824492219692021
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            8.0,
+            8.0
+          ],
+          "duration_h": 5.9375,
+          "propulsion_energy_kwh": 199.40653860202787,
+          "auxiliary_energy_kwh": 178.125,
+          "required_energy_kwh": 377.53153860202787,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 512.9589632829374,
+        "optimized_required_energy_kwh": 377.53153860202787,
+        "energy_difference_kwh": 135.4274246809095,
+        "energy_difference_percent": 26.401220053583618
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 11.558500002138317,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_east__relaxed_high_soc",
+      "route_id": "reverse_mid_east",
+      "profile_id": "relaxed_high_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 8.549316054715623,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.916666666666666,
+        "propulsion_energy_kwh": 112.16617796364068,
+        "auxiliary_energy_kwh": 237.49999999999997,
+        "required_energy_kwh": 349.6661779636406,
+        "soc_final": 0.6021969732339468
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.916666666666666,
+          "propulsion_energy_kwh": 112.16617796364068,
+          "auxiliary_energy_kwh": 237.49999999999997,
+          "required_energy_kwh": 349.6661779636406,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.274658027357811,
+          "propulsion_energy_kwh": 384.71922246220305,
+          "auxiliary_energy_kwh": 128.2397408207343,
+          "required_energy_kwh": 512.9589632829374,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 512.9589632829374,
+        "optimized_required_energy_kwh": 349.6661779636406,
+        "energy_difference_kwh": 163.29278531929674,
+        "energy_difference_percent": 31.833498780140797
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 6.792000000132248,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_east__relaxed_mid_soc",
+      "route_id": "reverse_mid_east",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 8.549316054715623,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.916666666666666,
+        "propulsion_energy_kwh": 112.16617796364068,
+        "auxiliary_energy_kwh": 237.49999999999997,
+        "required_energy_kwh": 349.6661779636406,
+        "soc_final": 0.302196973233947
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.916666666666666,
+          "propulsion_energy_kwh": 112.16617796364068,
+          "auxiliary_energy_kwh": 237.49999999999997,
+          "required_energy_kwh": 349.6661779636406,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.916666666666666,
+          "propulsion_energy_kwh": 112.16617796364068,
+          "auxiliary_energy_kwh": 237.49999999999997,
+          "required_energy_kwh": 349.6661779636406,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 349.6661779636406,
+        "optimized_required_energy_kwh": 349.6661779636406,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 12.773800001014024,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_mid_east__reserve_only",
+      "route_id": "reverse_mid_east",
+      "profile_id": "reserve_only",
+      "origin": "葫芦湾船闸",
+      "destination": "漯河港",
+      "route_distance_km": 47.5,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 8.549316054715623,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.292100003222004,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_east__tight_high_soc",
+      "route_id": "forward_east",
+      "profile_id": "tight_high_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "周口港",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.229661627069834,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.229661627069834,
+        "propulsion_energy_kwh": 380.66954643628515,
+        "auxiliary_energy_kwh": 126.88984881209504,
+        "required_energy_kwh": 507.55939524838016,
+        "soc_final": 0.49030048562725304
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 507.55939524838016,
+        "optimized_required_energy_kwh": 507.55939524838016,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.354599998914637,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_east__balanced_high_soc",
+      "route_id": "forward_east",
+      "profile_id": "balanced_high_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "周口港",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 5.921526277897768,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          8.0,
+          8.0
+        ],
+        "duration_h": 5.875,
+        "propulsion_energy_kwh": 197.30752240621706,
+        "auxiliary_energy_kwh": 176.25,
+        "required_energy_kwh": 373.55752240621706,
+        "soc_final": 0.5852655459484736
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            8.0,
+            8.0
+          ],
+          "duration_h": 5.875,
+          "propulsion_energy_kwh": 197.30752240621706,
+          "auxiliary_energy_kwh": 176.25,
+          "required_energy_kwh": 373.55752240621706,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 507.55939524838016,
+        "optimized_required_energy_kwh": 373.55752240621706,
+        "energy_difference_kwh": 134.0018728421631,
+        "energy_difference_percent": 26.401220053583625
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.220300009474158,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_east__relaxed_high_soc",
+      "route_id": "forward_east",
+      "profile_id": "relaxed_high_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "周口港",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 8.459323254139669,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.833333333333334,
+        "propulsion_energy_kwh": 110.9854813534971,
+        "auxiliary_energy_kwh": 235.00000000000003,
+        "required_energy_kwh": 345.9854813534971,
+        "soc_final": 0.6048054261472737
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.833333333333334,
+          "propulsion_energy_kwh": 110.9854813534971,
+          "auxiliary_energy_kwh": 235.00000000000003,
+          "required_energy_kwh": 345.9854813534971,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 507.55939524838016,
+        "optimized_required_energy_kwh": 345.9854813534971,
+        "energy_difference_kwh": 161.57391389488305,
+        "energy_difference_percent": 31.833498780140783
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 8.783400000538677,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_east__relaxed_mid_soc",
+      "route_id": "forward_east",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "葫芦湾船闸",
+      "destination": "周口港",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 8.459323254139669,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.833333333333334,
+        "propulsion_energy_kwh": 110.9854813534971,
+        "auxiliary_energy_kwh": 235.00000000000003,
+        "required_energy_kwh": 345.9854813534971,
+        "soc_final": 0.30480542614727385
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.833333333333334,
+          "propulsion_energy_kwh": 110.9854813534971,
+          "auxiliary_energy_kwh": 235.00000000000003,
+          "required_energy_kwh": 345.9854813534971,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.833333333333334,
+          "propulsion_energy_kwh": 110.9854813534971,
+          "auxiliary_energy_kwh": 235.00000000000003,
+          "required_energy_kwh": 345.9854813534971,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 345.9854813534971,
+        "optimized_required_energy_kwh": 345.9854813534971,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 6.661800012807362,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "forward_east__reserve_only",
+      "route_id": "forward_east",
+      "profile_id": "reserve_only",
+      "origin": "葫芦湾船闸",
+      "destination": "周口港",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 8.459323254139669,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 8.429199995589443,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_east__tight_high_soc",
+      "route_id": "reverse_east",
+      "profile_id": "tight_high_soc",
+      "origin": "周口港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 4.229661627069834,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          11.112,
+          11.112
+        ],
+        "duration_h": 4.229661627069834,
+        "propulsion_energy_kwh": 380.66954643628515,
+        "auxiliary_energy_kwh": 126.88984881209504,
+        "required_energy_kwh": 507.55939524838016,
+        "soc_final": 0.49030048562725304
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 507.55939524838016,
+        "optimized_required_energy_kwh": 507.55939524838016,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 14.440300001297146,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_east__balanced_high_soc",
+      "route_id": "reverse_east",
+      "profile_id": "balanced_high_soc",
+      "origin": "周口港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 5.921526277897768,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          8.0,
+          8.0
+        ],
+        "duration_h": 5.875,
+        "propulsion_energy_kwh": 197.30752240621706,
+        "auxiliary_energy_kwh": 176.25,
+        "required_energy_kwh": 373.55752240621706,
+        "soc_final": 0.5852655459484737
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            8.0,
+            8.0
+          ],
+          "duration_h": 5.875,
+          "propulsion_energy_kwh": 197.30752240621706,
+          "auxiliary_energy_kwh": 176.25,
+          "required_energy_kwh": 373.55752240621706,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 507.55939524838016,
+        "optimized_required_energy_kwh": 373.55752240621706,
+        "energy_difference_kwh": 134.0018728421631,
+        "energy_difference_percent": 26.401220053583625
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.191499997745268,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_east__relaxed_high_soc",
+      "route_id": "reverse_east",
+      "profile_id": "relaxed_high_soc",
+      "origin": "周口港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.85,
+      "soc_min": 0.3,
+      "max_duration_h": 8.459323254139669,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.833333333333334,
+        "propulsion_energy_kwh": 110.9854813534971,
+        "auxiliary_energy_kwh": 235.00000000000003,
+        "required_energy_kwh": 345.9854813534971,
+        "soc_final": 0.6048054261472737
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 776.0857500000001,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.833333333333334,
+          "propulsion_energy_kwh": 110.9854813534971,
+          "auxiliary_energy_kwh": 235.00000000000003,
+          "required_energy_kwh": 345.9854813534971,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            11.112,
+            11.112
+          ],
+          "duration_h": 4.229661627069834,
+          "propulsion_energy_kwh": 380.66954643628515,
+          "auxiliary_energy_kwh": 126.88984881209504,
+          "required_energy_kwh": 507.55939524838016,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 507.55939524838016,
+        "optimized_required_energy_kwh": 345.9854813534971,
+        "energy_difference_kwh": 161.57391389488305,
+        "energy_difference_percent": 31.833498780140783
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 9.40959999570623,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_east__relaxed_mid_soc",
+      "route_id": "reverse_east",
+      "profile_id": "relaxed_mid_soc",
+      "origin": "周口港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.55,
+      "soc_min": 0.3,
+      "max_duration_h": 8.459323254139669,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "ok",
+      "infeasible_type": null,
+      "selected": {
+        "speeds_kmh": [
+          6.0,
+          6.0
+        ],
+        "duration_h": 7.833333333333334,
+        "propulsion_energy_kwh": 110.9854813534971,
+        "auxiliary_energy_kwh": 235.00000000000003,
+        "required_energy_kwh": 345.9854813534971,
+        "soc_final": 0.30480542614727385
+      },
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 352.76625000000007,
+        "expected_status": "ok",
+        "expected_infeasible_type": null,
+        "optimum": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.833333333333334,
+          "propulsion_energy_kwh": 110.9854813534971,
+          "auxiliary_energy_kwh": 235.00000000000003,
+          "required_energy_kwh": 345.9854813534971,
+          "time_feasible": true,
+          "soc_feasible": true
+        },
+        "baseline": {
+          "speeds_kmh": [
+            6.0,
+            6.0
+          ],
+          "duration_h": 7.833333333333334,
+          "propulsion_energy_kwh": 110.9854813534971,
+          "auxiliary_energy_kwh": 235.00000000000003,
+          "required_energy_kwh": 345.9854813534971,
+          "time_feasible": true,
+          "soc_feasible": true
+        }
+      },
+      "comparison": {
+        "baseline_id": "fastest_feasible_same_constraints",
+        "same_constraints": true,
+        "baseline_required_energy_kwh": 345.9854813534971,
+        "optimized_required_energy_kwh": 345.9854813534971,
+        "energy_difference_kwh": 0.0,
+        "energy_difference_percent": 0.0
+      },
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 10.378299994044937,
+      "real_ship_validation": false
+    },
+    {
+      "case_id": "reverse_east__reserve_only",
+      "route_id": "reverse_east",
+      "profile_id": "reserve_only",
+      "origin": "周口港",
+      "destination": "葫芦湾船闸",
+      "route_distance_km": 47.0,
+      "soc_initial": 0.3,
+      "soc_min": 0.3,
+      "max_duration_h": 8.459323254139669,
+      "candidate_speeds_kmh": [
+        6.0,
+        8.0,
+        10.0,
+        11.112
+      ],
+      "status": "infeasible",
+      "infeasible_type": "soc",
+      "selected": null,
+      "reference": {
+        "candidate_combinations": 16,
+        "available_energy_above_soc_min_kwh": 0.0,
+        "expected_status": "infeasible",
+        "expected_infeasible_type": "soc",
+        "optimum": null,
+        "baseline": null
+      },
+      "comparison": null,
+      "verification": {
+        "status_match": true,
+        "optimum_match": true,
+        "distance_match": true
+      },
+      "elapsed_ms": 7.1478999889222905,
+      "real_ship_validation": false
+    }
+  ],
+  "limitations": [
+    "逐段真实限速、船闸内部通行时间和充电功率仍未知。",
+    "演示航速上界和能耗系数来自A批准的软件演示配置，不是实船标定值。",
+    "对照结果仅比较同一离散候选网格中的两种软件策略，不代表实船节能率。"
+  ]
+}

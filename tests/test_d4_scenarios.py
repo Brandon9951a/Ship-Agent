@@ -43,6 +43,9 @@ def test_demo_speed_ceiling_is_explicitly_not_a_route_limit(report):
             assert segment["max_speed_kmh"] == pytest.approx(11.112)
             assert any("不是通航限速" in note for note in segment["assumptions"])
         assert item["upstream"]["demo_resolution"]["speed_ceiling_kmh"] == pytest.approx(11.112)
+        assert item["upstream"]["demo_resolution"]["speed_ceiling_role"] == (
+            "synthetic_demo_operating_cap_not_legal_waterway_limit"
+        )
 
 
 def test_effective_capacity_and_power_boundary_are_not_mixed(report):

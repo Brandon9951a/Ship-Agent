@@ -47,7 +47,7 @@ def load_scenarios(path: Path = DEFAULT_CONFIG) -> dict[str, Any]:
     return payload
 
 
-def _configs() -> dict[str, dict[str, Any]]:
+def load_runtime_configs() -> dict[str, dict[str, Any]]:
     return {
         "route_config": load_config(ROOT / "configs/route_facts.yaml"),
         "aliases_config": load_config(ROOT / "configs/aliases.yaml"),
@@ -131,15 +131,26 @@ def _prepare_inputs(
         "demo_resolution": {
             "effective_capacity_kwh": effective_capacity,
             "speed_ceiling_kmh": speed_ceiling,
+            "speed_ceiling_role": "synthetic_demo_operating_cap_not_legal_waterway_limit",
+            "speed_ceiling_source": "configs/demo_policy.yaml#power_and_energy.economic_speed_kmh",
             "waiting_h": "A批准的河南境内演示排队等待规则；不含船闸内部通行时间",
         },
     }
     return request, data, segments, upstream
 
 
-def run_scenario(
-    definition: dict[str, Any], route: dict[str, Any], configs: dict[str, dict[str, Any]]
+def evaluate_scenario(
+    definition: dict[str, Any],
+    route: dict[str, Any],
+    configs: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Evaluate one scenario without asserting a predeclared outcome.
+
+    D4 wraps this function with expected-result checks.  D5 reuses the same
+    calculation path and checks it against an independent finite-grid
+    reference instead of predicting outcomes in configuration.
+    """
+    configs = configs or load_runtime_configs()
     request, data, segments, upstream = _prepare_inputs(definition, route, configs)
     policy = configs["demo_policy_config"]
     economic_speed = float(policy["power_and_energy"]["economic_speed_kmh"])
@@ -205,17 +216,11 @@ def run_scenario(
         final_status = management.status
         infeasible_type = management.infeasible_type
 
-    expected_status = definition["expected_status"]
-    expected_type = definition.get("expected_infeasible_type")
     actual_type = infeasible_type.value if infeasible_type is not None else None
-    expected_match = final_status.value == expected_status and actual_type == expected_type
     result = {
         "id": definition["id"],
         "status": final_status.value,
         "infeasible_type": actual_type,
-        "expected_status": expected_status,
-        "expected_infeasible_type": expected_type,
-        "expected_match": expected_match,
         "real_ship_validation": False,
         "request": request.to_dict(),
         "route_distance_km": sum(item.distance_km for item in segments),
@@ -233,17 +238,35 @@ def run_scenario(
         "tspeed": speed.to_dict(),
         "tmanagement": management.to_dict() if management is not None else None,
     }
+    return result
+
+
+def run_scenario(
+    definition: dict[str, Any], route: dict[str, Any], configs: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
+    result = evaluate_scenario(definition, route, configs)
+    expected_status = definition["expected_status"]
+    expected_type = definition.get("expected_infeasible_type")
+    expected_match = (
+        result["status"] == expected_status
+        and result["infeasible_type"] == expected_type
+    )
+    result.update({
+        "expected_status": expected_status,
+        "expected_infeasible_type": expected_type,
+        "expected_match": expected_match,
+    })
     if not expected_match:
         raise AssertionError(
             f"D4场景{definition['id']}预期{expected_status}/{expected_type}，"
-            f"实际{final_status.value}/{actual_type}。"
+            f"实际{result['status']}/{result['infeasible_type']}。"
         )
     return result
 
 
 def run_suite(config_path: Path = DEFAULT_CONFIG) -> dict[str, Any]:
     definition = load_scenarios(config_path)
-    configs = _configs()
+    configs = load_runtime_configs()
     results = [
         run_scenario(item, definition["route"], configs)
         for item in definition["scenarios"]

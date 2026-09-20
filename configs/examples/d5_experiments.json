@@ -1,0 +1,32 @@
+{
+  "format_version": 1,
+  "mode": "software_demo_batch_evidence",
+  "real_ship_validation": false,
+  "candidate_speeds_kmh": [6.0, 8.0, 10.0, 11.112],
+  "baseline": {
+    "id": "fastest_feasible_same_constraints",
+    "definition": "同一航线、候选网格、时间、SOC、功率与限速约束下，总耗时最短的可行组合；先按耗时、再按总需求能量和航速序列排序。"
+  },
+  "routes": [
+    {"id": "forward_west", "origin": "平顶山港", "destination": "马湾船闸", "expected_distance_km": 50.5},
+    {"id": "reverse_west", "origin": "马湾船闸", "destination": "平顶山港", "expected_distance_km": 50.5},
+    {"id": "forward_mid_west", "origin": "马湾船闸", "destination": "漯河港", "expected_distance_km": 44.789},
+    {"id": "reverse_mid_west", "origin": "漯河港", "destination": "马湾船闸", "expected_distance_km": 44.789},
+    {"id": "forward_mid_east", "origin": "漯河港", "destination": "葫芦湾船闸", "expected_distance_km": 47.5},
+    {"id": "reverse_mid_east", "origin": "葫芦湾船闸", "destination": "漯河港", "expected_distance_km": 47.5},
+    {"id": "forward_east", "origin": "葫芦湾船闸", "destination": "周口港", "expected_distance_km": 47.0},
+    {"id": "reverse_east", "origin": "周口港", "destination": "葫芦湾船闸", "expected_distance_km": 47.0}
+  ],
+  "profiles": [
+    {"id": "tight_high_soc", "deadline_factor_vs_fastest": 1.0, "soc_initial": 0.85},
+    {"id": "balanced_high_soc", "deadline_factor_vs_fastest": 1.4, "soc_initial": 0.85},
+    {"id": "relaxed_high_soc", "deadline_factor_vs_fastest": 2.0, "soc_initial": 0.85},
+    {"id": "relaxed_mid_soc", "deadline_factor_vs_fastest": 2.0, "soc_initial": 0.55},
+    {"id": "reserve_only", "deadline_factor_vs_fastest": 2.0, "soc_initial": 0.30}
+  ],
+  "limitations": [
+    "逐段真实限速、船闸内部通行时间和充电功率仍未知。",
+    "演示航速上界和能耗系数来自A批准的软件演示配置，不是实船标定值。",
+    "对照结果仅比较同一离散候选网格中的两种软件策略，不代表实船节能率。"
+  ]
+}
