@@ -9,7 +9,7 @@ from typing import Literal
 
 from schemas.types import EnergyResult, Segment, Status, ToolResponse
 from schemas.validate import validate
-from tools.energy_math import cubic_power, number, segment_energy
+from tools.energy_math import number, segment_energy
 
 
 @dataclass(frozen=True)
@@ -121,7 +121,10 @@ def run_tenergy(segments: list[Segment], candidate_speeds_kmh: list[float],
                                         auxiliary, scope=model.energy_scope)
                 assumptions = list(segment.assumptions)
                 if model.usage == "synthetic_demo":
-                    assumptions.append("synthetic_demo_only: 非实船标定结果，禁止用于安全或可行性结论")
+                    assumptions.append(
+                        "synthetic_demo_only: 仅用于软件仿真可行性，"
+                        "不得作为实船安全、运营批准或模型标定结论"
+                    )
                     if segment.waiting_h is None:
                         assumptions.append(f"等待时间使用演示假设{default_waiting}h")
                 results.append(EnergyResult(

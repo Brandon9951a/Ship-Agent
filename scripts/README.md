@@ -29,7 +29,7 @@ CSV/XLSX源文件只读；XLSX不重算公式，使用缓存。Excel相对秒使
 
 输出只允许项目`artifacts/`内的新目录，现有目录拒绝覆盖；复跑请换目录名。正常准备退出0，默认资料检索缺部分预期文件退出2，解析/映射/输出错误退出1。不提交JSONL审计产物，也不把它当作合法公开数据样本。
 
-人工验证脚本不读取实船数据，示例系数0.125与辅助2kW均为人工测试值，不写入船舶采用配置。`tools/tenergy.py`现提供符合公共`ToolResponse`/`EnergyResult`契约的候选计算入口：缺模型、来源、限速或等待时间时返回`need_clarification`；仅`synthetic_demo`允许显式等待假设，并在每项结果标记禁止用于实船结论；正式`approved`模式要求A批准记录且禁止默认等待时间。该入口尚未注册到占位主流程，真实标定和A参数批准仍未完成。详见`docs/协作/D2_B_完成汇总.md`。
+人工验证脚本不读取实船数据，示例系数0.125与辅助2kW均为人工测试值，不写入船舶采用配置。`tools/tenergy.py`提供符合公共`ToolResponse`/`EnergyResult`契约的候选计算入口：缺模型、来源、限速或等待时间时返回`need_clarification`；仅`synthetic_demo`允许显式等待假设，并在每项结果标记不得用于实船结论；正式`approved`模式要求A批准记录且禁止默认等待时间。详见`docs/协作/D2_B_完成汇总.md`。
 
 ### 2026-09-18质量边界修复
 
@@ -38,3 +38,22 @@ XLSX读取器允许省略末尾空单元格：D2只在已映射时间及已知�
 时间顺序按当前连续块的最高时间比较，`0,5,4,4.5,6`中4和4.5都标记倒序。无效/缺失时间之后重新建立块，并输出不同`continuity_group`，因此跨块也不能盲目积分。分组号仅是质量连续块，不是已确认的独立航次或训练分组。
 
 准备程序新增`--max-gap-seconds`（默认300秒，沿用D1检查的质量审查阈值，不是已批准安全阈值或采样协议）。相邻时间上界间隔严格大于阈值时，右侧记录标记`time_gap`并开始新连续块；重复时间仍全部隔离，记录不删除。API `prepare_rows`/`prepare_file`同样接受该阈值。
+
+## 成员B：D3航速搜索与SOC预算人工链路
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.validate_d3
+.\.venv\Scripts\python.exe -m pytest tests/test_d3_planning.py -q
+```
+
+`validate_d3`只连接`Tenergy → Tspeed → Tmanagement`，使用100kWh容量、人工三次方系数等测试参数，并输出`real_ship_validation=false`、单位、来源和完整假设。它不包含parser、Tdata、Tseg或orchestrator，也不使用当前待审批的豫交投001参数。
+
+Tspeed仅在显式候选网格内穷举，按总能量需求、耗时和航速序列排序；逐段核对限速与模型峰值，并检查时间和SOC预算。Tmanagement不模拟途中补能，只计算同一有效容量下的SOC轨迹、报警和最低补能缺口。`total`口径不重复加入辅助能耗；`propulsion`口径按已提供辅助功率补入。缺少来源、采用值或路线约束时返回追问，不填默认值。
+
+## D3 A正常任务端到端验证
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.validate_d3_e2e
+```
+
+该脚本运行`parser → Tdata → Tseg → Tenergy → Tspeed → Tmanagement → report`，采用`configs/demo_policy.yaml`中A批准的`synthetic_demo`速度与单点锚定模型。输出含航段、速度、ETA、推进/辅助/总能耗、SOC、约束、来源和假设，并固定`real_ship_validation=false`。云端模型未配置或调用失败时，报告使用模板化说明；工程数字不交给大模型生成。

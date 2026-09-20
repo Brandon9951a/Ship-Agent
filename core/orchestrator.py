@@ -1,22 +1,29 @@
-"""LangGraph D2 orchestration skeleton with deterministic safety routing.
-
-The graph is real LangGraph code, but the default five tool adapters are still
-explicit placeholders.  A successful skeleton run therefore proves graph order
-and stop conditions only; it is not a voyage plan or engineering result.
-"""
+"""LangGraph orchestration for the five deterministic engineering tools."""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from operator import add
+from pathlib import Path
 from typing import Annotated, Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from core.intent_explainer import build_task_understanding
+from core.llm_layer import LLMClient
 from core.request_parser import parse_voyage_request
+from core.report import build_report
 from schemas.messages import ToolStepResult
-from schemas.types import Status, ToolResponse
-from tools.placeholders import run_tdata, run_tenergy, run_tmanagement, run_tseg, run_tspeed
+from schemas.types import (
+    DataContext, EnergyResult, ManagementPlan, OptimizationResult, Segment,
+    Status, ToolResponse, TraceEvent, VoyagePlan, VoyageRequest,
+)
+from schemas.validate import parse_request as parse_structured_request, validate
+from tools.tdata import load_config, tdata
+from tools.tenergy import EnergyModel, run_tenergy
+from tools.tmanagement import run_tmanagement
+from tools.tseg import segment
+from tools.tspeed import run_tspeed
 
 
 TOOL_ORDER = ("Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement")
@@ -35,17 +42,78 @@ class AgentState(TypedDict, total=False):
     tool_mode: str
     failed_tool: str | None
     final_message: str
+    plan: dict[str, Any]
+    report: dict[str, Any]
+    task_understanding: dict[str, Any]
 
 
 def _default_tools() -> dict[str, ToolAdapter]:
-    functions = {
-        "Tdata": run_tdata,
-        "Tseg": run_tseg,
-        "Tenergy": run_tenergy,
-        "Tspeed": run_tspeed,
-        "Tmanagement": run_tmanagement,
+    root = Path(__file__).resolve().parents[1]
+    route_config = load_config(root / "configs/route_facts.yaml")
+    aliases_config = load_config(root / "configs/aliases.yaml")
+    vessel_config = load_config(root / "configs/vessel_facts.yaml")
+    limits_config = load_config(root / "configs/limits.yaml")
+    demo_policy = load_config(root / "configs/demo_policy.yaml")
+
+    def request(state: AgentState) -> VoyageRequest:
+        return VoyageRequest.from_dict(state["request"])
+
+    def prior(state: AgentState, name: str) -> dict[str, Any]:
+        matches = [item for item in state.get("tool_results", []) if item.get("tool") == name]
+        if not matches or not isinstance(matches[-1].get("payload"), dict):
+            raise ValueError(f"{name} result is unavailable")
+        return matches[-1]["payload"]
+
+    def tdata_adapter(state: AgentState) -> ToolResponse:
+        return tdata(
+            request(state), route_config=route_config, aliases_config=aliases_config,
+            vessel_config=vessel_config, limits_config=limits_config,
+            demo_policy_config=demo_policy,
+        )
+
+    def tseg_adapter(state: AgentState) -> ToolResponse:
+        return segment(
+            request(state), DataContext.from_dict(prior(state, "Tdata")),
+            route_config=route_config, aliases_config=aliases_config,
+            demo_policy_config=demo_policy,
+        )
+
+    def tenergy_adapter(state: AgentState) -> ToolResponse:
+        segments = [Segment.from_dict(item) for item in prior(state, "Tseg")["segments"]]
+        configured = demo_policy.get("voyage_demo", {})
+        model_config = configured.get("energy_model", {})
+        model = EnergyModel(
+            model_id=model_config.get("model_id"),
+            coefficient_kw_per_kmh3=model_config.get("coefficient_kw_per_kmh3"),
+            auxiliary_power_kw=model_config.get("auxiliary_power_kw"),
+            energy_scope=model_config.get("energy_scope"),
+            usage=model_config.get("usage"),
+            approval_ref=model_config.get("approval_ref"),
+        )
+        return run_tenergy(segments, configured.get("candidate_speeds_kmh", []), model)
+
+    def tspeed_adapter(state: AgentState) -> ToolResponse:
+        data = DataContext.from_dict(prior(state, "Tdata"))
+        segments = [Segment.from_dict(item) for item in prior(state, "Tseg")["segments"]]
+        candidates = [
+            EnergyResult.from_dict(item)
+            for item in prior(state, "Tenergy")["candidate_results"]
+        ]
+        return run_tspeed(request(state), segments, candidates, data.vessel)
+
+    def tmanagement_adapter(state: AgentState) -> ToolResponse:
+        return run_tmanagement(
+            request(state), DataContext.from_dict(prior(state, "Tdata")),
+            OptimizationResult.from_dict(prior(state, "Tspeed")),
+        )
+
+    return {
+        "Tdata": tdata_adapter,
+        "Tseg": tseg_adapter,
+        "Tenergy": tenergy_adapter,
+        "Tspeed": tspeed_adapter,
+        "Tmanagement": tmanagement_adapter,
     }
-    return {name: (lambda state, fn=fn: fn()) for name, fn in functions.items()}
 
 
 def _status_text(value: Any) -> str:
@@ -56,6 +124,9 @@ def _normalise_tool_result(name: str, result: ToolStepResult | ToolResponse) -> 
     if isinstance(result, ToolStepResult):
         return {"tool": result.name, "status": result.status, "detail": result.detail}
     if isinstance(result, ToolResponse):
+        checked = validate(result)
+        if not checked.valid:
+            raise ValueError(f"{name} returned a contract-invalid response")
         return result.to_dict()
     raise TypeError(f"{name} returned an unsupported result type")
 
@@ -63,7 +134,8 @@ def _normalise_tool_result(name: str, result: ToolStepResult | ToolResponse) -> 
 def build_workflow(
     tools: Mapping[str, ToolAdapter] | None = None,
     *,
-    tool_mode: str = "placeholder",
+    tool_mode: str = "synthetic_demo",
+    llm_client: LLMClient | None = None,
 ):
     adapters = dict(_default_tools() if tools is None else tools)
     missing = [name for name in TOOL_ORDER if name not in adapters]
@@ -72,9 +144,29 @@ def build_workflow(
         raise ValueError(f"tool adapters must match TOOL_ORDER; missing={missing}, extra={extra}")
 
     def parse_node(state: AgentState) -> dict[str, Any]:
+        if state.get("request") and not state.get("user_input"):
+            decoded, checked = parse_structured_request(state["request"])
+            request_record = decoded.to_dict() if decoded is not None else state["request"]
+            return {
+                "request": request_record,
+                "task_understanding": build_task_understanding(
+                    request_record,
+                    llm_client if checked.status == Status.OK else None,
+                ),
+                "status": checked.status.value,
+                "missing_fields": checked.missing_fields,
+                "questions": checked.questions,
+                "warnings": [],
+                "tool_mode": state.get("tool_mode", tool_mode),
+                "trace": [{"node": "parse", "status": checked.status.value}],
+            }
         result = parse_voyage_request(state.get("user_input", ""))
         return {
             "request": result.request.to_dict(),
+            "task_understanding": build_task_understanding(
+                result.request.to_dict(),
+                llm_client if result.status == Status.OK else None,
+            ),
             "status": result.status.value,
             "missing_fields": result.missing_fields,
             "questions": result.questions,
@@ -117,17 +209,56 @@ def build_workflow(
 
     def finalize_node(state: AgentState) -> dict[str, Any]:
         status = state.get("status", Status.FAILED.value)
+        update: dict[str, Any] = {}
         if status == Status.NEED_CLARIFICATION.value:
             message = "需要补充信息后再继续计算。"
         elif status != Status.OK.value:
             failed = state.get("failed_tool") or "parse"
             message = f"流程在{failed}停止，未生成航行方案。"
-        elif state.get("tool_mode", tool_mode) == "placeholder":
-            message = "LangGraph结构运行完成；五工具仍为占位实现，不代表航行方案可用。"
+        elif state.get("tool_mode", tool_mode) == "synthetic_demo":
+            by_name = {item["tool"]: item for item in state.get("tool_results", [])}
+            try:
+                plan = VoyagePlan(
+                    request=VoyageRequest.from_dict(state["request"]),
+                    status=Status.OK,
+                    data=DataContext.from_dict(by_name["Tdata"]["payload"]),
+                    segments=[
+                        Segment.from_dict(item)
+                        for item in by_name["Tseg"]["payload"]["segments"]
+                    ],
+                    optimization=OptimizationResult.from_dict(by_name["Tspeed"]["payload"]),
+                    management=ManagementPlan.from_dict(by_name["Tmanagement"]["payload"]),
+                    assumptions=[
+                        "synthetic_demo：历史数据覆盖检查与调研单点锚定的软件仿真；"
+                        "不是实船安全、运营批准或模型标定结论。"
+                    ],
+                    trace=[
+                        TraceEvent(
+                            item["tool"], Status(item["status"]),
+                            "工具结果已通过接口校验。",
+                        )
+                        for item in state.get("tool_results", [])
+                    ],
+                )
+                checked = validate(plan)
+                if not checked.valid:
+                    raise ValueError("final VoyagePlan validation failed")
+                update["plan"] = plan.to_dict()
+                update["report"] = build_report(plan, llm_client)
+                message = (
+                    "五工具synthetic_demo流程完成；结果仅用于软件仿真，"
+                    "不代表实船安全或运营批准。"
+                )
+            except (KeyError, TypeError, ValueError) as exc:
+                status = Status.FAILED.value
+                update["status"] = status
+                update["failed_tool"] = "finalize"
+                message = f"最终方案校验失败（{type(exc).__name__}），未生成航行方案。"
         else:
             message = "五工具流程运行完成，结果仍需通过最终数值锁定。"
-        return {"final_message": message,
-                "trace": [{"node": "finalize", "status": status}]}
+        update.update(final_message=message,
+                      trace=[{"node": "finalize", "status": status}])
+        return update
 
     builder = StateGraph(AgentState)
     builder.add_node("parse", parse_node)
@@ -152,11 +283,29 @@ def run_workflow(
     user_input: str,
     tools: Mapping[str, ToolAdapter] | None = None,
     *,
-    tool_mode: str = "placeholder",
+    tool_mode: str = "synthetic_demo",
+    llm_client: LLMClient | None = None,
 ) -> AgentState:
-    graph = build_workflow(tools, tool_mode=tool_mode)
+    graph = build_workflow(tools, tool_mode=tool_mode, llm_client=llm_client)
     return graph.invoke({
         "user_input": user_input,
+        "trace": [],
+        "tool_results": [],
+        "tool_mode": tool_mode,
+    })
+
+
+def run_structured_workflow(
+    payload: dict[str, Any],
+    tools: Mapping[str, ToolAdapter] | None = None,
+    *,
+    tool_mode: str = "synthetic_demo",
+    llm_client: LLMClient | None = None,
+) -> AgentState:
+    """Run the same graph from an already structured request payload."""
+    graph = build_workflow(tools, tool_mode=tool_mode, llm_client=llm_client)
+    return graph.invoke({
+        "request": payload,
         "trace": [],
         "tool_results": [],
         "tool_mode": tool_mode,
