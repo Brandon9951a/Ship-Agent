@@ -91,3 +91,15 @@ Tspeed仅在显式候选网格内穷举，按总能量需求、耗时和航速�
 `audit_d6`只读检查D5冻结证据的SHA-256、JSON/CSV用例与数值、统一单位、当前演示参数、README/说明书限制，并使用当前代码重跑40项实验。重跑比较只忽略运行环境和计时字段；状态、分类、距离、能耗、SOC、基线与差异字段必须一致。输出文件存在时拒绝覆盖。
 
 审计通过只代表代码与证据一致，不是实船模型标定、航行安全认证或C的独立安装验收。仓库审计结果位于`docs/验证/D6_B_审计报告.json`。
+
+## 成员B：D7工程候选包与提交就绪审计
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.package_d7
+.\.venv\Scripts\python.exe -m scripts.check_d7_readiness
+.\.venv\Scripts\python.exe -m scripts.check_d7_readiness --strict
+```
+
+`package_d7`只收录Git跟踪的工程源码、配置、测试和选定技术/验证文档；默认排除团队资料中的原始船舶资料、历史航行数据、官方模板、待填赛事成果，以及`.git`、虚拟环境、缓存、artifacts和真实密钥。ZIP内含逐文件SHA-256清单，输出与外部清单均拒绝覆盖。
+
+`check_d7_readiness`区分“B侧工程证据通过”和“整套赛事材料可提交”。默认命令即使发现A/C材料缺失也正常输出审计；`--strict`在尚未全部就绪时返回非零状态，适合最终提交门禁。当前内部候选包不是A批准的最终工程包，A合并并冻结最终提交后必须重新生成。

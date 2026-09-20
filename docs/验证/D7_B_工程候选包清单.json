@@ -1,0 +1,21 @@
+{
+  "status": "candidate_created",
+  "source_commit": "da1e9fc6436538ba19cf1419813a24ee0a50be07",
+  "package_path": "artifacts/d7-lwj/Ship-Agent-B-D7-source-main37872c0.zip",
+  "package_size_bytes": 257525,
+  "package_sha256": "3796bf5c5fa6d23fd01d89e67dee9112641c14ecd09afbcc5edb7f3f3940022e",
+  "included_file_count": 120,
+  "excluded_tracked_file_count": 49,
+  "secret_scan": "passed",
+  "real_ship_validation": false,
+  "excluded_scope": [
+    "docs/团队资料中的原始船舶资料、历史航行数据、官方模板及待填赛事成果",
+    "虚拟环境、.git、本地artifacts、缓存和真实密钥",
+    "最终方案PDF、PPT PDF、视频、佐证PDF、网盘信息和提交回执"
+  ],
+  "limitations": [
+    "这是B生成的内部工程候选包，不是A批准的最终提交包。",
+    "A合并D4-D7并确定冻结提交后必须重新生成，不能直接沿用本候选包。",
+    "原始资料能否公开须由A确认；本包默认不收录。"
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "status": "waiting_external_deliverables",
+  "b_scope_status": "passed",
+  "submission_ready": false,
+  "real_ship_validation": false,
+  "b_checks": {
+    "d6_frozen_report_passed": true,
+    "d6_snapshot_reproduction_passed": true,
+    "current_d6_audit_passed": true,
+    "candidate_package_hash_passed": true,
+    "all_outputs_non_real_ship": true
+  },
+  "candidate_package": {
+    "passed": true,
+    "reason": null,
+    "package_path": "artifacts/d7-lwj/Ship-Agent-B-D7-source-main37872c0.zip",
+    "package_size_bytes": 257525,
+    "package_sha256": "3796bf5c5fa6d23fd01d89e67dee9112641c14ecd09afbcc5edb7f3f3940022e",
+    "source_commit": "da1e9fc6436538ba19cf1419813a24ee0a50be07",
+    "candidate_only": true
+  },
+  "final_materials": {
+    "ready": false,
+    "items": {
+      "solution_pdf": {
+        "present": false,
+        "path": null,
+        "size_bytes": null,
+        "size_limit_bytes": 10000000,
+        "size_ok": false
+      },
+      "ppt_pdf": {
+        "present": false,
+        "path": null,
+        "size_bytes": null,
+        "size_limit_bytes": null,
+        "size_ok": false
+      },
+      "demo_video": {
+        "present": false,
+        "path": null,
+        "size_bytes": null,
+        "size_limit_bytes": 300000000,
+        "size_ok": false
+      },
+      "evidence_pdf": {
+        "present": false,
+        "path": null,
+        "size_bytes": null,
+        "size_limit_bytes": null,
+        "size_ok": false
+      },
+      "engineering_zip": {
+        "present": false,
+        "path": null,
+        "size_bytes": null,
+        "size_limit_bytes": null,
+        "size_ok": false
+      },
+      "netdisk_record": {
+        "present": false,
+        "path": null,
+        "size_bytes": null,
+        "size_limit_bytes": null,
+        "size_ok": false
+      },
+      "submission_receipt": {
+        "present": false,
+        "path": null,
+        "size_bytes": null,
+        "size_limit_bytes": null,
+        "size_ok": false
+      }
+    },
+    "missing": [
+      "solution_pdf",
+      "ppt_pdf",
+      "demo_video",
+      "evidence_pdf",
+      "engineering_zip",
+      "netdisk_record",
+      "submission_receipt"
+    ],
+    "invalid_size": []
+  },
+  "external_actions_required": [
+    "A按顺序审核并合并D4、D5、D6、D7，确定最终冻结提交。",
+    "A/C生成并核验作品方案PDF、PPT PDF、演示视频和佐证PDF。",
+    "A以最终冻结提交重新生成正式工程包，C上传网盘，A检查链接和提取码。",
+    "A核对报名字段、截止时刻和匿名要求，完成正式提交并保存回执。"
+  ],
+  "limitations": [
+    "B侧通过不等于整套参赛材料已完成或已提交。",
+    "内部工程候选包不得替代A从最终冻结提交生成的正式工程包。",
+    "缺失文件保持missing，不以占位文件冒充完成。"
+  ]
+}
