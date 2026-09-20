@@ -57,3 +57,14 @@ Tspeed仅在显式候选网格内穷举，按总能量需求、耗时和航速�
 ```
 
 该脚本运行`parser → Tdata → Tseg → Tenergy → Tspeed → Tmanagement → report`，采用`configs/demo_policy.yaml`中A批准的`synthetic_demo`速度与单点锚定模型。输出含航段、速度、ETA、推进/辅助/总能耗、SOC、约束、来源和假设，并固定`real_ship_validation=false`。云端模型未配置或调用失败时，报告使用模板化说明；工程数字不交给大模型生成。
+
+## 成员B：D4三场景软件级验收
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.validate_d4 --output-dir artifacts/d4-new
+.\.venv\Scripts\python.exe -m pytest tests/test_d3_planning.py tests/test_d4_scenarios.py -q
+```
+
+`validate_d4`连接当前Tdata/Tseg部分结果与`Tenergy → Tspeed → Tmanagement`计算链，在同一条50.5km资料航线、同一候选航速网格及同一功率/SOC边界下运行正常、时间不可行和低SOC三类场景。输出目录必须不存在；程序生成`results.json`和`summary.csv`并拒绝覆盖旧结果。
+
+演示使用A批准的1411.065kWh有效容量、30%规划SOC下限、30kW辅助功率，以及由经济航速11.112km/h和推进功率90kW推导的三次方系数。系数未由独立实船航次标定；逐段真实限速仍未知，11.112km/h只作为软件演示搜索上界。所有结果均为`real_ship_validation=false`，不可作为实船航行、安全或补能结论。

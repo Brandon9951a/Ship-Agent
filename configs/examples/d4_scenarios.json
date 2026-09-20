@@ -1,0 +1,35 @@
+{
+  "format_version": 1,
+  "mode": "software_demo_only",
+  "real_ship_validation": false,
+  "route": {
+    "origin": "平顶山港",
+    "destination": "马湾船闸",
+    "load_state": "半载",
+    "candidate_speeds_kmh": [6.0, 8.0, 10.0, 11.112],
+    "demo_speed_ceiling_source": "configs/demo_policy.yaml#power_and_energy.economic_speed_kmh"
+  },
+  "scenarios": [
+    {
+      "id": "normal",
+      "soc_initial": 0.85,
+      "max_duration_h": 10.0,
+      "expected_status": "ok",
+      "expected_infeasible_type": null
+    },
+    {
+      "id": "time_infeasible",
+      "soc_initial": 0.85,
+      "max_duration_h": 4.0,
+      "expected_status": "infeasible",
+      "expected_infeasible_type": "time"
+    },
+    {
+      "id": "low_soc",
+      "soc_initial": 0.45,
+      "max_duration_h": 10.0,
+      "expected_status": "infeasible",
+      "expected_infeasible_type": "soc"
+    }
+  ]
+}
