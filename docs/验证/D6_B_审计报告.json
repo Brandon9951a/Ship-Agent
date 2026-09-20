@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "scope": "B_D6_numeric_evidence_audit",
+  "real_ship_validation": false,
+  "environment": {
+    "python_version": "3.13.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "model_service_used": false
+  },
+  "checks": [
+    {
+      "name": "d5_manifest_hashes",
+      "passed": true,
+      "detail": {
+        "algorithm": "SHA-256",
+        "verified_files": {
+          "raw_results.json": "189cdf5dbc722f0cb5e8148de82f323e67780695c420f28bfe0da86edf0538de",
+          "aggregate.json": "8bca86325ae34eb3aabb8f3890961ee4db8c3117032cfcef892d6faacb7709c6",
+          "cases.csv": "88268722df3d8637ef7c9f057f7ef77578e594e9958ce5595a131987da584bc1",
+          "energy_comparison.svg": "268356bcf9b18f6aefd141ca6ed3c207dbe988e51bfda59530f02b9541cb8ca8"
+        }
+      }
+    },
+    {
+      "name": "json_csv_counts_units",
+      "passed": true,
+      "detail": {
+        "case_count": 40,
+        "verified_case_count": 40,
+        "status_counts": {
+          "ok": 30,
+          "infeasible/soc": 10
+        },
+        "csv_row_count": 40,
+        "units": {
+          "distance": "km",
+          "speed": "km/h",
+          "power": "kW",
+          "energy": "kWh",
+          "duration": "h",
+          "soc": "fraction",
+          "elapsed": "ms"
+        }
+      }
+    },
+    {
+      "name": "adopted_demo_boundaries",
+      "passed": true,
+      "detail": {
+        "effective_capacity_kwh": 1411.065,
+        "soc_min": 0.3,
+        "propulsion_power_limit_kw": 200.0,
+        "auxiliary_power_kw": 30.0,
+        "source": "configs/demo_policy.yaml"
+      }
+    },
+    {
+      "name": "document_claims_and_limitations",
+      "passed": true,
+      "detail": {
+        "README.md": [
+          "40项批量实验",
+          "16.6703%",
+          "不是实船节能率"
+        ],
+        "docs/协作/D5_B_完成汇总.md": [
+          "40项全部通过",
+          "30项可比案例",
+          "不能写成实船节能率"
+        ],
+        "docs/参赛/D5_B_测试与验证供稿.md": [
+          "40项状态",
+          "16.6703%",
+          "不能解释为实船节能率"
+        ]
+      }
+    },
+    {
+      "name": "current_code_deterministic_rerun",
+      "passed": true,
+      "detail": {
+        "case_count": 40,
+        "timing_fields_ignored": true,
+        "environment_fields_ignored": true
+      }
+    }
+  ],
+  "summary": {
+    "passed_checks": 5,
+    "total_checks": 5,
+    "d5_case_count": 40,
+    "d5_verified_case_count": 40,
+    "manifest_file_count": 4,
+    "boundary_count": 5,
+    "document_count": 3
+  },
+  "limitations": [
+    "本审计验证软件证据一致性，不验证真实船舶能耗精度或航行安全。",
+    "当前代码重跑忽略环境描述和计时字段；数值、状态、单位与比较字段必须一致。",
+    "依赖独立安装与展示材料打开检查仍由C执行，最终版本和提交由A批准。"
+  ]
+}

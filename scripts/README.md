@@ -79,3 +79,15 @@ Tspeed仅在显式候选网格内穷举，按总能量需求、耗时和航速�
 `validate_d5`展开8条正/返向子航线与5组时间/SOC条件，共40项软件实验。每项结果都由独立有限网格穷举复核状态、不可行分类和最低能耗选择；可行项再与相同航线、候选网格、时间、SOC、功率和限速约束下的“最快可行”策略比较。
 
 输出目录必须不存在。程序生成`raw_results.json`、`aggregate.json`、`cases.csv`、`energy_comparison.svg`和`evidence_manifest.json`，最后一项记录其余文件的SHA-256。仓库冻结证据位于`docs/验证/D5_B_冻结证据/`。图表和差异比例只表示当前演示模型及离散网格内的软件对照，不是实船节能率、模型精度或运营收益。
+
+## 成员B：D6数字、单位与冻结证据审计
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.audit_d6
+.\.venv\Scripts\python.exe -m scripts.audit_d6 --output artifacts/d6-audit.json
+.\.venv\Scripts\python.exe -m pytest tests/test_d5_experiments.py tests/test_d6_release_audit.py -q
+```
+
+`audit_d6`只读检查D5冻结证据的SHA-256、JSON/CSV用例与数值、统一单位、当前演示参数、README/说明书限制，并使用当前代码重跑40项实验。重跑比较只忽略运行环境和计时字段；状态、分类、距离、能耗、SOC、基线与差异字段必须一致。输出文件存在时拒绝覆盖。
+
+审计通过只代表代码与证据一致，不是实船模型标定、航行安全认证或C的独立安装验收。仓库审计结果位于`docs/验证/D6_B_审计报告.json`。
