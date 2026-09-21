@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>智行合一 | 船舶能量管理决策台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><i data-lucide="ship"></i><span></span></div>
+          <div>
+            <p class="eyebrow">YUJIAOTOU 001 · AGENT · ARDUINO LINK</p>
+            <h1>智行合一 · 船舶航速优化与能效管理智能决策系统</h1>
+          </div>
+        </div>
+        <div class="topbar-meta">
+          <span class="connection"><span class="status-dot" id="hw-dot"></span><span id="hw-label">本地决策引擎</span></span>
+          <span class="clock" id="clock">--:--</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="mission-panel" aria-label="任务输入">
+          <div class="panel-kicker"><i data-lucide="navigation"></i> 航行任务</div>
+          <h2>创建决策任务</h2>
+          <p class="panel-copy">输入航次约束，系统将联合航速优化与电池能量管理生成可执行方案。</p>
+
+          <label class="field-label" for="mission-input">任务描述</label>
+          <textarea id="mission-input" rows="5" placeholder="例如：从平顶山港到周口港，明天上午9点出发，下午6点前到港，SOC 78%，B级装载，风速3m/s"></textarea>
+
+          <div class="input-actions">
+            <button class="icon-button" id="voice-button" type="button" aria-label="语音输入" title="语音输入"><i data-lucide="mic"></i></button>
+            <span class="voice-copy" id="voice-copy">点击麦克风语音输入</span>
+            <button class="text-button" id="clear-button" type="button"><i data-lucide="rotate-ccw"></i> 重置</button>
+          </div>
+
+          <button class="run-button" id="run-button" type="button"><i data-lucide="send"></i><span>发送任务</span></button>
+
+          <div class="route-form" aria-label="快捷输入">
+            <div class="section-label">快捷输入</div>
+            <label><span>航线</span><select id="route-select"></select></label>
+            <div class="route-pair">
+              <label><span>起点</span><select id="start-select"></select></label>
+              <i data-lucide="arrow-right" class="route-arrow" aria-hidden="true"></i>
+              <label><span>终点</span><select id="end-select"></select></label>
+            </div>
+            <label class="time-field"><span>限时</span><span class="stepper"><button id="time-minus" type="button" aria-label="减少限时">-</button><input id="time-input" type="number" min="0.5" max="72" value="38" step="0.5" /><button id="time-plus" type="button" aria-label="增加限时">+</button><em>h</em></span></label>
+            <button class="primary-button" id="quick-fill" type="button"><i data-lucide="wand-sparkles"></i> 写入任务描述</button>
+          </div>
+
+          <details class="advanced-panel">
+            <summary><i data-lucide="sliders-horizontal"></i> 工况补充</summary>
+            <div class="advanced-grid">
+              <label><span>SOC (%)</span><input id="adv-soc" type="number" value="0" min="0" max="100" step="1" /><small>0=自动采样</small></label>
+              <label><span>装载状态</span><select id="adv-load"><option>自动识别</option><option>空载</option><option>B级</option><option>满载</option></select></label>
+              <label><span>风速 (m/s)</span><input id="adv-wind" type="number" value="0" min="0" max="15" step="0.5" /><small>0=自动采样</small></label>
+              <label><span>时间窗口 (h)</span><input id="adv-time" type="number" value="38" min="1" max="72" step="0.5" /></label>
+            </div>
+          </details>
+
+          <div class="sample-block">
+            <div class="section-label">示例航次</div>
+            <div class="sample-list">
+              <button type="button" data-sample="从平顶山港到周口港，共38小时，SOC 78%，B级装载">平顶山港 → 周口港 <span>38 h</span></button>
+              <button type="button" data-sample="从平顶山港到漯河港，共18小时，SOC 82%，空载">平顶山港 → 漯河港 <span>18 h</span></button>
+              <button type="button" data-sample="从漯河港到周口港，共20小时，SOC 65%，满载">漯河港 → 周口港 <span>20 h</span></button>
+            </div>
+          </div>
+
+          <!-- Arduino 硬件控制面板 -->
+          <div class="route-form" aria-label="硬件控制" style="margin-top:4px;">
+            <div class="section-label">Arduino 硬件联动</div>
+            <div id="hw-status-card" class="hw-status-card">
+              <span class="hw-status-text" id="hw-status-text">未连接</span>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px;">
+              <select id="hw-port-select" style="flex:1;height:32px;font-size:11px;"></select>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <button class="sample-list-button" id="hw-refresh-btn" type="button" style="flex:1;padding:6px;font-size:11px;">刷新端口</button>
+              <button class="sample-list-button" id="hw-connect-btn" type="button" style="flex:1;padding:6px;font-size:11px;">连接</button>
+              <button class="sample-list-button" id="hw-disconnect-btn" type="button" style="flex:1;padding:6px;font-size:11px;">断开</button>
+            </div>
+            <button class="primary-button" id="hw-lock-btn" type="button" style="margin-top:6px;">锁定旋钮参数</button>
+            <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;color:var(--muted);">
+              <input type="checkbox" id="hw-enable-check" checked /> 启用硬件联动（取消勾选则为纯软件演示）
+            </label>
+          </div>
+        </aside>
+
+        <section class="decision-canvas" aria-live="polite">
+          <section class="decision-heading">
+            <div>
+              <p class="eyebrow">MISSION STATUS</p>
+              <h2 id="mission-title">等待航行任务</h2>
+              <p id="mission-subtitle">输入自然语言需求，或使用左侧快捷航线开始。</p>
+            </div>
+            <div class="decision-status idle" id="decision-status"><span></span>待命</div>
+          </section>
+
+          <!-- 五步推理进度条 -->
+          <section class="progress-track" id="progress-track">
+            <div class="progress-labels" id="progress-labels">
+              <span>数据获取</span><span>航段划分</span><span>能耗预测</span><span>航速优化</span><span>报告生成</span>
+            </div>
+            <div class="progress-steps" id="progress-steps">
+              <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+            </div>
+          </section>
+
+          <section class="infeasible-alert" id="infeasible-alert" hidden>
+            <header><span class="infeasible-icon"><i data-lucide="circle-x"></i></span><div><span class="surface-kicker">VOYAGE ALERT</span><h3>航次不可行</h3></div></header>
+            <div class="infeasible-content">
+              <div class="infeasible-block"><strong>原因分析</strong><p id="infeasible-reason"></p></div>
+              <div class="infeasible-block suggestion"><strong>补救建议</strong><p id="infeasible-suggestion"></p></div>
+            </div>
+          </section>
+
+          <section class="reply-panel" id="reply-panel" hidden>
+            <header><div><span class="surface-kicker">REPLY</span><h3>回复</h3></div></header>
+            <div id="reply-answer"></div>
+          </section>
+
+          <section class="kpi-grid" id="kpi-grid">
+            <article class="kpi-card"><span class="kpi-label">预计总能耗</span><strong id="metric-energy">--</strong><small>等待优化结果</small></article>
+            <article class="kpi-card"><span class="kpi-label">节能效果</span><strong id="metric-saving">--</strong><small>相对历史航速</small></article>
+            <article class="kpi-card"><span class="kpi-label">计划耗时</span><strong id="metric-time">--</strong><small>时间约束校验</small></article>
+            <article class="kpi-card"><span class="kpi-label">到港 SOC</span><strong id="metric-soc">--</strong><small>双电池平均值</small></article>
+          </section>
+
+          <section class="analysis-grid">
+            <article class="surface route-surface">
+              <header class="surface-header"><div><span class="surface-kicker">ROUTE PLAN</span><h3>航线与分段方案</h3></div><span class="route-chip" id="route-chip">未选择航线</span></header>
+              <div class="route-track" id="route-track">
+                <div class="empty-inline"><i data-lucide="route"></i><span>航段识别完成后显示路径与速度建议</span></div>
+              </div>
+              <div class="segment-summary" id="segment-summary"></div>
+            </article>
+
+            <article class="surface energy-surface">
+              <header class="surface-header"><div><span class="surface-kicker">ENERGY PROFILE</span><h3>航段能耗与速度</h3></div><span class="legend"><b></b> 推荐能耗</span></header>
+              <div class="energy-chart" id="energy-chart">
+                <div class="empty-inline"><i data-lucide="chart-no-axes-combined"></i><span>优化完成后显示分段对比</span></div>
+              </div>
+            </article>
+          </section>
+
+          <section class="surface table-surface">
+            <header class="surface-header"><div><span class="surface-kicker">EXECUTION TABLE</span><h3>推荐航速方案</h3></div><span class="result-count" id="result-count">0 个航段</span></header>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>航段</th><th>距离</th><th>对地航速</th><th>对水航速</th><th>环境风速</th><th>优化能耗</th></tr></thead>
+                <tbody id="segment-table"><tr class="placeholder-row"><td colspan="6">等待航速优化结果</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bottom-grid">
+            <article class="surface safety-surface">
+              <header class="surface-header"><div><span class="surface-kicker">RISK CHECK</span><h3>安全校验</h3></div></header>
+              <div class="safety-list" id="safety-list"><div class="empty-inline">暂无校验结果</div></div>
+            </article>
+            <article class="surface recommendation-surface">
+              <header class="surface-header"><div><span class="surface-kicker">EMS ADVICE</span><h3>能量管理建议</h3></div></header>
+              <div class="recommendation-list" id="recommendation-list"><div class="empty-inline">等待 EMS 仿真结果</div></div>
+            </article>
+          </section>
+
+          <section class="final-response" id="final-response" hidden>
+            <header><span class="surface-kicker">DETAILED RESPONSE</span><span class="detail-title">完整详细回复</span><button class="icon-button subtle" id="copy-final" type="button" aria-label="复制完整详细回复" title="复制完整详细回复"><i data-lucide="copy"></i></button></header>
+            <div id="final-answer"></div>
+          </section>
+
+          <details class="trace-panel" id="trace-panel">
+            <summary><span><i data-lucide="workflow"></i> 工具调用过程</span><span class="trace-meta" id="trace-meta">等待任务</span></summary>
+            <ol id="trace-list" class="trace-list"></ol>
+          </details>
+        </section>
+      </main>
+    </div>
+
+    <template id="trace-item-template"><li class="trace-item"><span class="trace-index"></span><div><strong></strong><p></p><code></code></div></li></template>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <script>
+    /* ── 五步推理进度条（从 Gradio 版迁移）── */
+    var PROGRESS_LABELS = ['数据获取', '航段划分', '能耗预测', '航速优化', '报告生成'];
+    var TOOL_ROUND_MAP = {
+      DataAcquisitionTool: 1, DataGetTool: 1,
+      SegmentDivisionTool: 2, DivideSegmentsTool: 2, RouteSegmentTool: 2,
+      EnergyPredictionModel: 3, EnergyPredictTool: 3, EnergyModel: 3,
+      SpeedOptimizationSolver: 4, SpeedOptimizer: 4, DESolver: 4,
+      ReportGenerationTool: 5, ReportGenerator: 5,
+    };
+
+    function renderProgress(phase, toolName, isComplete, hasError) {
+      var roundIdx = TOOL_ROUND_MAP[toolName] || 0;
+      if (phase === 'final') roundIdx = 5;
+      if (isComplete) roundIdx = hasError ? (roundIdx || 1) : 5;
+
+      var labels = document.querySelectorAll('#progress-labels span');
+      var steps = document.querySelectorAll('#progress-steps .progress-step');
+      labels.forEach(function(l, i) {
+        l.className = '';
+        if (hasError && i+1 === roundIdx) l.className = 'curr';
+        else if (i+1 < roundIdx) l.className = 'done';
+        else if (i+1 === roundIdx) l.className = 'curr';
+      });
+      steps.forEach(function(s, i) {
+        s.className = 'progress-step';
+        if (hasError && i+1 === roundIdx) s.className = 'progress-step error';
+        else if (i+1 < roundIdx) s.className = 'progress-step complete';
+        else if (i+1 === roundIdx) s.className = 'progress-step active';
+      });
+    }
+    </script>
+    <script>
+    /* ── Arduino 硬件面板交互（Flask 迁移新增）── */
+    (function () {
+      var hwPollTimer = null;
+
+      function hwStatusEl() { return document.getElementById('hw-status-text'); }
+      function hwDotEl() { return document.getElementById('hw-dot'); }
+      function hwLabelEl() { return document.getElementById('hw-label'); }
+      function hwPortSelect() { return document.getElementById('hw-port-select'); }
+
+      async function hwRefreshPorts() {
+        try {
+          var resp = await fetch('/api/hardware/ports');
+          var data = await resp.json();
+          var ports = data.ports || [];
+          var sel = hwPortSelect();
+          sel.innerHTML = ports.map(function(p) { return '<option value="' + p + '">' + p + '</option>'; }).join('');
+          if (ports.length) sel.value = ports[0];
+        } catch(e) {}
+      }
+
+      async function hwPollStatus() {
+        try {
+          var resp = await fetch('/api/hardware/status');
+          var s = await resp.json();
+          var dot = hwDotEl();
+          var label = hwLabelEl();
+          var text = hwStatusEl();
+          if (!s.connected) {
+            if (dot) dot.className = 'status-dot offline';
+            if (label) label.textContent = 'Arduino 未连接';
+            if (text) { text.textContent = '未连接 · 软件演示模式可用'; text.className = 'hw-status-text hw-idle'; }
+          } else {
+            if (dot) dot.className = 'status-dot';
+            if (label) label.textContent = s.port || 'Arduino';
+            var parts = [];
+            if (s.latest_seq != null) parts.push('SEQ ' + s.latest_seq);
+            if (s.water_ms != null) parts.push('水流 ' + (s.water_ms>=0?'+':'') + s.water_ms.toFixed(2) + ' m/s');
+            if (s.wind_ms != null) parts.push('风速 ' + s.wind_ms.toFixed(2) + ' m/s');
+            if (s.angle_deg != null) parts.push('风向 ' + s.angle_deg + '°');
+            if (s.age_s != null) parts.push(s.age_s + 's 前');
+            if (s.locked_seq != null) parts.push('已锁定 SEQ ' + s.locked_seq);
+            if (text) { text.textContent = parts.join(' ｜ '); text.className = 'hw-status-text hw-ok'; }
+          }
+        } catch(e) {}
+      }
+
+      function hwStartPolling() {
+        if (hwPollTimer) return;
+        hwPollStatus();
+        hwPollTimer = setInterval(hwPollStatus, 1500);
+      }
+
+      async function hwConnect() {
+        var port = hwPortSelect().value;
+        if (!port) return;
+        var resp = await fetch('/api/hardware/connect', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({port: port}) });
+        var data = await resp.json();
+        hwStatusEl().textContent = data.message;
+        hwStartPolling();
+      }
+
+      async function hwDisconnect() {
+        await fetch('/api/hardware/disconnect', { method: 'POST' });
+        hwStatusEl().textContent = '串口已断开';
+        hwDotEl().className = 'status-dot offline';
+        hwLabelEl().textContent = 'Arduino 未连接';
+        if (hwPollTimer) { clearInterval(hwPollTimer); hwPollTimer = null; }
+      }
+
+      async function hwLock() {
+        var resp = await fetch('/api/hardware/lock', { method: 'POST' });
+        var data = await resp.json();
+        hwStatusEl().textContent = data.message;
+      }
+
+      window.addEventListener('DOMContentLoaded', function() {
+        hwRefreshPorts();
+        document.getElementById('hw-refresh-btn').addEventListener('click', hwRefreshPorts);
+        document.getElementById('hw-connect-btn').addEventListener('click', hwConnect);
+        document.getElementById('hw-disconnect-btn').addEventListener('click', hwDisconnect);
+        document.getElementById('hw-lock-btn').addEventListener('click', hwLock);
+        hwStartPolling();
+      });
+    })();
+    </script>
+  </body>
+</html>
