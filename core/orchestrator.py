@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
+from dataclasses import asdict
 from operator import add
 from pathlib import Path
 from typing import Annotated, Any, TypedDict
@@ -10,9 +11,11 @@ from typing import Annotated, Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from core.intent_explainer import build_task_understanding
+from core.intent_translator import build_boundary_diagnostics, enumerate_options
 from core.llm_layer import LLMClient
 from core.request_parser import parse_voyage_request
 from core.report import build_report
+from core.value_lock import lock_report_values
 from schemas.messages import ToolStepResult
 from schemas.types import (
     DataContext, EnergyResult, ManagementPlan, OptimizationResult, Segment,
@@ -45,6 +48,9 @@ class AgentState(TypedDict, total=False):
     plan: dict[str, Any]
     report: dict[str, Any]
     task_understanding: dict[str, Any]
+    adjustment_options: list[dict[str, Any]]
+    boundary_diagnostics: dict[str, Any]
+    value_lock_pass: bool
 
 
 def _default_tools() -> dict[str, ToolAdapter]:
@@ -143,6 +149,47 @@ def build_workflow(
     if missing or extra:
         raise ValueError(f"tool adapters must match TOOL_ORDER; missing={missing}, extra={extra}")
 
+    root = Path(__file__).resolve().parents[1]
+    demo_policy = load_config(root / "configs/demo_policy.yaml")
+    auxiliary_kw = float(demo_policy.get("power_and_energy", {}).get("demo_auxiliary_power_kw", 0.0))
+
+    def _prior_payload(state: AgentState, name: str) -> dict[str, Any] | None:
+        matches = [item for item in state.get("tool_results", []) if item.get("tool") == name]
+        if not matches or not isinstance(matches[-1].get("payload"), dict):
+            return None
+        return matches[-1]["payload"]
+
+    def compute_adjustment(
+        state: AgentState, speed_payload: dict[str, Any],
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        """Tspeed 不可行时,用同一候选网格做边界诊断并枚举定量妥协选项。
+
+        数值只来自既有工具结果与演示配置,不产生新工程数值;任何方向都不自动
+        降低硬安全下限。异常时返回空选项、空诊断,不阻断主流程。
+        """
+        try:
+            request = VoyageRequest.from_dict(state["request"])
+            data_payload = _prior_payload(state, "Tdata")
+            seg_payload = _prior_payload(state, "Tseg")
+            energy_payload = _prior_payload(state, "Tenergy")
+            if not all([data_payload, seg_payload, energy_payload]):
+                return [], {}
+            data = DataContext.from_dict(data_payload)
+            segments = [Segment.from_dict(item) for item in seg_payload["segments"]]
+            candidates = [
+                EnergyResult.from_dict(item) for item in energy_payload["candidate_results"]
+            ]
+            optimization = OptimizationResult.from_dict(speed_payload)
+            diagnostics = build_boundary_diagnostics(
+                segments, candidates, data.vessel, request, auxiliary_kw,
+            )
+            options = enumerate_options(
+                optimization, request, data.vessel, segments, candidates, auxiliary_kw,
+            )
+            return [asdict(option) for option in options], diagnostics
+        except (KeyError, TypeError, ValueError):
+            return [], {}
+
     def parse_node(state: AgentState) -> dict[str, Any]:
         if state.get("request") and not state.get("user_input"):
             decoded, checked = parse_structured_request(state["request"])
@@ -193,6 +240,12 @@ def build_workflow(
                     update["questions"] = list(record.get("questions") or [])
                 if status != Status.OK.value:
                     update["failed_tool"] = name
+                if status == Status.INFEASIBLE.value and name == "Tspeed":
+                    speed_payload = record.get("payload")
+                    if isinstance(speed_payload, dict):
+                        options, diagnostics = compute_adjustment(state, speed_payload)
+                        update["adjustment_options"] = options
+                        update["boundary_diagnostics"] = diagnostics
                 return update
             except Exception as exc:
                 return {
@@ -214,7 +267,16 @@ def build_workflow(
             message = "需要补充信息后再继续计算。"
         elif status != Status.OK.value:
             failed = state.get("failed_tool") or "parse"
-            message = f"流程在{failed}停止，未生成航行方案。"
+            options = state.get("adjustment_options") or []
+            if options:
+                message = (
+                    f"流程在{failed}停止，未生成航行方案。可选调整（需用户确认，"
+                    "不自动修改硬安全下限）：" + "；".join(
+                        option["label"] for option in options
+                    )
+                )
+            else:
+                message = f"流程在{failed}停止，未生成航行方案。"
         elif state.get("tool_mode", tool_mode) == "synthetic_demo":
             by_name = {item["tool"]: item for item in state.get("tool_results", [])}
             try:
@@ -244,7 +306,9 @@ def build_workflow(
                 if not checked.valid:
                     raise ValueError("final VoyagePlan validation failed")
                 update["plan"] = plan.to_dict()
-                update["report"] = build_report(plan, llm_client)
+                report, locked = lock_report_values(build_report(plan, llm_client), plan)
+                update["report"] = report
+                update["value_lock_pass"] = locked
                 message = (
                     "五工具synthetic_demo流程完成；结果仅用于软件仿真，"
                     "不代表实船安全或运营批准。"
