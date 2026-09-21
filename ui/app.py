@@ -33,6 +33,30 @@ def _status_text(status: str) -> str:
     }.get(status, f"未知状态：{status}")
 
 
+def _adjustment_options(record: dict[str, Any]) -> list[str]:
+    """Return bounded user choices for an infeasible tool result."""
+    if record.get("status") != Status.INFEASIBLE.value:
+        return []
+    kind = record.get("infeasible_type")
+    if kind == "time":
+        return [
+            "放宽到达截止时间或最长耗时后重算",
+            "选择较短的连续子航线后重算",
+        ]
+    if kind == "soc":
+        return [
+            "选择较短的连续子航线后重算",
+            "补充有来源的充电地点、功率和可用性后重算",
+            "调整初始 SOC 或载况后重算",
+        ]
+    if kind == "power":
+        return [
+            "选择候选航速范围内的较低功率方案后重算",
+            "由 A/B 核对功率边界和模型口径后重算",
+        ]
+    return ["修改任务约束后重算", "选择连续子航线后重算"]
+
+
 def render_dashboard(
     tool_results: list[dict[str, Any]], *, report: dict[str, Any] | None = None,
 ) -> str:
@@ -53,6 +77,10 @@ def render_dashboard(
             lines.append("追问：" + question)
         if record.get("reason"):
             lines.append("原因：" + record["reason"])
+        options = _adjustment_options(record)
+        if options:
+            lines.append("可选调整（需用户确认，不自动修改硬安全下限）：")
+            lines.extend(f"- {index}. {option}" for index, option in enumerate(options, 1))
         payload = record.get("payload") or {}
         if tool == "Tdata" and payload:
             lines.append("路线：" + str(payload.get("route_id") or "未知"))
