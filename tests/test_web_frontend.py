@@ -12,4 +12,3 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         assert label in html
     assert "@media" in css
     assert "/api/run" in js
-
