@@ -3,7 +3,6 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $projectRoot ".venv\Scripts\python.exe"
 $url = "http://127.0.0.1:8765"
-$serverProcess = $null
 
 function Stop-WithMessage([string]$Message) {
     Write-Host "[FAILED] $Message" -ForegroundColor Red
@@ -17,8 +16,16 @@ if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
     Stop-WithMessage "Project virtual environment was not found: .venv\Scripts\python.exe"
 }
 
-$occupied = Get-NetTCPConnection -LocalPort 8765 -State Listen -ErrorAction SilentlyContinue
-if ($occupied) {
+$portProbe = New-Object System.Net.Sockets.TcpClient
+try {
+    $portProbe.Connect("127.0.0.1", 8765)
+    $portOccupied = $true
+} catch {
+    $portOccupied = $false
+} finally {
+    $portProbe.Dispose()
+}
+if ($portOccupied) {
     Stop-WithMessage "Port 8765 is already in use. Close the owning program and retry. No process was stopped."
 }
 
@@ -38,40 +45,11 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[WARN] DeepSeek test failed. The deterministic workflow will still start with template fallback." -ForegroundColor Yellow
 }
 
-Write-Host "[3/4] Starting the local service..."
-try {
-    $serverProcess = Start-Process -FilePath $python `
-        -ArgumentList @("-m", "ui.web_server", "--host", "127.0.0.1", "--port", "8765", "--llm") `
-        -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru
-
-    $healthy = $false
-    foreach ($attempt in 1..30) {
-        if ($serverProcess.HasExited) { break }
-        try {
-            $health = Invoke-RestMethod -Uri "$url/healthz" -TimeoutSec 2
-            if ($health.status -eq "ok") {
-                $healthy = $true
-                break
-            }
-        } catch {
-            Start-Sleep -Milliseconds 500
-        }
-    }
-    if (-not $healthy) {
-        Stop-WithMessage "The service did not become healthy in time."
-    }
-
-    Write-Host "[4/4] Service ready: $url (LLM mode: $($health.llm_mode))" -ForegroundColor Green
-    try {
-        Start-Process $url
-    } catch {
-        Write-Host "[WARN] Browser could not be opened automatically. Open $url manually." -ForegroundColor Yellow
-    }
-    Write-Host "Closing the browser does not stop the service. Return here and press Enter to stop it."
-    Read-Host | Out-Null
-} finally {
-    if ($serverProcess -and -not $serverProcess.HasExited) {
-        Stop-Process -Id $serverProcess.Id
-        Write-Host "Local demo service stopped."
-    }
+Write-Host "[3/4] Starting the local service in this window..."
+Write-Host "[4/4] Keep this window open. Use Ctrl+C to stop the service." -ForegroundColor Green
+Write-Host "If the browser does not open automatically, open $url manually." -ForegroundColor Yellow
+& $python -m ui.web_server --host 127.0.0.1 --port 8765 --llm --open-browser
+if ($LASTEXITCODE -ne 0) {
+    Stop-WithMessage "The local service exited with an error."
 }
+Write-Host "Local demo service stopped."

@@ -5,6 +5,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import socket
+import threading
+import time
+import webbrowser
 from pathlib import Path
 from typing import Any
 
@@ -18,14 +22,12 @@ from ui.app import run, run_text
 
 
 ROOT = Path(__file__).resolve().parent / "frontend"
-REFERENCE_BACKGROUND = (
-    Path(__file__).resolve().parents[1]
-    / "docs/参考/原版UI前端/static/vessel-ocean-background.jpg"
-)
+REFERENCE_UI_ROOT = Path(__file__).resolve().parents[1] / "docs/参考/原版UI前端"
+REFERENCE_STYLESHEET = REFERENCE_UI_ROOT / "static/app.css"
+REFERENCE_BACKGROUND = REFERENCE_UI_ROOT / "static/vessel-ocean-background.jpg"
 MAX_REQUEST_BYTES = 64 * 1024
 STATIC_FILES = {
-    "app.css": (ROOT / "app.css", "text/css; charset=utf-8"),
-    "cockpit.css": (ROOT / "cockpit.css", "text/css; charset=utf-8"),
+    "app.css": (REFERENCE_STYLESHEET, "text/css; charset=utf-8"),
     "app.js": (ROOT / "app.js", "text/javascript; charset=utf-8"),
     "vessel-ocean-background.jpg": (REFERENCE_BACKGROUND, "image/jpeg"),
 }
@@ -136,6 +138,34 @@ def _load_llm(enabled: bool) -> tuple[LLMClient | None, str]:
 app = create_app()
 
 
+def _open_browser_when_ready(
+    host: str,
+    port: int,
+    *,
+    browser_open=None,
+    connector=None,
+) -> None:
+    """Open the page after Uvicorn starts; failure never stops the service."""
+    open_page = browser_open or webbrowser.open
+    connect = connector or socket.create_connection
+    display_host = "127.0.0.1" if host in ("0.0.0.0", "::") else host
+    url = f"http://{display_host}:{port}"
+    for _attempt in range(40):
+        try:
+            connection = connect((display_host, port), timeout=0.25)
+            connection.close()
+        except OSError:
+            time.sleep(0.25)
+            continue
+        try:
+            if not open_page(url):
+                print(f"Browser did not open automatically. Open manually: {url}")
+        except Exception:
+            print(f"Browser did not open automatically. Open manually: {url}")
+        return
+    print(f"Service startup is taking longer than expected. Check manually: {url}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="运行绿航智算本地驾驶舱")
     parser.add_argument("--host", default=os.environ.get("SHIP_WEB_HOST", "127.0.0.1"))
@@ -143,12 +173,21 @@ def main() -> None:
     parser.add_argument(
         "--llm", action="store_true", help="启用云端定性理解和解释；失败自动回退模板",
     )
+    parser.add_argument(
+        "--open-browser", action="store_true", help="服务就绪后尝试打开本地页面",
+    )
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
     client, mode = _load_llm(args.llm)
     runtime_app = create_app(llm_client=client, llm_mode=mode)
     print(f"UI: http://{args.host}:{args.port} (llm={mode})")
+    if args.open_browser:
+        threading.Thread(
+            target=_open_browser_when_ready,
+            args=(args.host, args.port),
+            daemon=True,
+        ).start()
     uvicorn.run(
         runtime_app,
         host=args.host,

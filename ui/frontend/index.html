@@ -1,45 +1,166 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>绿航智算 · 船舶能效决策台</title>
-  <link rel="stylesheet" href="/static/app.css" />
-  <link rel="stylesheet" href="/static/cockpit.css" />
-</head>
-<body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand"><span class="brand-mark">⛴</span><div><small>YUJIAOTOU 001 · DECISION AGENT</small><h1>绿航智算 · 船舶能效决策台</h1></div></div>
-      <div class="engine"><span class="dot"></span><span id="engineState">本地软件仿真</span> <time id="clock"></time></div>
-    </header>
-    <main class="workspace">
-      <aside class="mission panel">
-        <span class="kicker">航行任务</span><h2>创建决策任务</h2>
-        <p class="muted">输入任务约束，系统将依次执行数据获取、航段划分、能耗预测、航速优化和能量管理。</p>
-        <label for="task">任务描述</label>
-        <textarea id="task" rows="5">从平顶山港到军李船闸，2026-09-18 09:00出发，SOC85%，半载，6小时内到达</textarea>
-        <div class="quick"><button data-task="normal">正常示例</button><button data-task="time">时间不可行</button><button data-task="soc">SOC不足</button></div>
-        <button class="run" id="run">按任务描述运行</button>
-        <div class="form-grid"><label>起点<input id="origin" value="平顶山港" /></label><label>终点<input id="destination" value="军李船闸" /></label><label>初始 SOC<input id="soc" type="number" value="85" min="0" max="100" />%</label><label>最长耗时<input id="duration" type="number" value="6" min="0.5" /> h</label></div>
-        <button class="run secondary" id="runStructured">按结构化参数运行</button>
-        <p class="hint">当前所有成功结果均标记为 synthetic_demo，不代表实船安全或运营批准。</p>
-      </aside>
-      <section class="canvas">
-        <div class="heading"><div><span class="kicker">MISSION STATUS</span><h2 id="title">等待航行任务</h2><p id="subtitle" class="muted">运行任务后显示真实工具输出、来源和约束状态。</p></div><span id="status" class="badge idle">待命</span></div>
-        <div class="steps" id="steps"><span>数据获取</span><span>航段划分</span><span>能耗预测</span><span>航速优化</span><span>能量管理</span></div>
-        <div id="alert" class="alert" hidden></div>
-        <div class="model-strip">
-          <div><span class="kicker">MODEL EXPLANATION</span><p id="modelNote">模型仅用于定性理解与结果解释；工程数值由五工具链生成。</p></div>
-          <span id="modelMode" class="chip">等待运行</span>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>智行合一 | 船舶能量管理决策台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><i data-lucide="ship"></i><span></span></div>
+          <div>
+            <p class="eyebrow">YUJIAOTOU 001 · AGENT · DEEPSEEK</p>
+            <h1>智行合一 · 船舶航速优化与能效管理智能决策系统</h1>
+          </div>
         </div>
-        <section class="kpis"><article><small>推进能耗</small><strong id="propEnergy">--</strong><em>kWh</em></article><article><small>辅助能耗</small><strong id="auxEnergy">--</strong><em>kWh</em></article><article><small>总能耗</small><strong id="energy">--</strong><em>kWh</em></article><article><small>计划耗时</small><strong id="time">--</strong><em>h</em></article><article><small>ETA</small><strong id="eta" class="long">--</strong></article><article><small>到港 SOC</small><strong id="endSoc">--</strong><em>%</em></article><article><small>航段数量</small><strong id="count">--</strong><em>段</em></article></section>
-        <section class="grid"><article class="panel route"><header><div><span class="kicker">ROUTE PLAN</span><h3>航线与分段方案</h3></div><span id="route" class="chip">未运行</span></header><div id="routeBody" class="route-body empty">等待航段识别</div></article><article class="panel trace"><header><div><span class="kicker">TOOL TRACE</span><h3>工具调用过程</h3></div></header><ol id="traceBody"><li>等待任务</li></ol></article></section>
-        <article class="panel table"><header><div><span class="kicker">EXECUTION TABLE</span><h3>推荐航速与能耗</h3></div><span id="tableCount" class="chip">0 个航段</span></header><div class="scroll"><table><thead><tr><th>航段</th><th>距离</th><th>速度</th><th>耗时</th><th>能耗</th><th>来源</th></tr></thead><tbody id="rows"><tr><td colspan="6" class="empty">等待优化结果</td></tr></tbody></table></div></article>
-        <section class="grid bottom"><article class="panel"><header><div><span class="kicker">RISK CHECK</span><h3>安全校验</h3></div></header><div id="checks" class="checks empty">等待结果</div></article><article class="panel"><header><div><span class="kicker">USER ACTION</span><h3>下一步</h3></div></header><div id="actions" class="actions empty">运行任务后显示可执行的调整选项</div></article></section>
-      </section>
-    </main>
-  </div>
-  <script src="/static/app.js"></script>
-</body>
+        <div class="topbar-meta">
+          <span class="connection"><span class="status-dot" id="model-dot"></span><span id="model-label">正在检查决策引擎</span></span>
+          <span class="clock" id="clock">--:--</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="mission-panel" aria-label="任务输入">
+          <div class="panel-kicker"><i data-lucide="navigation"></i> 航行任务</div>
+          <h2>创建决策任务</h2>
+          <p class="panel-copy">输入航次约束，系统将联合航速优化与电池能量管理生成可执行方案。</p>
+
+          <label class="field-label" for="mission-input">任务描述</label>
+          <textarea id="mission-input" rows="5" placeholder="例如：从平顶山港到军李船闸，2026-09-18 09:00出发，SOC 85%，半载，6小时内到达">从平顶山港到军李船闸，2026-09-18 09:00出发，SOC85%，半载，6小时内到达</textarea>
+
+          <div class="input-actions">
+            <span class="voice-copy" id="model-copy">DeepSeek 负责定性理解与解释</span>
+            <button class="text-button" id="clear-button" type="button"><i data-lucide="rotate-ccw"></i> 重置</button>
+          </div>
+
+          <button class="run-button" id="run-button" type="button"><i data-lucide="send"></i><span>发送任务</span></button>
+
+          <div class="route-form" aria-label="快捷输入">
+            <div class="section-label">快捷输入</div>
+            <label><span>航线</span><select id="route-select"><option value="forward">平顶山港—周口港</option><option value="reverse">周口港—平顶山港</option></select></label>
+            <div class="route-pair">
+              <label><span>起点</span><select id="start-select"></select></label>
+              <i data-lucide="arrow-right" class="route-arrow" aria-hidden="true"></i>
+              <label><span>终点</span><select id="end-select"></select></label>
+            </div>
+            <label class="time-field"><span>限时</span><span class="stepper"><button id="time-minus" type="button" aria-label="减少限时">-</button><input id="time-input" type="number" min="0.5" max="72" value="6" step="0.5" /><button id="time-plus" type="button" aria-label="增加限时">+</button><em>h</em></span></label>
+            <button class="primary-button" id="quick-fill" type="button"><i data-lucide="wand-sparkles"></i> 写入任务描述</button>
+          </div>
+
+          <details class="advanced-panel">
+            <summary><i data-lucide="sliders-horizontal"></i> 工况补充</summary>
+            <div class="advanced-grid">
+              <label><span>SOC (%)</span><input id="adv-soc" type="number" value="85" min="0" max="100" step="1" /></label>
+              <label><span>装载状态</span><select id="adv-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
+              <label><span>出发时间</span><input id="departure-input" type="datetime-local" value="2026-09-18T09:00" /></label>
+              <label><span>时间窗口 (h)</span><input id="adv-time" type="number" value="6" min="0.5" max="72" step="0.5" /></label>
+            </div>
+          </details>
+
+          <div class="sample-block">
+            <div class="section-label">示例航次</div>
+            <div class="sample-list">
+              <button type="button" data-sample="normal">平顶山港 → 军李船闸 <span>6 h</span></button>
+              <button type="button" data-sample="time">时间约束不可行 <span>1 h</span></button>
+              <button type="button" data-sample="soc">低 SOC 航次 <span>31%</span></button>
+            </div>
+          </div>
+
+          <p class="panel-copy">当前结果均为 synthetic_demo 历史数据驱动模拟，不代表实船安全或运营批准。</p>
+        </aside>
+
+        <section class="decision-canvas" aria-live="polite">
+          <section class="decision-heading">
+            <div>
+              <p class="eyebrow">MISSION STATUS</p>
+              <h2 id="mission-title">等待航行任务</h2>
+              <p id="mission-subtitle">输入自然语言需求，或使用左侧快捷航线开始。</p>
+            </div>
+            <div class="decision-status idle" id="decision-status"><span></span>待命</div>
+          </section>
+
+          <section class="progress-track" id="progress-track">
+            <div class="progress-labels" id="progress-labels">
+              <span>数据获取</span><span>航段划分</span><span>能耗预测</span><span>航速优化</span><span>能量管理</span>
+            </div>
+            <div class="progress-steps" id="progress-steps">
+              <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
+            </div>
+          </section>
+
+          <section class="infeasible-alert" id="infeasible-alert" hidden>
+            <header><span class="infeasible-icon"><i data-lucide="circle-x"></i></span><div><span class="surface-kicker">VOYAGE ALERT</span><h3>航次不可行</h3></div></header>
+            <div class="infeasible-content">
+              <div class="infeasible-block"><strong>原因分析</strong><p id="infeasible-reason"></p></div>
+              <div class="infeasible-block suggestion"><strong>补救建议</strong><p id="infeasible-suggestion"></p></div>
+            </div>
+          </section>
+
+          <section class="reply-panel" id="reply-panel" hidden>
+            <header><div><span class="surface-kicker">DEEPSEEK REPLY</span><h3>模型定性解释</h3></div><span class="result-count" id="model-mode">等待调用</span></header>
+            <div id="reply-answer"></div>
+          </section>
+
+          <section class="kpi-grid" id="kpi-grid">
+            <article class="kpi-card"><span class="kpi-label">预计总能耗</span><strong id="metric-energy">--</strong><small>推进与辅助负载合计</small></article>
+            <article class="kpi-card"><span class="kpi-label">计划耗时</span><strong id="metric-time">--</strong><small>时间约束校验</small></article>
+            <article class="kpi-card"><span class="kpi-label">预计到达</span><strong id="metric-eta">--</strong><small>工具计算 ETA</small></article>
+            <article class="kpi-card"><span class="kpi-label">到港 SOC</span><strong id="metric-soc">--</strong><small>系统有效容量口径</small></article>
+          </section>
+
+          <section class="analysis-grid">
+            <article class="surface route-surface">
+              <header class="surface-header"><div><span class="surface-kicker">ROUTE PLAN</span><h3>航线与分段方案</h3></div><span class="route-chip" id="route-chip">未选择航线</span></header>
+              <div class="route-track" id="route-track"><div class="empty-inline"><i data-lucide="route"></i><span>航段识别完成后显示路径与速度建议</span></div></div>
+              <div class="segment-summary" id="segment-summary"></div>
+            </article>
+
+            <article class="surface energy-surface">
+              <header class="surface-header"><div><span class="surface-kicker">ENERGY PROFILE</span><h3>航段能耗与速度</h3></div><span class="legend"><b></b> 推荐能耗</span></header>
+              <div class="energy-chart" id="energy-chart"><div class="empty-inline"><i data-lucide="chart-no-axes-combined"></i><span>优化完成后显示分段对比</span></div></div>
+            </article>
+          </section>
+
+          <section class="surface table-surface">
+            <header class="surface-header"><div><span class="surface-kicker">EXECUTION TABLE</span><h3>推荐航速方案</h3></div><span class="result-count" id="result-count">0 个航段</span></header>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>航段</th><th>距离</th><th>推荐航速</th><th>航行时间</th><th>推进能耗</th><th>数据来源</th></tr></thead>
+                <tbody id="segment-table"><tr class="placeholder-row"><td colspan="6">等待航速优化结果</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bottom-grid">
+            <article class="surface safety-surface">
+              <header class="surface-header"><div><span class="surface-kicker">RISK CHECK</span><h3>安全校验</h3></div></header>
+              <div class="safety-list" id="safety-list"><div class="empty-inline">暂无校验结果</div></div>
+            </article>
+            <article class="surface recommendation-surface">
+              <header class="surface-header"><div><span class="surface-kicker">EMS ADVICE</span><h3>能量管理建议</h3></div></header>
+              <div class="recommendation-list" id="recommendation-list"><div class="empty-inline">等待 EMS 仿真结果</div></div>
+            </article>
+          </section>
+
+          <section class="final-response" id="final-response" hidden>
+            <header><span class="surface-kicker">DETAILED RESPONSE</span><span class="detail-title">完整详细回复</span><button class="icon-button subtle" id="copy-final" type="button" aria-label="复制完整详细回复" title="复制完整详细回复"><i data-lucide="copy"></i></button></header>
+            <div id="final-answer"></div>
+          </section>
+
+          <details class="trace-panel" id="trace-panel">
+            <summary><span><i data-lucide="workflow"></i> 工具调用过程</span><span class="trace-meta" id="trace-meta">等待任务</span></summary>
+            <ol id="trace-list" class="trace-list"></ol>
+          </details>
+        </section>
+      </main>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/static/app.js"></script>
+  </body>
 </html>
