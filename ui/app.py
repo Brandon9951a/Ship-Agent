@@ -7,7 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from core.orchestrator import run_structured_workflow
+from core.llm_layer import LLMClient
+from core.orchestrator import run_structured_workflow, run_workflow
 from schemas.types import Status
 
 
@@ -139,13 +140,15 @@ def render_dashboard(
     return "\n".join(lines)
 
 
-def run(payload: dict) -> dict:
-    state = run_structured_workflow(payload)
+def _result_from_state(state: dict[str, Any]) -> dict[str, Any]:
+    """Expose an orchestration result without adding UI-originated values."""
     result = {
         "status": state["status"],
         "missing_fields": state.get("missing_fields", []),
         "questions": state.get("questions", []),
         "task_understanding": state.get("task_understanding", {}),
+        "adjustment_options": state.get("adjustment_options", []),
+        "value_lock_pass": state.get("value_lock_pass"),
         "final_message": state["final_message"],
         "trace": state.get("trace", []),
     }
@@ -158,6 +161,18 @@ def run(payload: dict) -> dict:
         state.get("tool_results", []), report=state.get("report")
     )
     return result
+
+
+def run(payload: dict[str, Any], *, llm_client: LLMClient | None = None) -> dict[str, Any]:
+    """Run a schema-shaped UI request through the same production workflow."""
+    return _result_from_state(run_structured_workflow(payload, llm_client=llm_client))
+
+
+def run_text(task_text: str, *, llm_client: LLMClient | None = None) -> dict[str, Any]:
+    """Run a natural-language task; the parser remains authoritative for values."""
+    if not isinstance(task_text, str) or not task_text.strip():
+        raise ValueError("task_text must be non-empty text")
+    return _result_from_state(run_workflow(task_text.strip(), llm_client=llm_client))
 
 
 def main() -> None:

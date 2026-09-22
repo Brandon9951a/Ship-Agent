@@ -1,59 +1,161 @@
-"""Serve the visual frontend and bridge it to the existing structured workflow."""
+"""FastAPI application for the verified five-tool local demonstration."""
 
 from __future__ import annotations
 
+import argparse
 import json
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import os
 from pathlib import Path
+from typing import Any
 
-from ui.app import run
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.concurrency import run_in_threadpool
+
+from core.llm_layer import LLMClient, LLMConfig, LLMConfigError
+from ui.app import run, run_text
 
 
 ROOT = Path(__file__).resolve().parent / "frontend"
+REFERENCE_BACKGROUND = (
+    Path(__file__).resolve().parents[1]
+    / "docs/参考/原版UI前端/static/vessel-ocean-background.jpg"
+)
+MAX_REQUEST_BYTES = 64 * 1024
+STATIC_FILES = {
+    "app.css": (ROOT / "app.css", "text/css; charset=utf-8"),
+    "cockpit.css": (ROOT / "cockpit.css", "text/css; charset=utf-8"),
+    "app.js": (ROOT / "app.js", "text/javascript; charset=utf-8"),
+    "vessel-ocean-background.jpg": (REFERENCE_BACKGROUND, "image/jpeg"),
+}
 
 
-class Handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        path = "/index.html" if self.path == "/" else self.path
-        files = {"/index.html": (ROOT / "index.html", "text/html; charset=utf-8"),
-                 "/static/app.css": (ROOT / "app.css", "text/css; charset=utf-8"),
-                 "/static/app.js": (ROOT / "app.js", "text/javascript; charset=utf-8")}
-        item = files.get(path)
-        if not item or not item[0].exists():
-            self.send_error(404)
-            return
-        data = item[0].read_bytes()
-        self.send_response(200)
-        self.send_header("Content-Type", item[1])
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+def _error(status_code: int, code: str) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={"status": "invalid_input", "error": code},
+    )
 
-    def do_POST(self):
-        if self.path != "/api/run":
-            self.send_error(404)
-            return
-        length = int(self.headers.get("Content-Length", "0"))
+
+def create_app(
+    *, llm_client: LLMClient | None = None, llm_mode: str = "disabled",
+) -> FastAPI:
+    app = FastAPI(
+        title="绿航智算本地演示",
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+    )
+    app.state.llm_client = llm_client
+    app.state.llm_mode = llm_mode
+
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+    @app.get("/", include_in_schema=False)
+    async def index() -> FileResponse:
+        return FileResponse(ROOT / "index.html", media_type="text/html")
+
+    @app.get("/static/{name}", include_in_schema=False)
+    async def static_file(name: str):
+        item = STATIC_FILES.get(name)
+        if item is None or not item[0].is_file():
+            return _error(404, "not_found")
+        return FileResponse(item[0], media_type=item[1])
+
+    @app.get("/healthz", include_in_schema=False)
+    async def health() -> dict[str, Any]:
+        return {
+            "status": "ok",
+            "service": "ship-agent-web",
+            "scope": "synthetic_demo",
+            "real_ship_validation": False,
+            "llm_mode": app.state.llm_mode,
+        }
+
+    @app.post("/api/run", include_in_schema=False)
+    async def run_api(request: Request):
+        length_header = request.headers.get("content-length")
+        if length_header:
+            try:
+                if int(length_header) > MAX_REQUEST_BYTES:
+                    return _error(413, "request_too_large")
+            except ValueError:
+                return _error(400, "invalid_content_length")
+        body = await request.body()
+        if not body:
+            return _error(400, "empty_request")
+        if len(body) > MAX_REQUEST_BYTES:
+            return _error(413, "request_too_large")
         try:
-            result = run(json.loads(self.rfile.read(length)))
-        except (ValueError, TypeError, KeyError) as exc:
-            self.send_error(400, str(exc))
-            return
-        data = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(data)))
-        self.end_headers()
-        self.wfile.write(data)
+            payload = json.loads(body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return _error(400, "invalid_json")
+        if not isinstance(payload, dict):
+            return _error(400, "request_must_be_object")
+        try:
+            if "task_text" in payload:
+                result = await run_in_threadpool(
+                    run_text, payload["task_text"], llm_client=app.state.llm_client,
+                )
+            else:
+                result = await run_in_threadpool(
+                    run, payload, llm_client=app.state.llm_client,
+                )
+        except (TypeError, ValueError, KeyError):
+            return _error(400, "invalid_request")
+        except Exception:
+            return JSONResponse(
+                status_code=500,
+                content={"status": "failed", "error": "workflow_failed"},
+            )
+        return JSONResponse(content=result)
 
-    def log_message(self, *_args):
-        return
+    return app
 
 
-def main():
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
-    print("UI: http://127.0.0.1:8765")
-    server.serve_forever()
+def _load_llm(enabled: bool) -> tuple[LLMClient | None, str]:
+    if not enabled:
+        return None, "disabled"
+    try:
+        config = LLMConfig.from_env()
+    except LLMConfigError:
+        return None, "config_unavailable_template_fallback"
+    if not config.enabled:
+        return None, "disabled_template_fallback"
+    return LLMClient(config), "enabled"
+
+
+app = create_app()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="运行绿航智算本地驾驶舱")
+    parser.add_argument("--host", default=os.environ.get("SHIP_WEB_HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8765")))
+    parser.add_argument(
+        "--llm", action="store_true", help="启用云端定性理解和解释；失败自动回退模板",
+    )
+    args = parser.parse_args()
+    if not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
+    client, mode = _load_llm(args.llm)
+    runtime_app = create_app(llm_client=client, llm_mode=mode)
+    print(f"UI: http://{args.host}:{args.port} (llm={mode})")
+    uvicorn.run(
+        runtime_app,
+        host=args.host,
+        port=args.port,
+        access_log=False,
+        log_level="warning",
+    )
 
 
 if __name__ == "__main__":

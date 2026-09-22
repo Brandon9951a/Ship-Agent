@@ -1,0 +1,63 @@
+/* Original cockpit visual language, adapted to the deterministic D4 toolchain. */
+body {
+  min-height: 100vh;
+  color: #e9f5fa;
+  background:
+    linear-gradient(135deg, rgba(6, 25, 43, .94), rgba(9, 57, 78, .84)),
+    url('/static/vessel-ocean-background.jpg') center / cover fixed;
+}
+
+.shell { max-width: 1560px; }
+.topbar { border-color: rgba(180, 224, 239, .2); }
+.brand small, .kicker, .engine, .muted { color: #92b8c6; }
+.brand-mark {
+  background: linear-gradient(145deg, #18a7c3, #1769d4);
+  box-shadow: 0 0 22px rgba(30, 181, 211, .35);
+}
+
+.panel, .kpis article {
+  color: var(--ink);
+  background: rgba(246, 251, 253, .94);
+  border-color: rgba(181, 216, 226, .75);
+  box-shadow: 0 16px 38px rgba(0, 14, 29, .22);
+  backdrop-filter: blur(10px);
+}
+
+.canvas > .heading {
+  padding: 12px 16px;
+  background: rgba(8, 39, 59, .58);
+  border: 1px solid rgba(174, 220, 234, .25);
+  border-radius: 10px;
+}
+.canvas > .heading h2 { color: #effaff; }
+.canvas > .heading .muted { color: #a9c8d2; }
+.steps span { background: rgba(219, 237, 242, .86); }
+.kpis { grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); }
+.kpis strong.long { display: block; margin-top: 6px; font-size: 12px; word-break: break-word; }
+.warning { margin-top: 8px; padding: 8px 10px; color: #8b5a14; background: #fff7e7; border-left: 3px solid #d9952f; border-radius: 4px; font-size: 11px; }
+.warning.safe { color: #176756; background: #e9f7f2; border-left-color: #24937d; }
+.source-note { margin-top: 7px; color: #617582; font-size: 10px; overflow-wrap: anywhere; }
+.checks details { margin-top: 10px; color: #536b79; font-size: 10px; }
+.checks details summary { cursor: pointer; font-weight: 800; }
+.checks details p { margin: 6px 0; padding-left: 8px; border-left: 2px solid #dce7eb; }
+
+.model-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 15px;
+  padding: 10px 14px;
+  background: rgba(5, 38, 57, .68);
+  border: 1px solid rgba(137, 206, 225, .28);
+  border-radius: 8px;
+}
+.model-strip p { margin: 3px 0 0; color: #c4dce4; font-size: 11px; }
+.model-strip .chip { flex: 0 0 auto; color: #cceff5; background: rgba(20, 139, 164, .35); }
+.run.secondary { margin-top: 10px; color: #1769d4; background: #e8f3ff; border: 1px solid #c8def6; }
+.run:disabled, .quick button:disabled { cursor: wait; opacity: .58; }
+
+@media (max-width: 600px) {
+  .model-strip { align-items: flex-start; flex-direction: column; }
+  .model-strip .chip { align-self: flex-start; }
+}
