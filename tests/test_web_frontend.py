@@ -135,9 +135,11 @@ def test_windows_launcher_contains_required_safe_sequence():
     root = ROOT.parents[1]
     cmd = (root / "start_local_demo.cmd").read_text(encoding="utf-8")
     script = (root / "scripts/start_local_demo.ps1").read_text(encoding="utf-8")
+    script.encode("ascii")  # Windows PowerShell 5.1 misreads UTF-8 without a BOM.
     assert "start_local_demo.ps1" in cmd
     for marker in (
         "Get-NetTCPConnection", "pip check", "--smoke-test", "--llm",
         "127.0.0.1", "8765", "/healthz", "Start-Process", "-WindowStyle Hidden",
+        "Browser could not be opened automatically",
     ):
         assert marker in script
