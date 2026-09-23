@@ -58,9 +58,16 @@ def _run(origin, destination, soc_initial, max_duration_h):
 
 
 def test_directions_mapping_is_rule_based():
-    assert DIRECTIONS_BY_TYPE[InfeasibleType.TIME] == ["accept_late", "adjust_departure", "give_up"]
+    assert DIRECTIONS_BY_TYPE[InfeasibleType.TIME] == [
+        "accept_late", "adjust_departure", "shorten_route", "give_up",
+    ]
     assert "recharge" in DIRECTIONS_BY_TYPE[InfeasibleType.SOC]
-    assert DIRECTIONS_BY_TYPE[InfeasibleType.POWER] == ["slow_down", "give_up"]
+    assert "accept_lower_soc" not in {
+        direction for directions in DIRECTIONS_BY_TYPE.values() for direction in directions
+    }
+    assert DIRECTIONS_BY_TYPE[InfeasibleType.POWER] == [
+        "slow_down", "shorten_route", "give_up",
+    ]
 
 
 def test_time_infeasible_offers_accept_late_with_quantified_shortfall():
@@ -77,7 +84,7 @@ def test_time_infeasible_offers_accept_late_with_quantified_shortfall():
     assert "give_up" in by_dir
 
 
-def test_soc_infeasible_offers_recharge_and_bounded_lower_soc():
+def test_soc_infeasible_offers_operator_actions_without_lowering_safety_floor():
     request, data, segments, candidates, speed = _run(
         "平顶山港", "马湾船闸", 0.45, 10.0,
     )
@@ -86,11 +93,9 @@ def test_soc_infeasible_offers_recharge_and_bounded_lower_soc():
     options = enumerate_options(optimization, request, data.vessel, segments, candidates, 30.0)
     by_dir = {item.direction: item for item in options}
     assert "recharge" in by_dir
+    assert "shorten_route" in by_dir
+    assert "accept_lower_soc" not in by_dir
     assert by_dir["recharge"].quantified["minimum_charge_required_kwh"] > 0
-    if "accept_lower_soc" in by_dir:
-        # 任何降低SOC下限的建议都不得低于警告线25%
-        target = by_dir["accept_lower_soc"].quantified["required_soc_min"]
-        assert target >= 0.25
 
 
 def test_translate_accept_late_extends_only_the_duration_constraint():

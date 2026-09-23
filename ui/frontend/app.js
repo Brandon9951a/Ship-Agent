@@ -273,7 +273,7 @@ function optionAction(option) {
   if (option.direction === "recharge") return "填写实测 SOC";
   if (option.direction === "slow_down") return "修改航时";
   if (option.direction === "adjust_departure") return "修改出发时间";
-  if (option.direction === "accept_lower_soc") return "需 A 批准";
+  if (option.direction === "shorten_route") return "修改航线";
   return "选择调整";
 }
 
@@ -283,9 +283,8 @@ function renderAdjustmentOptions(options) {
     return;
   }
   $("#adjustment-options").innerHTML = options.map((option, index) => {
-    const blocked = option.direction === "accept_lower_soc";
     const note = option.requires_input || "采用后仍会重新执行全部约束检查。";
-    return `<button class="adjustment-option" type="button" data-option-index="${index}" ${blocked ? "disabled" : ""}><span>${escapeHtml(option.label || option)}<small>${escapeHtml(note)}</small></span><b>${escapeHtml(optionAction(option))}</b></button>`;
+    return `<button class="adjustment-option" type="button" data-option-index="${index}"><span>${escapeHtml(option.label || option)}<small>${escapeHtml(note)}</small></span><b>${escapeHtml(optionAction(option))}</b></button>`;
   }).join("");
 }
 
@@ -328,6 +327,12 @@ async function applyAdjustmentOption(index) {
   if (option.direction === "slow_down") {
     focusField("#correction-duration");
     $("#correction-feedback").textContent = "请放宽最长航时，工具链会重新选择可行候选航速。";
+    return;
+  }
+  if (option.direction === "shorten_route") {
+    $("#correction-origin").closest("label")?.classList.add("field-attention");
+    focusField("#correction-destination");
+    $("#correction-feedback").textContent = "请选择新的起点或终点，再点击“确认修改并重新计算”。";
     return;
   }
   $("#correction-feedback").textContent = option.requires_input || "请修改相关任务参数后重新计算。";

@@ -28,7 +28,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "任务描述", "快捷输入", "工况补充", "航线与分段方案",
         "航段能耗与速度", "推荐航速方案", "安全校验", "能量管理建议",
         "完整详细回复", "工具调用过程", "船员确认后修正并重算",
-        "安全下限不可在此修改", "确认修改并重新计算",
+        "安全下限由系统锁定", "确认修改并重新计算",
     ):
         assert label in html
     assert "@media" in css
@@ -172,6 +172,13 @@ def test_operator_soc_adjustment_reenters_same_workflow():
         rerun = client.post("/api/run", json=corrected).json()
     assert blocked["status"] == "infeasible"
     assert blocked["tspeed"]["infeasible_type"] == "soc"
+    assert "accept_lower_soc" not in {
+        option["direction"] for option in blocked["adjustment_options"]
+    }
+    assert "shorten_route" in {
+        option["direction"] for option in blocked["adjustment_options"]
+    }
+    assert "需 A 批准" not in json.dumps(blocked, ensure_ascii=False)
     assert rerun["status"] == "ok"
     assert rerun["report"]["summary"]["soc_initial"]["value"] == 0.85
 

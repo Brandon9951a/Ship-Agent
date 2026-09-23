@@ -21,11 +21,11 @@ from schemas.types import (
 
 # 不可行类型 → 相关妥协方向(规则化映射表, 运行时 LLM 不参与判断相关性)
 DIRECTIONS_BY_TYPE: dict[InfeasibleType, list[str]] = {
-    InfeasibleType.TIME: ["accept_late", "adjust_departure", "give_up"],
-    InfeasibleType.SOC: ["accept_lower_soc", "recharge", "slow_down", "give_up"],
-    InfeasibleType.POWER: ["slow_down", "give_up"],
-    InfeasibleType.ROUTE: ["give_up"],
-    InfeasibleType.COMBINED: ["accept_late", "accept_lower_soc", "recharge", "give_up"],
+    InfeasibleType.TIME: ["accept_late", "adjust_departure", "shorten_route", "give_up"],
+    InfeasibleType.SOC: ["recharge", "slow_down", "shorten_route", "give_up"],
+    InfeasibleType.POWER: ["slow_down", "shorten_route", "give_up"],
+    InfeasibleType.ROUTE: ["shorten_route", "give_up"],
+    InfeasibleType.COMBINED: ["accept_late", "recharge", "shorten_route", "give_up"],
 }
 
 
@@ -105,7 +105,6 @@ def enumerate_options(
     segments: list[Segment],
     candidates: list[EnergyResult],
     auxiliary_power_kw: float,
-    warning_min: float = 0.25,
 ) -> list[CompromiseOption]:
     """Enumerate quantified compromise options for an infeasible result."""
     diagnostics = build_boundary_diagnostics(
@@ -114,7 +113,7 @@ def enumerate_options(
     kind = optimization.infeasible_type or InfeasibleType.COMBINED
     options: list[CompromiseOption] = []
     for direction in DIRECTIONS_BY_TYPE[kind]:
-        option = _make_option(direction, request, vessel, diagnostics, warning_min)
+        option = _make_option(direction, request, diagnostics)
         if option is not None:
             options.append(option)
     return options
@@ -123,14 +122,10 @@ def enumerate_options(
 def _make_option(
     direction: str,
     request: VoyageRequest,
-    vessel: VesselState,
     diagnostics: dict[str, Any],
-    warning_min: float,
 ) -> CompromiseOption | None:
     shortfall = diagnostics["time_shortfall_h"]
     charge = diagnostics["minimum_charge_required_within_time_kwh"]
-    required_soc_min = diagnostics["required_soc_min_within_time"]
-    soc_min = vessel.soc_min
 
     if direction == "accept_late":
         if shortfall <= 0:
@@ -141,25 +136,6 @@ def _make_option(
             f"放宽到达截止时间至少 {shortfall:.2f} 小时（约 {minutes:.0f} 分钟）后重算",
             {"time_shortfall_h": shortfall},
             {"max_duration_h": (request.max_duration_h or 0.0) + shortfall},
-        )
-    if direction == "accept_lower_soc":
-        if required_soc_min is None or soc_min is None or required_soc_min >= soc_min:
-            return None
-        if required_soc_min < warning_min:
-            target = warning_min
-            label = (
-                f"将规划SOC下限由 {soc_min:.0%} 降至警告线 {target:.0%} 后重算"
-                "（所需下限已低于警告线，不得再降）"
-            )
-        else:
-            target = required_soc_min
-            label = f"将规划SOC下限由 {soc_min:.0%} 降至 {target:.0%} 后重算"
-        return CompromiseOption(
-            "accept_lower_soc",
-            label,
-            {"required_soc_min": target},
-            None,
-            requires_input="降低规划SOC下限须经A批准，且不得低于警告线25%。",
         )
     if direction == "recharge":
         if charge is None or charge <= 0:
@@ -189,6 +165,14 @@ def _make_option(
             None,
             requires_input="需用户提供新的出发时间。",
         )
+    if direction == "shorten_route":
+        return CompromiseOption(
+            "shorten_route",
+            "选择较短的连续子航线后重算",
+            {},
+            None,
+            requires_input="请由船员选择新的起点或终点；系统仅接受配置中存在的连续子航线。",
+        )
     if direction == "give_up":
         return CompromiseOption("give_up", "放弃当前任务，接受不可行结论", {}, None)
     return None
@@ -208,7 +192,7 @@ def translate_choice(
 
     Only directions that are fully determined by the current request are applied
     automatically (accept_late, give_up).  Directions that need external facts
-    (a charging node, a new departure time, an A-approved SOC floor) raise
+    (a charging node, a new departure time, or new route endpoints) raise
     ValueError so the caller prompts the operator instead of guessing.
     """
     if diagnostics is None and segments is not None and candidates is not None and vessel is not None:
