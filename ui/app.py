@@ -144,10 +144,13 @@ def _result_from_state(state: dict[str, Any]) -> dict[str, Any]:
     """Expose an orchestration result without adding UI-originated values."""
     result = {
         "status": state["status"],
+        "request": state.get("request", {}),
+        "failed_tool": state.get("failed_tool"),
         "missing_fields": state.get("missing_fields", []),
         "questions": state.get("questions", []),
         "task_understanding": state.get("task_understanding", {}),
         "adjustment_options": state.get("adjustment_options", []),
+        "boundary_diagnostics": state.get("boundary_diagnostics", {}),
         "value_lock_pass": state.get("value_lock_pass"),
         "final_message": state["final_message"],
         "trace": state.get("trace", []),

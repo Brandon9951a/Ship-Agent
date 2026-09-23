@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/static/app.css" />
+    <link rel="stylesheet" href="/static/interaction.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -95,10 +96,31 @@
           </section>
 
           <section class="infeasible-alert" id="infeasible-alert" hidden>
-            <header><span class="infeasible-icon"><i data-lucide="circle-x"></i></span><div><span class="surface-kicker">VOYAGE ALERT</span><h3>航次不可行</h3></div></header>
+            <header><span class="infeasible-icon"><i data-lucide="circle-x"></i></span><div><span class="surface-kicker">VOYAGE ALERT</span><h3 id="infeasible-title">航次不可行</h3></div></header>
             <div class="infeasible-content">
               <div class="infeasible-block"><strong>原因分析</strong><p id="infeasible-reason"></p></div>
-              <div class="infeasible-block suggestion"><strong>补救建议</strong><p id="infeasible-suggestion"></p></div>
+              <div class="infeasible-block suggestion"><strong>可选调整</strong><p id="infeasible-suggestion"></p></div>
+              <section class="correction-workbench" id="correction-workbench">
+                <div class="correction-heading">
+                  <div><span class="surface-kicker">OPERATOR CORRECTION</span><h4>船员确认后修正并重算</h4></div>
+                  <span class="correction-lock"><i data-lucide="shield-check"></i> 安全下限不可在此修改</span>
+                </div>
+                <div class="adjustment-options" id="adjustment-options"></div>
+                <div class="correction-grid">
+                  <label><span>起点</span><select id="correction-origin"></select></label>
+                  <label><span>终点</span><select id="correction-destination"></select></label>
+                  <label><span>出发时间</span><input id="correction-departure" type="datetime-local" /></label>
+                  <label><span>最长航时 (h)</span><input id="correction-duration" type="number" min="0.01" max="120" step="0.01" /></label>
+                  <label><span>初始 SOC (%)</span><input id="correction-soc" type="number" min="0" max="100" step="0.1" /></label>
+                  <label><span>装载状态</span><select id="correction-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
+                </div>
+                <p class="correction-note" id="correction-note">输入值只在船员点击确认后生效，并重新经过五工具链校验。</p>
+                <div class="correction-actions">
+                  <button class="secondary-action" id="sync-correction" type="button"><i data-lucide="file-pen-line"></i> 仅更新任务描述</button>
+                  <button class="confirm-action" id="apply-correction" type="button"><i data-lucide="refresh-cw"></i> 确认修改并重新计算</button>
+                </div>
+                <p class="correction-feedback" id="correction-feedback" role="status"></p>
+              </section>
             </div>
           </section>
 

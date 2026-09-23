@@ -27,7 +27,8 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
         "任务描述", "快捷输入", "工况补充", "航线与分段方案",
         "航段能耗与速度", "推荐航速方案", "安全校验", "能量管理建议",
-        "完整详细回复", "工具调用过程",
+        "完整详细回复", "工具调用过程", "船员确认后修正并重算",
+        "安全下限不可在此修改", "确认修改并重新计算",
     ):
         assert label in html
     assert "@media" in css
@@ -36,6 +37,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     for marker in (
         "/api/run", "/healthz", "task_text", "DeepSeek 已真实调用",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
+        "applyAdjustmentOption", "readCorrectionPayload", "payloadOverride",
     ):
         assert marker in js
     assert "const understandingMode = result.task_understanding?.mode" in js
@@ -51,6 +53,7 @@ def test_index_health_static_and_security_headers():
         assert "智行合一" in index.text
         assert index.headers["x-frame-options"] == "DENY"
         assert client.get("/static/app.js").status_code == 200
+        assert client.get("/static/interaction.css").status_code == 200
         stylesheet = client.get("/static/app.css")
         assert stylesheet.status_code == 200
         assert stylesheet.content == REFERENCE_STYLESHEET.read_bytes()
@@ -137,7 +140,40 @@ def test_infeasible_responses_do_not_include_success_report():
         assert result["tspeed"]["infeasible_type"] == expected_type
         assert "report" not in result
         assert result["adjustment_options"]
+        assert result["request"]["origin"] == "平顶山港"
+        assert result["failed_tool"] == "Tspeed"
+        assert result["boundary_diagnostics"]["diagnostic_only"] is True
         assert "未显示航速推荐、ETA、最终能耗或 SOC 成功结论" in result["dashboard"]
+
+
+def test_operator_time_adjustment_reenters_same_workflow():
+    with _client() as client:
+        blocked = client.post(
+            "/api/run", json={"task_text": NORMAL_TEXT.replace("6小时", "1小时")},
+        ).json()
+        option = next(
+            item for item in blocked["adjustment_options"]
+            if item["direction"] == "accept_late"
+        )
+        corrected = {**blocked["request"], **option["modification"]}
+        rerun = client.post("/api/run", json=corrected).json()
+    assert rerun["status"] == "ok"
+    assert [item["node"] for item in rerun["trace"] if item["node"].startswith("T")] == [
+        "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
+    ]
+
+
+def test_operator_soc_adjustment_reenters_same_workflow():
+    with _client() as client:
+        blocked = client.post(
+            "/api/run", json={"task_text": NORMAL_TEXT.replace("SOC85%", "SOC31%")},
+        ).json()
+        corrected = {**blocked["request"], "soc_initial": 0.85}
+        rerun = client.post("/api/run", json=corrected).json()
+    assert blocked["status"] == "infeasible"
+    assert blocked["tspeed"]["infeasible_type"] == "soc"
+    assert rerun["status"] == "ok"
+    assert rerun["report"]["summary"]["soc_initial"]["value"] == 0.85
 
 
 def test_missing_llm_config_and_unexpected_workflow_error_are_safe(monkeypatch):

@@ -28,6 +28,7 @@ REFERENCE_BACKGROUND = REFERENCE_UI_ROOT / "static/vessel-ocean-background.jpg"
 MAX_REQUEST_BYTES = 64 * 1024
 STATIC_FILES = {
     "app.css": (REFERENCE_STYLESHEET, "text/css; charset=utf-8"),
+    "interaction.css": (ROOT / "interaction.css", "text/css; charset=utf-8"),
     "app.js": (ROOT / "app.js", "text/javascript; charset=utf-8"),
     "vessel-ocean-background.jpg": (REFERENCE_BACKGROUND, "image/jpeg"),
 }
