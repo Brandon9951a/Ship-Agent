@@ -26,7 +26,7 @@
     },
     {
       "id": "low_soc",
-      "soc_initial": 0.45,
+      "soc_initial": 0.30,
       "max_duration_h": 10.0,
       "expected_status": "infeasible",
       "expected_infeasible_type": "soc"

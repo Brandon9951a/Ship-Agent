@@ -4,9 +4,9 @@
   "limits": {
     "soc_min": {
       "unit": "fraction",
-      "adopted": {"value": 0.30, "source": {"source_id": "A-D2-SOC-policy", "kind": "assumption", "locator": "2026-09-19 SOC分级确认", "confirmed": false, "note": "A批准的软件规划安全下限，不是BMS硬件保护值"}},
-      "confirmed_by": "A，2026-09-19", "use_case": "规划能量预算硬约束", "proposed_value": 0.30,
-      "confirmation_status": "approved_A", "candidates": [{"value": 0.30, "source": "A_D2_decision", "locator": "SOC分级规则", "meaning": "预计低于30%即判定原方案不可行并重规划"}],
+      "adopted": {"value": 0.20, "source": {"source_id": "user-demo-policy-2026-09-23", "kind": "assumption", "locator": "软件演示规则调整", "confirmed": false, "note": "软件演示规划下限；不代表BMS硬保护值或实船批准值"}},
+      "confirmed_by": "用户，2026-09-23", "use_case": "软件演示规划能量预算硬约束", "proposed_value": 0.20,
+      "confirmation_status": "demo_override", "candidates": [{"value": 0.20, "source": "user_demo_override", "locator": "软件演示规则调整", "meaning": "演示计算允许规划至20%；实船部署前必须由BMS资料和船东重新批准"}],
       "decision_needed": "实船部署前由船东/BMS资料复核"
     },
     "soc_alarm": {
@@ -34,16 +34,16 @@
   "policy": {
     "unknown_values": "null",
     "power_boundary": "propulsion operational power; auxiliary tracked separately; battery-side conversion not yet calibrated",
-    "capacity_boundary": "1567.85kWh total nominal; two 783.925kWh groups; usable energy applies SOH and SOC reserve once",
+    "capacity_boundary": "software demo uses 1567.85kWh effective capacity (100% nominal); two 783.925kWh groups; usable energy applies SOC reserve once",
     "battery_topology": "one container, two switchable groups; group1 propulsion-priority, group2 auxiliary-priority; parallel assist allowed",
     "energy_scope": "total",
     "auxiliary_in_waiting": "must_account_once",
     "charging_capability": "demo nodes may use 8-10h full-charge evidence; charging power remains unknown",
     "hardware_cutoff": "unknown; software never issues a power-off command",
-    "soc_display_levels": {"normal_min": 0.35, "planning_min": 0.30, "warning_min": 0.25, "critical_min": 0.20, "below_critical": "emergency_operator_and_BMS_handling"}
+    "soc_display_levels": {"normal_min": 0.35, "planning_min": 0.20, "warning_min": 0.25, "critical_min": 0.20, "below_critical": "emergency_operator_and_BMS_handling"}
   },
   "energy_management_demo": {
-    "soh_initial": 0.90,
+    "soh_initial": 1.0,
     "dual_mode_enter_propulsion_kw": 120,
     "dual_mode_exit_propulsion_kw": 100,
     "soc_balance_enter_delta": 0.10,

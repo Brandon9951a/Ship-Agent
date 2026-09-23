@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ship-agent
+    runtime: python
+    region: singapore
+    plan: standard
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m ui.web_server --host 0.0.0.0 --port $PORT --llm
+    healthCheckPath: /healthz
+    envVars:
+      - key: SHIP_LLM_ENABLED
+        value: "true"
+      - key: SHIP_LLM_PROVIDER
+        value: deepseek
+      - key: SHIP_LLM_BASE_URL
+        value: https://api.deepseek.com
+      - key: SHIP_LLM_MODEL
+        value: deepseek-v4-pro
+      - key: SHIP_LLM_API_KEY
+        sync: false
+      - key: SHIP_LLM_TIMEOUT_S
+        value: "15"

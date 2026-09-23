@@ -94,12 +94,14 @@ def audit_facts(facts: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]
             if choice is None:
                 pending.append(name)
                 continue
-            # Adopted records must carry a shared SourceRef and an A decision.
+            # Adopted records must carry a shared SourceRef and an explicit decision.
             if not isinstance(choice, dict):
                 errors.append(f"{name}: adopted must be {{value, source}} or null")
                 continue
-            if record.get("confirmation_status") != "approved_A":
-                errors.append(f"{name}: adopted value requires confirmation_status=approved_A")
+            if record.get("confirmation_status") not in {"approved_A", "demo_override"}:
+                errors.append(
+                    f"{name}: adopted value requires an approved or demo_override status"
+                )
             value = choice.get("value")
             if not finite_number(value):
                 errors.append(f"{name}: adopted value must be finite numeric")

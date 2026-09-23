@@ -159,11 +159,11 @@ def collect(
         if nominal is not None:
             parameters["nominal_capacity_kwh"] = nominal
         effective_source = SourceRef(
-            source_id="docs/协作/D2_A_决策与实现记录.md",
+            source_id="configs/demo_policy.yaml",
             kind="assumption",
-            locator="A批准的软件演示规则：初始SOH与有效总容量",
+            locator="battery.initial_soh/total_effective_capacity_kwh",
             confirmed=False,
-            note="1567.85kWh标称总容量乘90%初始SOH一次；不与两组容量重复相加。",
+            note="软件演示按1567.85kWh标称容量的100%作为有效容量；不是实测SOH或实船可用容量。",
         )
         parameters["capacity_kwh"] = _parameter(
             effective_capacity, "kWh", effective_source
@@ -172,7 +172,7 @@ def collect(
         values["capacity_kwh"] = float(effective_capacity)
 
     for config_name, field_name, question in (
-        ("soc_min", "soc_min", "请由 A 确认规划 SOC 安全下限，不能用停机线代替。"),
+        ("soc_min", "soc_min", "请确认规划 SOC 安全下限；不能直接用未经核实的停机线代替。"),
         ("soc_alarm", "soc_alarm", "请确认软件 SOC 关注阈值。"),
     ):
         raw = limits_config.get("limits", {}).get(config_name, {})
@@ -193,14 +193,14 @@ def collect(
             kind="assumption",
             locator="battery.initial_soh",
             confirmed=False,
-            note="A批准的软件演示初始值；实船部署前须由测量或BMS数据替换。",
+            note="软件演示采用的容量状态；实船部署前须由测量或BMS数据替换。",
         )
         parameters["soh_initial"] = _parameter(initial_soh, "fraction", source)
 
     demo_source = SourceRef(
         source_id="configs/demo_policy.yaml",
         kind="assumption",
-        locator="A批准的软件演示规则",
+        locator="软件演示规则",
         confirmed=False,
         note="仅用于软件演示；实船部署前须以当前BMS、设备协议和船东批准参数替换。",
     )

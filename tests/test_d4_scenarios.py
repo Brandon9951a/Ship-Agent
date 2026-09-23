@@ -51,7 +51,7 @@ def test_demo_speed_ceiling_is_explicitly_not_a_route_limit(report):
 def test_effective_capacity_and_power_boundary_are_not_mixed(report):
     normal = report["scenarios"][0]
     management = normal["tmanagement"]["payload"]
-    assert management["capacity_kwh"] == pytest.approx(1411.065)
+    assert management["capacity_kwh"] == pytest.approx(1567.85)
     assert normal["model"]["energy_scope"] == "propulsion"
     assert management["required_energy_kwh"] == pytest.approx(
         normal["tspeed"]["payload"]["total_energy_kwh"]

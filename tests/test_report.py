@@ -73,7 +73,7 @@ def test_management_advice_changes_with_voyage_energy_margin():
         "从平顶山港到军李船闸，2026-09-21 08:00出发，SOC85%，半载，6小时内到达"
     )
     low = run_workflow(
-        "从平顶山港到军李船闸，2026-09-21 08:00出发，SOC48%，半载，6小时内到达"
+        "从平顶山港到军李船闸，2026-09-21 08:00出发，SOC47%，半载，6小时内到达"
     )
     assert high["status"] == low["status"] == "ok"
     high_advice = high["report"]["management_advice"]

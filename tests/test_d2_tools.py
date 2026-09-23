@@ -31,12 +31,12 @@ def test_tdata_applies_explicit_synthetic_demo_constraints_and_sources():
     assert "route.max_speed_kmh" not in response.missing_fields
     assert "route.waiting_h" not in response.missing_fields
     assert response.payload["route_id"] == "yj001_pingdingshan_zhoukou_forward"
-    assert response.payload["vessel"]["capacity_kwh"] == 1411.065
+    assert response.payload["vessel"]["capacity_kwh"] == 1567.85
     assert response.payload["parameters"]["nominal_capacity_kwh"]["value"] == 1567.85
     assert response.payload["parameters"]["max_speed_kmh"]["value"] == 11.112
     assert response.payload["vessel"]["soc_alarm"] == .35
     assert response.payload["parameters"]["battery_group_capacity_kwh"]["value"] == 783.925
-    assert response.payload["parameters"]["soh_initial"]["value"] == .9
+    assert response.payload["parameters"]["soh_initial"]["value"] == 1.0
     assert response.payload["parameters"]["default_queue_wait_h"]["value"] == 0
 
 

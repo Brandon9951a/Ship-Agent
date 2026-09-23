@@ -33,7 +33,7 @@ def test_repository_config_records_explicit_A_D2_adoptions():
     assert report["adopted"]["capacity_kwh"] == 1567.85
     assert report["adopted"]["max_power_kw"] == 200
     assert report["adopted"]["auxiliary_power_kw"] == 30
-    assert report["adopted"]["soc_min"] == .30
+    assert report["adopted"]["soc_min"] == .20
     assert report["calculation_ready"]
 
 

@@ -2,9 +2,9 @@
   "algorithm": "SHA-256",
   "real_ship_validation": false,
   "files": {
-    "raw_results.json": "189cdf5dbc722f0cb5e8148de82f323e67780695c420f28bfe0da86edf0538de",
-    "aggregate.json": "8bca86325ae34eb3aabb8f3890961ee4db8c3117032cfcef892d6faacb7709c6",
-    "cases.csv": "88268722df3d8637ef7c9f057f7ef77578e594e9958ce5595a131987da584bc1",
-    "energy_comparison.svg": "268356bcf9b18f6aefd141ca6ed3c207dbe988e51bfda59530f02b9541cb8ca8"
+    "raw_results.json": "f0adb8bbf1537a1c855f81ffd5e877d6487767360397bcab5ef1def1f5e15e80",
+    "aggregate.json": "f7612e2c6a00702570d48e728573f0cc6afae889e981a3d687816de2f39102cf",
+    "cases.csv": "056a1d255aba27fa9c9459b8e7ece9ca352d117f4b4ccf19080c129a6c4f1707",
+    "energy_comparison.svg": "d153890a1e90c4f9946ba902c052bce41867a1cc59d3c10278f8c5dcef1707e4"
   }
 }

@@ -2,15 +2,15 @@
   "case_count": 40,
   "verified_case_count": 40,
   "status_counts": {
-    "ok": 30,
-    "infeasible/soc": 10
+    "ok": 32,
+    "infeasible/soc": 8
   },
-  "comparable_case_count": 30,
-  "baseline_required_energy_sum_kwh": 14352.802822693842,
-  "optimized_required_energy_sum_kwh": 11960.149437502518,
-  "aggregate_energy_difference_kwh": 2392.6533851913246,
-  "aggregate_energy_difference_percent": 16.67028673596906,
-  "mean_case_elapsed_ms": 9.641597498921328,
-  "max_case_elapsed_ms": 17.157399997813627,
+  "comparable_case_count": 32,
+  "baseline_required_energy_sum_kwh": 16396.45788336933,
+  "optimized_required_energy_sum_kwh": 12703.650152751521,
+  "aggregate_energy_difference_kwh": 3692.8077306178093,
+  "aggregate_energy_difference_percent": 22.521984668184743,
+  "mean_case_elapsed_ms": 14.466110000057597,
+  "max_case_elapsed_ms": 17.609799999263487,
   "comparison_interpretation": "同一批软件演示任务的重复样本汇总，仅比较离散网格内最快可行策略与最低能耗策略；不是实船节能率、运营收益或模型精度。"
 }

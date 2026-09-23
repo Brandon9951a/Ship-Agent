@@ -22,6 +22,11 @@
       "source_id": "docs/协作/D2_A_决策与实现记录.md",
       "kind": "assumption", "confirmed": false,
       "note": "A于2026-09-19批准的软件演示参数；必须与文档/实测事实分开标注"
+    },
+    "user_demo_override": {
+      "source_id": "configs/demo_policy.yaml",
+      "kind": "assumption", "confirmed": false,
+      "note": "用户于2026-09-23指定的软件演示参数；不代表实船BMS或船东安全批准值"
     }
   },
   "parameters": {

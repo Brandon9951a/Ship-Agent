@@ -90,7 +90,7 @@ def _verify_frozen_content(root: Path) -> dict[str, Any]:
         raise AssertionError("raw_results.json与aggregate.json汇总不一致。")
     if aggregate["case_count"] != 40 or aggregate["verified_case_count"] != 40:
         raise AssertionError("D5冻结证据应为40项且全部核对通过。")
-    if aggregate["status_counts"] != {"ok": 30, "infeasible/soc": 10}:
+    if aggregate["status_counts"] != {"ok": 32, "infeasible/soc": 8}:
         raise AssertionError("D5冻结证据状态计数不一致。")
     if len(rows) != len(raw["results"]) or len(rows) != 40:
         raise AssertionError("D5 CSV与JSON用例数不一致。")
@@ -133,18 +133,18 @@ def _verify_boundaries(root: Path, raw: dict[str, Any]) -> dict[str, Any]:
         "source": "configs/demo_policy.yaml",
     }
     if raw["adopted_demo_boundaries"] != expected:
-        raise AssertionError("D5冻结参数与当前A批准演示配置不一致。")
+        raise AssertionError("D5冻结参数与当前软件演示配置不一致。")
     return expected
 
 
 def _verify_documents(root: Path) -> dict[str, list[str]]:
     requirements = {
-        "README.md": ["40项批量实验", "16.6703%", "不是实船节能率"],
+        "README.md": ["40项批量实验", "22.5220%", "不是实船节能率"],
         "docs/协作/D5_B_完成汇总.md": [
-            "40项全部通过", "30项可比案例", "不能写成实船节能率",
+            "40项全部通过", "32项可比案例", "不能写成实船节能率",
         ],
         "docs/参赛/D5_B_测试与验证供稿.md": [
-            "40项状态", "16.6703%", "不能解释为实船节能率",
+            "40项状态", "22.5220%", "不能解释为实船节能率",
         ],
     }
     for relative, phrases in requirements.items():

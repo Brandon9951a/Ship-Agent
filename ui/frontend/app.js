@@ -162,6 +162,14 @@ function planSegments(result) {
   }));
 }
 
+function updateVesselView(status, { segments = [], summary = {}, message = "" } = {}) {
+  const detail = { status, segments, summary, message };
+  window.ship3dPendingUpdate = detail;
+  document.dispatchEvent(new CustomEvent("ship3d:update", {
+    detail,
+  }));
+}
+
 function renderRoute(segments, routeId = "航线待识别") {
   if (!segments.length) {
     $("#route-track").innerHTML = '<div class="empty-inline"><i data-lucide="route"></i><span>航段识别完成后显示路径与速度建议</span></div>';
@@ -279,13 +287,9 @@ function renderModel(result) {
 }
 
 function optionAction(option) {
-  if (option.direction === "accept_late" && option.modification?.max_duration_h) return "采用并重算";
   if (option.direction === "give_up") return "保留结论";
-  if (option.direction === "recharge") return "填写实测 SOC";
-  if (option.direction === "slow_down") return "修改航时";
-  if (option.direction === "adjust_departure") return "修改出发时间";
-  if (option.direction === "shorten_route") return "修改航线";
-  return "选择调整";
+  if (option.verified && option.modification) return "采用并重算";
+  return "不可直接采用";
 }
 
 function renderAdjustmentOptions(options) {
@@ -294,8 +298,11 @@ function renderAdjustmentOptions(options) {
     return;
   }
   $("#adjustment-options").innerHTML = options.map((option, index) => {
-    const note = option.requires_input || "采用后仍会重新执行全部约束检查。";
-    return `<button class="adjustment-option" type="button" data-option-index="${index}"><span>${escapeHtml(option.label || option)}<small>${escapeHtml(note)}</small></span><b>${escapeHtml(optionAction(option))}</b></button>`;
+    const note = option.direction === "give_up"
+      ? "保留本次不可行结论，不修改任务。"
+      : option.requires_input || "已通过 Tdata→Tseg→Tenergy→Tspeed→Tmanagement 完整复算。";
+    const disabled = option.direction !== "give_up" && (!option.verified || !option.modification);
+    return `<button class="adjustment-option" type="button" data-option-index="${index}"${disabled ? " disabled" : ""}><span>${escapeHtml(option.label || option)}<small>${escapeHtml(note)}</small></span><b>${escapeHtml(optionAction(option))}</b></button>`;
   }).join("");
 }
 
@@ -310,43 +317,19 @@ async function applyAdjustmentOption(index) {
   clearCorrectionAttention();
   const button = $(`[data-option-index="${index}"]`);
   if (button) button.classList.add("selected");
-  const focusField = selector => {
-    const field = $(selector);
-    field.closest("label")?.classList.add("field-attention");
-    field.focus();
-  };
-  if (option.direction === "accept_late" && option.modification?.max_duration_h) {
-    $("#correction-duration").value = String(Number(option.modification.max_duration_h));
-    $("#correction-feedback").textContent = "已采用工具给出的最短放宽值，正在重新计算。";
-    await applyCorrection();
-    return;
-  }
   if (option.direction === "give_up") {
     $("#correction-feedback").textContent = "已保留本次不可行结论；未修改任务，也未生成航行方案。";
     return;
   }
-  if (option.direction === "recharge") {
-    focusField("#correction-soc");
-    $("#correction-feedback").textContent = "请填写补能完成后的实测初始 SOC；系统不会假定充电站功率或可用性。";
+  if (!option.verified || !option.modification) {
+    $("#correction-feedback").textContent = "该选项没有通过完整工具链验证，不能采用。";
     return;
   }
-  if (option.direction === "adjust_departure") {
-    focusField("#correction-departure");
-    $("#correction-feedback").textContent = "请填写新的出发时间，再点击“确认修改并重新计算”。";
-    return;
-  }
-  if (option.direction === "slow_down") {
-    focusField("#correction-duration");
-    $("#correction-feedback").textContent = "请放宽最长航时，工具链会重新选择可行候选航速。";
-    return;
-  }
-  if (option.direction === "shorten_route") {
-    $("#correction-origin").closest("label")?.classList.add("field-attention");
-    focusField("#correction-destination");
-    $("#correction-feedback").textContent = "请选择新的起点或终点，再点击“确认修改并重新计算”。";
-    return;
-  }
-  $("#correction-feedback").textContent = option.requires_input || "请修改相关任务参数后重新计算。";
+  const payload = { ...(state.lastResult?.request || {}), ...option.modification };
+  syncCorrectionToTask(payload);
+  fillCorrectionForm(payload);
+  $("#correction-feedback").textContent = "已写入经过完整工具链验证的参数，正在重新计算。";
+  await runInference(payload);
 }
 
 function syncCorrectionOnly() {
@@ -456,11 +439,15 @@ function renderResult(result) {
     renderEnergyChart(segments);
     renderTable(segments);
     renderSafety(checks, warnings);
+    updateVesselView("success", { segments, summary });
   } else {
     renderEnergyChart([]);
     renderTable([]);
     renderSafety(checks, warnings);
     showInfeasible(result);
+    updateVesselView(infeasible ? "infeasible" : "incomplete", {
+      message: infeasible ? "当前航次不可行，回放已停止" : "任务信息需要补充，回放已停止",
+    });
   }
 
   state.finalAnswer = operatorSummary(result, route, summary);
@@ -478,6 +465,7 @@ async function runInference(payloadOverride = null) {
   state.running = true;
   $("#run-button").disabled = true;
   updateStatus("running", "推理中");
+  updateVesselView("running", { message: "五工具链正在计算航行方案" });
   resetResult();
   try {
     const response = await fetch("/api/run", {
@@ -495,6 +483,7 @@ async function runInference(payloadOverride = null) {
     $("#model-mode").textContent = "调用失败";
     $("#reply-answer").textContent = "工具链或模型调用失败，请检查本地服务状态后重试。";
     $("#reply-panel").hidden = false;
+    updateVesselView("failed", { message: "计算失败，回放已停止" });
   } finally {
     state.running = false;
     $("#run-button").disabled = false;
@@ -545,6 +534,7 @@ function bindControls() {
     updateStatus("idle", "待命");
     $("#mission-title").textContent = "等待航行任务";
     $("#mission-subtitle").textContent = "输入自然语言需求，或使用左侧快捷航线开始。";
+    updateVesselView("idle");
   });
   document.querySelectorAll("[data-sample]").forEach(button => button.addEventListener("click", () => {
     $("#mission-input").value = SAMPLES[button.dataset.sample];
@@ -567,4 +557,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   bindControls();
   refreshIcons();
   await loadHealth();
+  window.setTimeout(() => {
+    const modelLoader = $("#vessel-loading");
+    if (!window.Ship3DReady && modelLoader && !modelLoader.hidden) {
+      modelLoader.classList.add("error");
+      modelLoader.lastChild.textContent = "三维组件未能加载，请检查网络后刷新页面";
+    }
+  }, 15000);
 });

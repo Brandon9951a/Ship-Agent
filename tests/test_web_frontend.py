@@ -27,8 +27,11 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
         "任务描述", "快捷输入", "工况补充", "航线与分段方案",
         "航段能耗与速度", "推荐航速方案", "安全校验", "能量管理建议",
-        "航行执行摘要", "工具调用过程", "船员确认后修正并重算",
+        "航行执行摘要", "工具调用过程", "选择已验证方案后自动更新并重算",
         "安全下限由系统锁定", "确认修改并重新计算",
+        "船舶三维运行态势", "五工具计算结果的软件回放",
+        "峡谷内河演示环境",
+        'id="vessel-canvas"', 'id="vessel-segment-select"',
     ):
         assert label in html
     assert "@media" in css
@@ -38,8 +41,19 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "/api/run", "/healthz", "task_text", "AI 提示已更新",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
         "applyAdjustmentOption", "readCorrectionPayload", "payloadOverride",
+        "ship3d:update", "updateVesselView", "option.verified && option.modification",
     ):
         assert marker in js
+    ship_js = (ROOT / "ship-3d.js").read_text(encoding="utf-8")
+    for marker in (
+        "GLTFLoader", 'loader.load(\n    "/assets/ship.glb"', "updatePlan",
+        "segmentPlaybackSeconds", "未知 / 待核实", "createCanyonSide",
+        "addForest", "addShoreRocks", "addHillsideRoad", "addDistantMountains",
+    ):
+        assert marker in ship_js
+    assert '<script type="module" src="/static/ship-3d.js"></script>' in html
+    assert '<script type="importmap">' in html
+    assert "cdn.jsdelivr.net/npm/three" not in html
     assert "const understandingMode = result.task_understanding?.mode" in js
     assert "数据来源" not in html
     for internal_copy in (
@@ -60,11 +74,23 @@ def test_index_health_static_and_security_headers():
         assert index.headers["x-frame-options"] == "DENY"
         assert client.get("/static/app.js").status_code == 200
         assert client.get("/static/interaction.css").status_code == 200
+        assert client.get("/static/ship-3d.js").status_code == 200
+        for name in (
+            "three.module.js", "OrbitControls.js", "RoomEnvironment.js",
+            "GLTFLoader.js", "BufferGeometryUtils.js", "THREE-LICENSE.txt",
+        ):
+            assert client.get(f"/static/{name}").status_code == 200
         stylesheet = client.get("/static/app.css")
         assert stylesheet.status_code == 200
         assert stylesheet.content == REFERENCE_STYLESHEET.read_bytes()
         assert client.get("/static/vessel-ocean-background.jpg").status_code == 200
         assert client.get("/static/unknown.txt").status_code == 404
+        ship = client.get("/assets/ship.glb")
+        assert ship.status_code == 200
+        assert ship.headers["content-type"].startswith("model/gltf-binary")
+        assert ship.content[:4] == b"glTF"
+        assert len(ship.content) > 1_000_000
+        assert client.get("/assets/unknown.glb").status_code == 404
         health = client.get("/healthz").json()
     assert health == {
         "status": "ok",
@@ -174,19 +200,26 @@ def test_operator_soc_adjustment_reenters_same_workflow():
         blocked = client.post(
             "/api/run", json={"task_text": NORMAL_TEXT.replace("SOC85%", "SOC31%")},
         ).json()
-        corrected = {**blocked["request"], "soc_initial": 0.85}
+        recharge = next(
+            item for item in blocked["adjustment_options"]
+            if item["direction"] == "recharge"
+        )
+        corrected = {**blocked["request"], **recharge["modification"]}
         rerun = client.post("/api/run", json=corrected).json()
     assert blocked["status"] == "infeasible"
     assert blocked["tspeed"]["infeasible_type"] == "soc"
     assert "accept_lower_soc" not in {
         option["direction"] for option in blocked["adjustment_options"]
     }
-    assert "shorten_route" in {
-        option["direction"] for option in blocked["adjustment_options"]
-    }
+    assert [option["direction"] for option in blocked["adjustment_options"]] == [
+        "recharge", "give_up",
+    ]
+    assert recharge["verified"] is True
+    assert recharge["modification"]["soc_initial"] == 0.325
+    assert recharge["preview"]["soc_final"] >= 0.20
     assert "需 A 批准" not in json.dumps(blocked, ensure_ascii=False)
     assert rerun["status"] == "ok"
-    assert rerun["report"]["summary"]["soc_initial"]["value"] == 0.85
+    assert rerun["report"]["summary"]["soc_initial"]["value"] == 0.325
 
 
 def test_missing_llm_config_and_unexpected_workflow_error_are_safe(monkeypatch):

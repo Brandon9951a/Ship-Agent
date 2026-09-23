@@ -186,7 +186,53 @@ def build_workflow(
             options = enumerate_options(
                 optimization, request, data.vessel, segments, candidates, auxiliary_kw,
             )
-            return [asdict(option) for option in options], diagnostics
+            verified_options: list[dict[str, Any]] = []
+            for option in options:
+                record = asdict(option)
+                modification = record.get("modification")
+                if option.direction == "give_up":
+                    verified_options.append(record)
+                    continue
+                if not isinstance(modification, dict) or not modification:
+                    continue
+                trial_state: AgentState = {
+                    "request": {**state["request"], **modification},
+                    "trace": [],
+                    "tool_results": [],
+                    "tool_mode": state.get("tool_mode", tool_mode),
+                }
+                trial_records: dict[str, dict[str, Any]] = {}
+                for tool_name in TOOL_ORDER:
+                    trial_record = _normalise_tool_result(
+                        tool_name, adapters[tool_name](trial_state),
+                    )
+                    if _status_text(trial_record.get("status")) != Status.OK.value:
+                        break
+                    trial_state.setdefault("tool_results", []).append(trial_record)
+                    trial_records[tool_name] = trial_record
+                else:
+                    speed = trial_records["Tspeed"]["payload"]
+                    management = trial_records["Tmanagement"]["payload"]
+                    trial_segments = trial_records["Tseg"]["payload"]["segments"]
+                    record["verified"] = True
+                    record["preview"] = {
+                        "route": (
+                            f"{trial_segments[0]['origin']} → "
+                            f"{trial_segments[-1]['destination']}"
+                        ),
+                        "distance_km": sum(item["distance_km"] for item in trial_segments),
+                        "duration_h": speed["total_duration_h"],
+                        "required_energy_kwh": management["required_energy_kwh"],
+                        "soc_initial": management["soc_initial"],
+                        "soc_final": management["soc_final"],
+                        "eta": speed.get("eta"),
+                        "speeds_kmh": [
+                            item["speed_kmh"] for item in speed["energy_results"]
+                        ],
+                        "verification": "Tdata→Tseg→Tenergy→Tspeed→Tmanagement",
+                    }
+                    verified_options.append(record)
+            return verified_options, diagnostics
         except (KeyError, TypeError, ValueError):
             return [], {}
 

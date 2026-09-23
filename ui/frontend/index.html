@@ -102,11 +102,11 @@
               <div class="infeasible-block suggestion"><strong>可选调整</strong><p id="infeasible-suggestion"></p></div>
               <section class="correction-workbench" id="correction-workbench">
                 <div class="correction-heading">
-                  <div><span class="surface-kicker">OPERATOR CORRECTION</span><h4>船员确认后修正并重算</h4></div>
+                  <div><span class="surface-kicker">VERIFIED ALTERNATIVES</span><h4>选择已验证方案后自动更新并重算</h4></div>
                   <span class="correction-lock"><i data-lucide="shield-check"></i> 安全下限由系统锁定</span>
                 </div>
                 <div class="adjustment-options" id="adjustment-options"></div>
-                <div class="correction-grid">
+                <div class="correction-grid" hidden>
                   <label><span>起点</span><select id="correction-origin"></select></label>
                   <label><span>终点</span><select id="correction-destination"></select></label>
                   <label><span>出发时间</span><input id="correction-departure" type="datetime-local" /></label>
@@ -114,8 +114,8 @@
                   <label><span>初始 SOC (%)</span><input id="correction-soc" type="number" min="0" max="100" step="0.1" /></label>
                   <label><span>装载状态</span><select id="correction-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
                 </div>
-                <p class="correction-note" id="correction-note">输入值只在船员点击确认后生效，并重新经过五工具链校验。</p>
-                <div class="correction-actions">
+                <p class="correction-note" id="correction-note">系统只展示已通过完整五工具链复算的参数方案；选择后自动更新任务输入。</p>
+                <div class="correction-actions" hidden>
                   <button class="secondary-action" id="sync-correction" type="button"><i data-lucide="file-pen-line"></i> 仅更新任务描述</button>
                   <button class="confirm-action" id="apply-correction" type="button"><i data-lucide="refresh-cw"></i> 确认修改并重新计算</button>
                 </div>
@@ -134,6 +134,38 @@
             <article class="kpi-card"><span class="kpi-label">计划耗时</span><strong id="metric-time">--</strong><small>时间约束校验</small></article>
             <article class="kpi-card"><span class="kpi-label">预计到达</span><strong id="metric-eta">--</strong><small>工具计算 ETA</small></article>
             <article class="kpi-card"><span class="kpi-label">到港 SOC</span><strong id="metric-soc">--</strong><small>系统有效容量口径</small></article>
+          </section>
+
+          <section class="surface vessel-surface" id="vessel-surface" aria-labelledby="vessel-heading">
+            <header class="surface-header vessel-header">
+              <div><span class="surface-kicker">VESSEL DIGITAL VIEW</span><h3 id="vessel-heading">船舶三维运行态势</h3></div>
+              <div class="vessel-header-actions">
+                <label class="vessel-segment-picker" for="vessel-segment-select"><span>航段</span><select id="vessel-segment-select" disabled><option>等待方案</option></select></label>
+                <span class="vessel-mode"><i data-lucide="monitor-dot"></i> 五工具计算结果的软件回放</span>
+              </div>
+            </header>
+            <div class="vessel-stage" id="vessel-stage">
+              <canvas id="vessel-canvas" aria-label="可旋转缩放的货船三维模型"></canvas>
+              <div class="vessel-loading" id="vessel-loading" role="status"><span></span>正在加载船舶模型</div>
+              <div class="vessel-environment-label"><i data-lucide="mountain-snow"></i> 峡谷内河演示环境</div>
+              <div class="vessel-overlay vessel-overlay-primary">
+                <span class="vessel-state-dot" id="vessel-state-dot"></span>
+                <div><small>回放状态</small><strong id="vessel-state">等待计算</strong></div>
+              </div>
+              <dl class="vessel-hud" aria-label="船舶回放状态">
+                <div class="vessel-hud-route"><dt>当前航段</dt><dd id="vessel-route">未知 / 待核实</dd></div>
+                <div><dt>推荐航速</dt><dd id="vessel-speed">未知</dd></div>
+                <div><dt>预计 SOC</dt><dd id="vessel-soc">未知</dd></div>
+                <div><dt>累计推进能耗</dt><dd id="vessel-energy">未知</dd></div>
+                <div><dt>预计到达</dt><dd id="vessel-eta">未知</dd></div>
+              </dl>
+              <div class="vessel-controls" aria-label="三维回放控制">
+                <button id="vessel-play" type="button" disabled><i data-lucide="play"></i><span>开始回放</span></button>
+                <button id="vessel-rate" type="button" disabled aria-label="切换回放倍速">1×</button>
+                <button id="vessel-reset-view" type="button"><i data-lucide="scan"></i><span>重置视角</span></button>
+              </div>
+              <p class="vessel-help">拖拽旋转 · 滚轮缩放 · 当前展示不代表真实遥测或实船控制</p>
+            </div>
           </section>
 
           <section class="analysis-grid">
@@ -184,5 +216,17 @@
     </div>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="/static/app.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/static/three.module.js",
+          "three/addons/controls/OrbitControls.js": "/static/OrbitControls.js",
+          "three/addons/environments/RoomEnvironment.js": "/static/RoomEnvironment.js",
+          "three/addons/loaders/GLTFLoader.js": "/static/GLTFLoader.js",
+          "three/addons/utils/BufferGeometryUtils.js": "/static/BufferGeometryUtils.js"
+        }
+      }
+    </script>
+    <script type="module" src="/static/ship-3d.js"></script>
   </body>
 </html>

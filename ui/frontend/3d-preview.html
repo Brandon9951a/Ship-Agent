@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>峡谷航道 3D 展示 · 绿航智算</title>
+<style>
+  :root {
+    --blue: #1769d4;
+    --ink: #0f2438;
+    --panel: rgba(13, 30, 48, 0.78);
+    --line: rgba(140, 180, 220, 0.25);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b2236; }
+  #scene { position: fixed; inset: 0; display: block; }
+  .hud {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    min-width: 250px;
+    padding: 16px 18px;
+    color: #eaf4ff;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    font-family: "Inter", "Noto Sans SC", -apple-system, "Segoe UI", sans-serif;
+    box-shadow: 0 12px 40px rgba(0, 20, 40, 0.45);
+  }
+  .hud .kicker {
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7fb2e8;
+    margin: 0 0 4px;
+  }
+  .hud .speed {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .hud .speed strong {
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+  }
+  .hud .speed span { font-size: 13px; color: #9fc3e8; }
+  .hud .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .hud .cell b { display: block; font-size: 11px; font-weight: 600; color: #8fb4d8; }
+  .hud .cell span { font-size: 13px; font-weight: 600; color: #eaf4ff; }
+  .badge {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 7px 12px;
+    font: 600 11px "Inter", "Noto Sans SC", sans-serif;
+    color: #cfe6ff;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+  }
+</style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="badge">3D 航道 · 演示展示（程序化建模）</div>
+  <div class="hud">
+    <p class="kicker">Navigation Status · 航行状态</p>
+    <div class="speed"><strong id="hud-speed">14.5</strong><span>km/h 对地航速</span></div>
+    <div class="grid">
+      <div class="cell"><b>航向</b><span id="hud-heading">078° 顺水</span></div>
+      <div class="cell"><b>当前航段</b><span id="hud-seg">平顶山港 → 军李船闸</span></div>
+      <div class="cell"><b>剩余距离</b><span id="hud-dist">42.3 km</span></div>
+      <div class="cell"><b>剩余航时</b><span id="hud-time">2.9 h</span></div>
+      <div class="cell"><b>电池 SOC</b><span id="hud-soc">78%</span></div>
+      <div class="cell"><b>推进功率</b><span id="hud-power">214 kW</span></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+
+    const scene = new THREE.Scene();
+    const FOG_COLOR = 0xbfd7e8;
+    scene.fog = new THREE.Fog(FOG_COLOR, 130, 420);
+
+    // Sky dome with a soft vertical gradient.
+    {
+      const skyCanvas = document.createElement('canvas');
+      skyCanvas.width = 16; skyCanvas.height = 256;
+      const ctx = skyCanvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 0, 256);
+      grad.addColorStop(0.0, '#6fa6d8');
+      grad.addColorStop(0.45, '#a9cbe8');
+      grad.addColorStop(0.62, '#cfe0ea');
+      grad.addColorStop(1.0, '#e8f1f4');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, 16, 256);
+      const tex = new THREE.CanvasTexture(skyCanvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(600, 24, 16),
+        new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false })
+      );
+      scene.add(dome);
+    }
+
+    // Environment reflections for the water.
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // Lighting.
+    scene.add(new THREE.HemisphereLight(0xdcecff, 0x2a3b2a, 0.9));
+    const sun = new THREE.DirectionalLight(0xfff2dd, 2.4);
+    sun.position.set(60, 90, 40);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = -120;
+    sun.shadow.camera.right = 120;
+    sun.shadow.camera.top = 120;
+    sun.shadow.camera.bottom = -120;
+    sun.shadow.camera.far = 400;
+    sun.shadow.bias = -0.0004;
+    scene.add(sun);
+
+    // ---- deterministic noise ----
+    function hash2(ix, iz) {
+      const n = Math.sin(ix * 127.1 + iz * 311.7) * 43758.5453123;
+      return n - Math.floor(n);
+    }
+    function smoothNoise(x, z) {
+      const ix = Math.floor(x), iz = Math.floor(z);
+      const fx = x - ix, fz = z - iz;
+      const sx = fx * fx * (3 - 2 * fx), sz = fz * fz * (3 - 2 * fz);
+      const a = hash2(ix, iz), b = hash2(ix + 1, iz), c = hash2(ix, iz + 1), d = hash2(ix + 1, iz + 1);
+      return a + (b - a) * sx + (c - a) * sz + (a - b - c + d) * sx * sz;
+    }
+    function fbm(x, z, oct) {
+      let v = 0, amp = 0.5, f = 1, tot = 0;
+      for (let i = 0; i < oct; i++) { v += amp * smoothNoise(x * f, z * f); tot += amp; amp *= 0.5; f *= 2; }
+      return v / tot;
+    }
+
+    const CHANNEL_HALF = 9;
+
+    // ---- terrain: one heightfield carved into a canyon ----
+    const TERRAIN_W = 260, TERRAIN_L = 560;
+    const TW = 140, TL = 200;
+    const terrainGeom = new THREE.PlaneGeometry(TERRAIN_W, TERRAIN_L, TW, TL);
+    terrainGeom.rotateX(-Math.PI / 2);
+    const tpos = terrainGeom.attributes.position;
+    const colors = new Float32Array(tpos.count * 3);
+    for (let i = 0; i < tpos.count; i++) {
+      const x = tpos.getX(i), z = tpos.getZ(i);
+      const d = Math.max(0, Math.abs(x) - CHANNEL_HALF);
+      let h;
+      if (Math.abs(x) <= CHANNEL_HALF) {
+        h = -1.6 + fbm(x * 0.05, z * 0.05, 3) * 0.4;
+      } else {
+        const bank = 52 * (1 - Math.exp(-d / 20));
+        const mountain = 60 * Math.pow(fbm(x * 0.012, z * 0.012, 5), 1.7);
+        const ridge = 26 * fbm(x * 0.05, z * 0.05, 3);
+        h = bank + mountain * 0.85 + ridge;
+      }
+      tpos.setY(i, h);
+
+      // vertex color by height band + noise
+      let r, g, b;
+      const n = fbm(x * 0.1, z * 0.1, 2);
+      if (Math.abs(x) <= CHANNEL_HALF) {
+        r = 0.62; g = 0.55; b = 0.44;               // sandy channel floor
+      } else if (h < 6) {
+        r = 0.22 + n * 0.06; g = 0.42 + n * 0.08; b = 0.24;   // green bank
+      } else if (h < 22) {
+        r = 0.16 + n * 0.05; g = 0.33 + n * 0.06; b = 0.20;   // darker forest
+      } else if (h < 45) {
+        r = 0.42 + n * 0.06; g = 0.43 + n * 0.06; b = 0.38;   // rock
+      } else {
+        r = 0.55 + n * 0.05; g = 0.56 + n * 0.05; b = 0.52;   // high rock
+      }
+      colors[i * 3] = r; colors[i * 3 + 1] = g; colors[i * 3 + 2] = b;
+    }
+    terrainGeom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    terrainGeom.computeVertexNormals();
+    const terrain = new THREE.Mesh(
+      terrainGeom,
+      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 })
+    );
+    terrain.receiveShadow = true;
+    scene.add(terrain);
+
+    // ---- distant background mountains (hazy) ----
+    {
+      const mountainMat = new THREE.MeshStandardMaterial({ color: 0x7f9aa8, roughness: 1, metalness: 0 });
+      const mts = new THREE.InstancedMesh(
+        new THREE.ConeGeometry(1, 1, 5, 1), mountainMat, 22
+      );
+      const m = new THREE.Matrix4();
+      let idx = 0;
+      for (let i = 0; i < 22; i++) {
+        const z = -150 - Math.random() * 260;
+        const x = (Math.random() < 0.5 ? -1 : 1) * (60 + Math.random() * 160);
+        const s = 40 + Math.random() * 70;
+        m.makeScale(s, s * 1.3, s);
+        m.setPosition(x, -20 + s * 0.5, z);
+        mts.setMatrixAt(idx++, m);
+      }
+      mts.instanceMatrix.needsUpdate = true;
+      scene.add(mts);
+    }
+
+    // ---- water surface ----
+    const WATER_W = CHANNEL_HALF * 2 + 1, WATER_L = 560;
+    const waterGeom = new THREE.PlaneGeometry(WATER_W, WATER_L, 40, 180);
+    waterGeom.rotateX(-Math.PI / 2);
+    const water = new THREE.Mesh(
+      waterGeom,
+      new THREE.MeshPhysicalMaterial({
+        color: 0x0d3b5e, roughness: 0.12, metalness: 0.05,
+        envMapIntensity: 1.1, clearcoat: 0.4, clearcoatRoughness: 0.3
+      })
+    );
+    water.position.y = 0.05;
+    water.receiveShadow = true;
+    scene.add(water);
+    const wBase = waterGeom.attributes.position.array.slice();
+
+    // ---- vegetation (instanced low-poly trees) ----
+    const trees = new THREE.Group();
+    {
+      const foliage = new THREE.InstancedMesh(new THREE.ConeGeometry(1, 1, 6, 1),
+        new THREE.MeshStandardMaterial({ color: 0x2f5d3a, roughness: 1 }), 240);
+      const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.18, 0.24, 1, 5),
+        new THREE.MeshStandardMaterial({ color: 0x5a4632, roughness: 1 }), 240);
+      const m = new THREE.Matrix4();
+      let i = 0, placed = 0;
+      while (placed < 240 && i < 4000) {
+        i++;
+        const x = (Math.random() < 0.5 ? -1 : 1) * (CHANNEL_HALF + 3 + Math.random() * 70);
+        const z = 260 - Math.random() * 520;
+        const d = Math.abs(x) - CHANNEL_HALF;
+        const h = 52 * (1 - Math.exp(-d / 20)) + 60 * Math.pow(fbm(x * 0.012, z * 0.012, 3), 1.7) * 0.85;
+        if (h < 2 || h > 30) continue;
+        const s = 0.8 + Math.random() * 2.2;
+        const cx = x + (Math.random() - 0.5) * 3;
+        const cz = z + (Math.random() - 0.5) * 3;
+        m.makeScale(s, s * 2.4, s);
+        m.setPosition(cx, h + s * 1.6, cz);
+        foliage.setMatrixAt(placed, m);
+        m.makeScale(s * 0.3, s * 1.4, s * 0.3);
+        m.setPosition(cx, h + s * 0.7, cz);
+        trunks.setMatrixAt(placed, m);
+        placed++;
+      }
+      foliage.count = placed; trunks.count = placed;
+      foliage.instanceMatrix.needsUpdate = true;
+      trunks.instanceMatrix.needsUpdate = true;
+      trees.add(foliage, trunks);
+      scene.add(trees);
+    }
+
+    // ---- rocks near the waterline ----
+    {
+      const rocks = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1),
+        new THREE.MeshStandardMaterial({ color: 0x6b6f66, roughness: 0.9, flatShading: true }), 90);
+      const m = new THREE.Matrix4();
+      for (let i = 0; i < 90; i++) {
+        const side = Math.random() < 0.5 ? -1 : 1;
+        const x = side * (CHANNEL_HALF + 1 + Math.random() * 6);
+        const z = 260 - Math.random() * 520;
+        const d = Math.abs(x) - CHANNEL_HALF;
+        const h = 52 * (1 - Math.exp(-d / 20));
+        const s = 0.4 + Math.random() * 1.6;
+        m.makeScale(s, s * 0.6, s);
+        m.setPosition(x, h + s * 0.3, z);
+        rocks.setMatrixAt(i, m);
+      }
+      rocks.instanceMatrix.needsUpdate = true;
+      rocks.castShadow = true;
+      scene.add(rocks);
+    }
+
+    // ---- ship: real Meshy GLB model ----
+    const ship = new THREE.Group();
+    ship.position.set(0, 0, -2);
+    scene.add(ship);
+    {
+      const loader = new GLTFLoader();
+      loader.load(
+        '/assets/ship.glb',
+        (gltf) => {
+          const model = gltf.scene;
+          // GLB unit: mesh bounds ~1.9 long on X, up +Y; scale to channel size
+          model.scale.setScalar(12);
+          // length axis X -> Z (channel direction)
+          model.rotation.y = -Math.PI / 2;
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+          ship.add(model);
+        },
+        undefined,
+        (err) => console.error('ship.glb load failed:', err),
+      );
+    }
+
+    // ---- wake foam (in-place sailing: water streams past, foam trails behind) ----
+    const foamGroup = new THREE.Group();
+    {
+      const foamMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, depthWrite: false });
+      // wide V wake behind the stern
+      const wake = new THREE.Mesh(new THREE.PlaneGeometry(6, 46), foamMat);
+      wake.rotation.x = -Math.PI / 2;
+      wake.position.set(0, 0.12, 34);
+      foamGroup.add(wake);
+      scene.add(foamGroup);
+    }
+
+    // ---- camera + controls ----
+    const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.5, 900);
+    camera.position.set(12, 7, 18);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 2.5, -6);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.maxPolarAngle = Math.PI * 0.52;
+    controls.minDistance = 12;
+    controls.maxDistance = 160;
+    controls.update();
+
+    // ---- animation ----
+    const clock = new THREE.Clock();
+    const wpos = waterGeom.attributes.position;
+    function animate() {
+      const t = clock.getElapsedTime();
+      // flowing water: waves move downstream (+Z past the stationary ship)
+      for (let i = 0; i < wpos.count; i++) {
+        const x = wBase[i * 3], z = wBase[i * 3 + 2];
+        const y = Math.sin(x * 0.35 + t * 1.4) * 0.16
+          + Math.sin(z * 0.22 - t * 2.2 + x * 0.6) * 0.12
+          + Math.sin((x + z) * 0.12 + t * 0.9) * 0.1;
+        wpos.setY(i, y);
+      }
+      wpos.needsUpdate = true;
+      waterGeom.computeVertexNormals();
+
+      // gentle ship bob
+      ship.position.y = Math.sin(t * 0.9) * 0.10;
+      ship.rotation.x = Math.sin(t * 0.6) * 0.012;
+      ship.rotation.z = Math.sin(t * 0.75) * 0.02;
+
+      // foam pulse
+      foamGroup.children[0].material.opacity = 0.28 + Math.sin(t * 1.6) * 0.08;
+
+      // subtle HUD speed drift (demo)
+      const sp = 14.5 + Math.sin(t * 0.5) * 0.6;
+      document.getElementById('hud-speed').textContent = sp.toFixed(1);
+
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

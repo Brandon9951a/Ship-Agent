@@ -60,6 +60,7 @@ def _adjustment_options(record: dict[str, Any]) -> list[str]:
 
 def render_dashboard(
     tool_results: list[dict[str, Any]], *, report: dict[str, Any] | None = None,
+    adjustment_options: list[dict[str, Any]] | None = None,
 ) -> str:
     """Render real tool states without manufacturing an engineering conclusion."""
     lines = ["航行任务文本界面", "=" * 20]
@@ -78,9 +79,13 @@ def render_dashboard(
             lines.append("追问：" + question)
         if record.get("reason"):
             lines.append("原因：" + record["reason"])
-        options = _adjustment_options(record)
+        options = []
+        if tool == "Tspeed" and adjustment_options:
+            options = [item["label"] for item in adjustment_options]
+        elif not adjustment_options:
+            options = _adjustment_options(record)
         if options:
-            lines.append("可选调整（需用户确认，不自动修改硬安全下限）：")
+            lines.append("已计算方案（选择后自动写入任务并重新执行五工具链）：")
             lines.extend(f"- {index}. {option}" for index, option in enumerate(options, 1))
         payload = record.get("payload") or {}
         if tool == "Tdata" and payload:
@@ -161,7 +166,8 @@ def _result_from_state(state: dict[str, Any]) -> dict[str, Any]:
         result["plan"] = state["plan"]
         result["report"] = state["report"]
     result["dashboard"] = render_dashboard(
-        state.get("tool_results", []), report=state.get("report")
+        state.get("tool_results", []), report=state.get("report"),
+        adjustment_options=state.get("adjustment_options", []),
     )
     return result
 

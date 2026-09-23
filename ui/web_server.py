@@ -30,7 +30,17 @@ STATIC_FILES = {
     "app.css": (REFERENCE_STYLESHEET, "text/css; charset=utf-8"),
     "interaction.css": (ROOT / "interaction.css", "text/css; charset=utf-8"),
     "app.js": (ROOT / "app.js", "text/javascript; charset=utf-8"),
+    "ship-3d.js": (ROOT / "ship-3d.js", "text/javascript; charset=utf-8"),
+    "three.module.js": (ROOT / "vendor" / "three.module.js", "text/javascript; charset=utf-8"),
+    "OrbitControls.js": (ROOT / "vendor" / "OrbitControls.js", "text/javascript; charset=utf-8"),
+    "RoomEnvironment.js": (ROOT / "vendor" / "RoomEnvironment.js", "text/javascript; charset=utf-8"),
+    "GLTFLoader.js": (ROOT / "vendor" / "GLTFLoader.js", "text/javascript; charset=utf-8"),
+    "BufferGeometryUtils.js": (ROOT / "vendor" / "BufferGeometryUtils.js", "text/javascript; charset=utf-8"),
+    "THREE-LICENSE.txt": (ROOT / "vendor" / "THREE-LICENSE.txt", "text/plain; charset=utf-8"),
     "vessel-ocean-background.jpg": (REFERENCE_BACKGROUND, "image/jpeg"),
+}
+ASSET_FILES = {
+    "ship.glb": (ROOT / "assets" / "ship.glb", "model/gltf-binary"),
 }
 
 
@@ -69,6 +79,13 @@ def create_app(
     @app.get("/static/{name}", include_in_schema=False)
     async def static_file(name: str):
         item = STATIC_FILES.get(name)
+        if item is None or not item[0].is_file():
+            return _error(404, "not_found")
+        return FileResponse(item[0], media_type=item[1])
+
+    @app.get("/assets/{name}", include_in_schema=False)
+    async def asset_file(name: str):
+        item = ASSET_FILES.get(name)
         if item is None or not item[0].is_file():
             return _error(404, "not_found")
         return FileResponse(item[0], media_type=item[1])

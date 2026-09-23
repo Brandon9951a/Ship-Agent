@@ -3,7 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from schemas.types import InfeasibleType, Status
-from ui.app import _adjustment_options, run
+from ui.app import run
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,10 +28,11 @@ def test_time_infeasible_scenario_shows_bounded_choices():
     assert result["status"] == Status.INFEASIBLE.value
     tspeed = result["tspeed"]
     assert tspeed["infeasible_type"] == InfeasibleType.TIME.value
-    options = _adjustment_options(tspeed)
-    assert options and "到达截止时间" in options[0]
-    assert "可选调整" in result["dashboard"]
-    assert "不自动修改硬安全下限" in result["dashboard"]
+    options = result["adjustment_options"]
+    assert options and options[0]["verified"] is True
+    assert options[0]["modification"]["max_duration_h"] > 1
+    assert "已计算方案" in result["dashboard"]
+    assert "自动写入任务" in result["dashboard"]
 
 
 def test_soc_infeasible_scenario_does_not_promise_unknown_charging():
@@ -41,6 +42,8 @@ def test_soc_infeasible_scenario_does_not_promise_unknown_charging():
     assert result["status"] == Status.INFEASIBLE.value
     tspeed = result["tspeed"]
     assert tspeed["infeasible_type"] == InfeasibleType.SOC.value
-    assert any("充电地点" in option for option in _adjustment_options(tspeed))
-    assert "补充有来源的充电地点" in result["dashboard"]
+    assert [item["direction"] for item in result["adjustment_options"]] == [
+        "recharge", "give_up",
+    ]
+    assert "补能至实测 SOC" in result["dashboard"]
     assert "未显示航速推荐、ETA、最终能耗或 SOC 成功结论。" in result["dashboard"]
