@@ -159,8 +159,6 @@ function planSegments(result) {
     duration_h: segment.duration?.value,
     energy_kwh: segment.propulsion_energy?.value,
     soc_end: segment.soc_end?.value,
-    source: segment.distance_source,
-    model_id: segment.model_id,
   }));
 }
 
@@ -177,7 +175,7 @@ function renderRoute(segments, routeId = "航线待识别") {
     distance: index ? segments[index - 1].distance_km : null,
   }));
   nodes.push({ name: segments.at(-1).destination, distance: segments.at(-1).distance_km });
-  $("#route-chip").textContent = routeId;
+  $("#route-chip").textContent = `${segments[0].origin}—${segments.at(-1).destination}`;
   $("#route-track").innerHTML = `<div class="metro-route" style="--stops:${Math.max(nodes.length, 2)}; --ship-from:0%; --ship-to:100%">
     <span class="metro-ship" aria-hidden="true"><i data-lucide="ship"></i></span>
     ${nodes.map((node, index) => {
@@ -203,12 +201,6 @@ function renderEnergyChart(segments) {
   }).join("")}</div>`;
 }
 
-function sourceLabel(segment) {
-  const source = segment.source;
-  if (!source) return "未知来源";
-  return `${source.source_id || "未知来源"} · ${source.confirmed ? "已核对" : "待核实"} · ${segment.model_id || "模型未标识"}`;
-}
-
 function renderTable(segments) {
   $("#result-count").textContent = `${segments.length} 个航段`;
   $("#segment-table").innerHTML = segments.length ? segments.map(segment => `<tr>
@@ -217,18 +209,39 @@ function renderTable(segments) {
     <td>${escapeHtml(formatNumber(segment.speed_kmh, " km/h", 3))}</td>
     <td>${escapeHtml(formatNumber(segment.duration_h, " h", 2))}</td>
     <td>${escapeHtml(formatNumber(segment.energy_kwh, " kWh"))}</td>
-    <td>${escapeHtml(sourceLabel(segment))}</td>
-  </tr>`).join("") : '<tr class="placeholder-row"><td colspan="6">等待航速优化结果</td></tr>';
+  </tr>`).join("") : '<tr class="placeholder-row"><td colspan="5">等待航速优化结果</td></tr>';
+}
+
+const CHECK_LABELS = { time: "航时约束", speed: "航速范围", power: "推进功率", soc: "电量余度" };
+
+function checkValue(value, unit) {
+  if (value == null) return "--";
+  if (unit === "fraction") return formatNumber(Number(value) * 100, "%");
+  return `${formatNumber(value, "", 2)}${unit ? ` ${unit}` : ""}`;
+}
+
+function operatorWarning(warning) {
+  if (warning.includes("临界线")) return "预计到港电量过低，请重新规划航次并按船舶应急规程处置。";
+  if (warning.includes("警告线")) return "预计到港电量不足，不建议执行当前任务；请先补能或缩短航程。";
+  if (warning.includes("关注线")) return "预计到港电量偏低，建议出发前补能或缩短航程，并提高电量检查频次。";
+  return "检测到能量风险，请根据能量管理建议调整任务。";
 }
 
 function renderSafety(checks, warnings = []) {
-  const items = checks.map(check => {
-    const actual = check.actual == null ? "--" : `${check.actual} ${check.unit || ""}`;
-    const limit = check.limit == null ? "未设置" : `${check.limit} ${check.unit || ""}`;
-    return `<div class="safety-item ${check.passed ? "ok" : "error"} state"><span class="safety-label">${escapeHtml(check.name)}</span><strong class="safety-content">${check.passed ? "通过" : "未通过"} · 实际 ${escapeHtml(actual)} · 边界 ${escapeHtml(limit)}</strong></div>`;
+  const uniqueChecks = [...new Map(checks.map(check => [check.name, check])).values()];
+  const items = uniqueChecks.map(check => {
+    const label = CHECK_LABELS[check.name] || "约束检查";
+    const actual = checkValue(check.actual, check.unit);
+    const limit = check.limit == null ? "未设置" : checkValue(check.limit, check.unit);
+    return `<div class="safety-item ${check.passed ? "ok" : "error"} state"><span class="safety-label">${escapeHtml(label)}</span><strong class="safety-content">${check.passed ? "通过" : "未通过"} · ${escapeHtml(actual)} / ${escapeHtml(limit)}</strong></div>`;
   });
-  warnings.forEach(warning => items.push(`<div class="safety-item warning state"><span class="safety-label">风险</span><strong class="safety-content">${escapeHtml(warning)}</strong></div>`));
+  warnings.forEach(warning => items.push(`<div class="safety-item warning state"><span class="safety-label">电量提示</span><strong class="safety-content">${escapeHtml(operatorWarning(warning))}</strong></div>`));
   $("#safety-list").innerHTML = items.length ? items.join("") : '<div class="empty-inline">暂无校验结果</div>';
+}
+
+function managementAdvice(result) {
+  const advice = result.report?.management_advice;
+  return Array.isArray(advice) ? advice : [];
 }
 
 function renderRecommendations(result) {
@@ -237,16 +250,10 @@ function renderRecommendations(result) {
     $("#recommendation-list").innerHTML = options.map(option => `<div class="recommendation info">${escapeHtml(option.label || option)}</div>`).join("");
     return;
   }
-  const management = result.tmanagement?.payload || {};
-  const messages = [];
-  if (management.safe) {
-    messages.push("电池组1推进优先；电池组2日常负载优先，必要时辅助推进。系统仅给出能量管理建议，不下发接触器控制命令。");
-    messages.push(`当前工具计算结束 SOC：${formatNumber((management.soc_final ?? 0) * 100, "%")}；规划下限：${formatNumber((management.soc_min ?? 0) * 100, "%")}。`);
-  }
-  (management.warnings || []).forEach(warning => messages.push(warning));
+  const messages = managementAdvice(result);
   $("#recommendation-list").innerHTML = messages.length
     ? messages.map(message => `<div class="recommendation info">${escapeHtml(message)}</div>`).join("")
-    : '<div class="empty-inline">等待 EMS 仿真结果</div>';
+    : '<div class="empty-inline">等待能量管理结果</div>';
 }
 
 function renderTrace(trace) {
@@ -259,8 +266,12 @@ function renderModel(result) {
   const reportMode = result.report?.explanation_mode;
   const understandingMode = result.task_understanding?.mode;
   const llmUsed = reportMode === "llm_qualitative" || understandingMode === "llm_qualitative";
-  const explanation = result.report?.explanation || result.task_understanding?.text || result.final_message || "暂无模型解释。";
-  $("#model-mode").textContent = llmUsed ? "DeepSeek 已真实调用" : "模板回退";
+  const explanation = result.status === "ok"
+    ? (result.report?.explanation || "航行方案已生成，请查看下方执行建议。")
+    : result.status === "infeasible"
+      ? "当前任务不可执行，请根据可选调整修改航时、电量或航线后重新计算。"
+      : "请补充或修正任务信息后重新计算。";
+  $("#model-mode").textContent = llmUsed ? "AI 提示已更新" : "系统提示";
   $("#reply-answer").textContent = explanation;
   $("#reply-panel").hidden = false;
   $("#model-label").textContent = llmUsed ? "DeepSeek 实际调用完成" : "DeepSeek 回退模式";
@@ -394,6 +405,26 @@ function resetResult() {
   refreshIcons();
 }
 
+function operatorSummary(result, route, summary) {
+  if (result.status === "ok") {
+    const origin = route[0]?.origin || result.request?.origin || "起点";
+    const destination = route.at(-1)?.destination || result.request?.destination || "终点";
+    const lines = [
+      `${origin} → ${destination}`,
+      `计划耗时：${formatNumber(summary.total_duration?.value, " h", 2)}`,
+      `预计到达：${formatEta(summary.eta?.value)}`,
+      `预计总能耗：${formatNumber(summary.required_energy?.value, " kWh")}`,
+      `预计到港电量：${formatNumber((summary.soc_final?.value ?? 0) * 100, "%")}`,
+    ];
+    managementAdvice(result).forEach(item => lines.push(`建议：${item}`));
+    return lines.join("\n");
+  }
+  const failedRecord = result[result.failed_tool?.toLowerCase()] || result.tspeed || {};
+  const reason = failedRecord.reason || failedRecord.payload?.reason || (result.questions || []).join("；") || "当前任务信息不完整。";
+  const options = (result.adjustment_options || []).map((item, index) => `${index + 1}. ${item.label || item}`);
+  return [`任务未生成航行方案。`, `原因：${reason}`, ...options].join("\n");
+}
+
 function renderResult(result) {
   state.lastResult = result;
   const okay = result.status === "ok";
@@ -406,7 +437,11 @@ function renderResult(result) {
 
   updateStatus(okay ? "success" : "error", okay ? "方案已生成" : infeasible ? "航次不可行" : "需要补充");
   $("#mission-title").textContent = route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "方案已生成" : "任务未完成");
-  $("#mission-subtitle").textContent = result.final_message || "流程已结束。";
+  $("#mission-subtitle").textContent = okay
+    ? "方案已生成，请查看推荐航速、能耗与电量安排。"
+    : infeasible
+      ? "当前任务不满足执行条件，请选择下方调整方案。"
+      : "请补充或修正任务信息后重新计算。";
   renderProgress(result.trace || []);
   renderRoute(route, result.tdata?.payload?.route_id || "航线待识别");
   renderModel(result);
@@ -428,7 +463,7 @@ function renderResult(result) {
     showInfeasible(result);
   }
 
-  state.finalAnswer = result.dashboard || result.final_message || "";
+  state.finalAnswer = operatorSummary(result, route, summary);
   $("#final-answer").textContent = state.finalAnswer;
   $("#final-response").hidden = !state.finalAnswer;
   refreshIcons();

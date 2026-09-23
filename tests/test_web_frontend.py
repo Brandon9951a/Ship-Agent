@@ -27,7 +27,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
         "任务描述", "快捷输入", "工况补充", "航线与分段方案",
         "航段能耗与速度", "推荐航速方案", "安全校验", "能量管理建议",
-        "完整详细回复", "工具调用过程", "船员确认后修正并重算",
+        "航行执行摘要", "工具调用过程", "船员确认后修正并重算",
         "安全下限由系统锁定", "确认修改并重新计算",
     ):
         assert label in html
@@ -35,12 +35,18 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     assert "vessel-ocean-background.jpg" in css
     assert REFERENCE_BACKGROUND.is_file()
     for marker in (
-        "/api/run", "/healthz", "task_text", "DeepSeek 已真实调用",
+        "/api/run", "/healthz", "task_text", "AI 提示已更新",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
         "applyAdjustmentOption", "readCorrectionPayload", "payloadOverride",
     ):
         assert marker in js
     assert "const understandingMode = result.task_understanding?.mode" in js
+    assert "数据来源" not in html
+    for internal_copy in (
+        "sourceLabel", "result.dashboard", "当前工具计算结束 SOC",
+        "系统仅给出能量管理建议", "软件关注线",
+    ):
+        assert internal_copy not in js
     for removed in ("Arduino", "语音输入", "/api/hardware", "/api/voice", "/api/infer"):
         assert removed not in html
         assert removed not in js
@@ -78,7 +84,7 @@ def test_web_request_really_uses_configured_llm_client():
             self.calls += 1
             return LLMCallResult(
                 "ok", "deepseek", "deepseek-v4-pro",
-                text="该结果仅用于软件仿真，工程数值以工具计算为准。",
+                text="建议按推荐航速执行，并持续关注电量变化和现场通航条件。",
                 response_model="deepseek-v4-pro",
             )
 

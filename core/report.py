@@ -12,31 +12,87 @@ from schemas.validate import validate
 
 def _template_explanation(plan: VoyagePlan) -> str:
     if plan.management and plan.management.warnings:
-        return "方案仅在软件演示约束下成立，并存在需要操作员关注的风险提示。"
-    return "方案仅在软件演示约束下成立；工程数值以工具计算表为准。"
+        return "建议先查看能量管理提示，并在出发前确认电量和任务安排。"
+    return "建议按推荐航速执行，并在航行中持续关注电量变化和现场通航条件。"
+
+
+def _operator_facing(text: str) -> bool:
+    """Reject internal validation language from the crew-facing explanation."""
+    internal_terms = (
+        "软件演示", "仿真", "结论边界", "语义边界", "工程数值", "工具计算",
+        "模型输出", "实船验证", "运营批准", "数值锁定", "演示", "边界",
+        "验证", "批准", "审批", "锁定", "工具", "模型",
+    )
+    return not contains_engineering_value(text) and not any(
+        term in text for term in internal_terms
+    )
 
 
 def _qualitative_explanation(plan: VoyagePlan, client: LLMClient | None) -> tuple[str, str]:
     fallback = _template_explanation(plan)
     if client is None:
         return fallback, "template_fallback"
-    warning_labels = plan.management.warnings if plan.management else []
+    needs_attention = bool(plan.management and plan.management.warnings)
     prompt = (
-        f"任务从{plan.request.origin}到{plan.request.destination}。"
-        f"状态为软件演示可行。风险标签：{'；'.join(warning_labels) or '无额外阈值告警'}。"
-        "请用一句中文解释结果边界。不得出现任何阿拉伯数字，不得增加工程参数或承诺实船安全。"
+        f"航行方案已经生成，当前{'存在电量关注事项' if needs_attention else '没有额外电量提示'}。"
+        "请用一句中文给船员明确、自然的执行提示。不要复述起终点，不要描述系统内部验证过程，"
+        "不得出现任何数字、单位或新增工程参数。"
     )
     result = client.complete_text(
         prompt,
         system_text=(
-            "你只负责定性解释。工程数字由工具锁定。不得出现阿拉伯数字，"
-            "不得增加速度、时间、功率、能耗、SOC、距离或阈值。"
+            "你是船舶驾驶舱助手，只输出面向船员的简洁动作建议。不得出现阿拉伯数字，"
+            "不得增加速度、时间、功率、能耗、SOC、距离或阈值。禁止使用软件演示、"
+            "仿真、结论边界、语义边界、工程数值、工具、模型、验证、批准、锁定等内部措辞。"
         ),
         max_tokens=128,
     )
-    if result.status != "ok" or not result.text or contains_engineering_value(result.text):
+    if result.status != "ok" or not result.text or not _operator_facing(result.text):
         return fallback, "template_fallback"
     return result.text.strip(), "llm_qualitative"
+
+
+def _management_advice(plan: VoyagePlan) -> list[str]:
+    """Build operator actions from deterministic management and power results."""
+    management = plan.management
+    optimization = plan.optimization
+    data = plan.data
+    assert management is not None and optimization is not None and data is not None
+    final_soc = float(management.soc_final)
+    alarm = float(data.vessel.soc_alarm or 0.35)
+    threshold_record = data.parameters.get("parallel_enter_propulsion_kw")
+    threshold = threshold_record.value if threshold_record is not None else None
+    peak_power = max(
+        (item.peak_power_kw or item.power_kw for item in optimization.energy_results),
+        default=0.0,
+    )
+    advice: list[str] = []
+    if isinstance(threshold, (int, float)) and peak_power > threshold:
+        advice.append(
+            "推进负荷达到并联辅助条件：建议两组电池协同供电，"
+            "通过高负荷航段后恢复常规分工。"
+        )
+    elif final_soc < alarm:
+        advice.append(
+            "到港电量余度偏低：电池组一保持推进供电，电池组二优先保障"
+            "必要日常负载并保留辅助推进能力。"
+        )
+    else:
+        advice.append(
+            "本航次电量余度充足：电池组一承担推进，电池组二保障日常负载；"
+            "出现瞬时高负荷时再启用并联辅助。"
+        )
+    if final_soc < alarm:
+        advice.append(
+            f"预计到港电量 {final_soc:.1%}；建议出发前补能或缩短航程，"
+            "并提高航行中的电量检查频次。"
+        )
+    else:
+        advice.append(
+            f"预计到港电量 {final_soc:.1%}；当前任务无需途中补能，"
+            "航行中按计划检查电量变化。"
+        )
+    return advice
 
 
 def build_report(plan: VoyagePlan, client: LLMClient | None = None) -> dict[str, Any]:
@@ -99,6 +155,7 @@ def build_report(plan: VoyagePlan, client: LLMClient | None = None) -> dict[str,
         },
         "checks": [item.to_dict() for item in optimization.checks + management.checks],
         "warnings": list(management.warnings),
+        "management_advice": _management_advice(plan),
         "assumptions": list(dict.fromkeys(
             plan.assumptions + optimization.assumptions + management.assumptions
         )),
