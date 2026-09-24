@@ -176,7 +176,9 @@ Tdata → Tseg → Tenergy → Tspeed → Tmanagement
 
 仓库根目录提供 `render.yaml`，可在 Render 中选择 **Blueprint** 并连接本仓库完成部署。默认使用新加坡区域、1 CPU / 2 GB 实例，并通过 `/healthz` 检查服务状态。
 
-首次部署时只需在 Render 控制台填写 `SHIP_LLM_API_KEY`。云端定性理解默认启用；密钥缺失、配置无效或调用失败时，系统自动回退到确定性五工具计算与模板说明。真实 `.env` 不得提交到仓库。
+首次部署时填写 `SHIP_LLM_API_KEY`。云端定性理解默认启用；密钥缺失、配置无效或调用失败时，系统自动回退到确定性五工具计算与模板说明。真实 `.env` 不得提交到仓库。
+
+如需启用页面中的科大讯飞语音输入，在 Render 服务的 **Environment** 中另行添加 `XFYUN_APPID`、`XFYUN_API_KEY`、`XFYUN_API_SECRET`，然后重新部署。三个值只保存在服务端，浏览器只会收到语音服务是否可用的状态。任一值缺失时，麦克风按钮保持禁用，但不影响文本输入和五工具计算。`XFYUN_IAT_URL` 已在 Blueprint 中固定为安全 WebSocket 地址。
 
 也可以手动创建 Web Service：
 

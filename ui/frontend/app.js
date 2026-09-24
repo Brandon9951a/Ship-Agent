@@ -9,7 +9,10 @@ const SAMPLES = {
   soc: "从平顶山港到军李船闸，2026-09-18 09:00出发，SOC31%，半载，6小时内到达",
 };
 
-const state = { trace: [], finalAnswer: "", running: false, lastResult: null };
+const state = {
+  trace: [], finalAnswer: "", running: false, lastResult: null,
+  voice: null, recording: false, speechAvailable: false,
+};
 const ALL_ROUTE_NODES = [...new Set(ROUTES.forward)];
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
@@ -456,7 +459,171 @@ function renderResult(result) {
   refreshIcons();
 }
 
+function pcm16Base64(input, sourceRate) {
+  const ratio = sourceRate / 16000;
+  const length = Math.max(1, Math.round(input.length / ratio));
+  const output = new Int16Array(length);
+  for (let index = 0; index < length; index += 1) {
+    const start = Math.floor(index * ratio);
+    const end = Math.min(input.length, Math.floor((index + 1) * ratio));
+    let sum = 0;
+    for (let cursor = start; cursor < Math.max(start + 1, end); cursor += 1) {
+      sum += input[cursor] || 0;
+    }
+    const sample = Math.max(-1, Math.min(1, sum / Math.max(1, end - start)));
+    output[index] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+  }
+  const bytes = new Uint8Array(output.buffer);
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 1) {
+    binary += String.fromCharCode(bytes[index]);
+  }
+  return btoa(binary);
+}
+
+async function voiceRequest(path, payload = {}) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error || "语音服务请求失败");
+  return body;
+}
+
+function updateVoiceText(voice, text) {
+  voice.transcript = text || voice.transcript || "";
+  const mission = $("#mission-input");
+  mission.value = `${voice.prefix}${voice.transcript}${voice.suffix}`;
+  mission.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function setVoiceButton(recording) {
+  const button = $("#voice-button");
+  button.classList.toggle("recording", recording);
+  button.setAttribute("aria-pressed", String(recording));
+  button.setAttribute("aria-label", recording ? "结束科大讯飞语音输入" : "开始科大讯飞语音输入");
+  button.title = recording ? "结束语音输入" : "开始科大讯飞语音输入";
+}
+
+async function startXfyunVoice() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!state.speechAvailable) throw new Error("科大讯飞语音服务尚未配置");
+  if (!window.isSecureContext && location.hostname !== "127.0.0.1" && location.hostname !== "localhost") {
+    throw new Error("麦克风仅能在 HTTPS 或本机地址使用");
+  }
+  if (!navigator.mediaDevices?.getUserMedia || !AudioContextClass) {
+    throw new Error("当前浏览器不支持麦克风录音");
+  }
+  $("#voice-copy").textContent = "正在连接科大讯飞";
+  const microphone = await navigator.mediaDevices.getUserMedia({
+    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true },
+  });
+  let started;
+  try {
+    started = await voiceRequest("/api/voice/start");
+  } catch (error) {
+    microphone.getTracks().forEach(track => track.stop());
+    throw error;
+  }
+  const context = new AudioContextClass();
+  const source = context.createMediaStreamSource(microphone);
+  const processor = context.createScriptProcessor(8192, 1, 1);
+  const mute = context.createGain();
+  mute.gain.value = 0;
+  await context.resume();
+  const mission = $("#mission-input");
+  const useSelection = document.activeElement === mission;
+  const selectionStart = useSelection ? mission.selectionStart : 0;
+  const selectionEnd = useSelection ? mission.selectionEnd : mission.value.length;
+  const voice = {
+    sessionId: started.session_id,
+    microphone, context, source, processor, mute,
+    prefix: mission.value.slice(0, selectionStart),
+    suffix: mission.value.slice(selectionEnd),
+    transcript: "",
+    queue: Promise.resolve(),
+    capturing: true,
+    failed: false,
+    stopping: false,
+  };
+  source.connect(processor);
+  processor.connect(mute);
+  mute.connect(context.destination);
+  processor.onaudioprocess = event => {
+    if (!voice.capturing) return;
+    const audio = pcm16Base64(event.inputBuffer.getChannelData(0), context.sampleRate);
+    voice.queue = voice.queue.then(async () => {
+      const result = await voiceRequest("/api/voice/chunk", {
+        session_id: voice.sessionId,
+        audio,
+      });
+      updateVoiceText(voice, result.text);
+      $("#voice-copy").textContent = result.text
+        ? `实时识别：${result.text.slice(-20)}`
+        : "正在听写";
+    }).catch(error => {
+      voice.failed = true;
+      voice.capturing = false;
+      $("#voice-copy").textContent = `识别失败：${error.message}`;
+    });
+  };
+  state.voice = voice;
+  state.recording = true;
+  setVoiceButton(true);
+  $("#voice-copy").textContent = "正在听写，再次点击结束";
+}
+
+async function stopXfyunVoice() {
+  const voice = state.voice;
+  if (!voice || voice.stopping) return;
+  voice.stopping = true;
+  voice.capturing = false;
+  state.recording = false;
+  setVoiceButton(false);
+  voice.processor.onaudioprocess = null;
+  voice.processor.disconnect();
+  voice.source.disconnect();
+  voice.mute.disconnect();
+  voice.microphone.getTracks().forEach(track => track.stop());
+  await voice.queue;
+  try {
+    const result = await voiceRequest("/api/voice/finish", { session_id: voice.sessionId });
+    updateVoiceText(voice, result.text);
+    $("#voice-copy").textContent = result.text
+      ? (voice.failed ? "识别完成，末段上传异常" : "科大讯飞识别完成")
+      : "未识别到有效语音";
+  } finally {
+    if (voice.context.state !== "closed") await voice.context.close();
+    if (state.voice === voice) state.voice = null;
+    state.recording = false;
+    setVoiceButton(false);
+  }
+}
+
+function attachSpeechInput() {
+  $("#voice-button").addEventListener("click", async () => {
+    try {
+      if (state.voice?.stopping) return;
+      if (state.recording) await stopXfyunVoice();
+      else await startXfyunVoice();
+    } catch (error) {
+      state.recording = false;
+      setVoiceButton(false);
+      $("#voice-copy").textContent = `语音识别失败：${error.message}`;
+    }
+  });
+}
+
 async function runInference(payloadOverride = null) {
+  if (state.recording) {
+    try {
+      await stopXfyunVoice();
+    } catch (error) {
+      $("#voice-copy").textContent = `语音结束异常：${error.message}`;
+    }
+  }
   const message = $("#mission-input").value.trim();
   if ((!message && !payloadOverride) || state.running) {
     if (!message && !payloadOverride) $("#mission-input").focus();
@@ -464,6 +631,7 @@ async function runInference(payloadOverride = null) {
   }
   state.running = true;
   $("#run-button").disabled = true;
+  $("#voice-button").disabled = true;
   updateStatus("running", "推理中");
   updateVesselView("running", { message: "五工具链正在计算航行方案" });
   resetResult();
@@ -487,6 +655,7 @@ async function runInference(payloadOverride = null) {
   } finally {
     state.running = false;
     $("#run-button").disabled = false;
+    $("#voice-button").disabled = !state.speechAvailable;
   }
 }
 
@@ -503,12 +672,18 @@ async function loadHealth() {
   try {
     const health = await (await fetch("/healthz")).json();
     const enabled = health.llm_mode === "enabled";
+    const speechEnabled = health.speech_mode === "iflytek_iat";
     $("#model-label").textContent = enabled ? "DeepSeek API 已启用" : "DeepSeek 模板回退";
-    $("#model-copy").textContent = enabled ? "DeepSeek 将真实参与任务理解与解释" : "模型不可用，当前使用模板回退";
     $("#model-dot").className = enabled ? "status-dot" : "status-dot offline";
+    state.speechAvailable = speechEnabled;
+    $("#voice-button").disabled = !speechEnabled;
+    $("#voice-copy").textContent = speechEnabled ? "点击麦克风语音输入" : "语音服务待配置";
   } catch (_error) {
     $("#model-label").textContent = "本地决策引擎未连接";
     $("#model-dot").className = "status-dot offline";
+    state.speechAvailable = false;
+    $("#voice-button").disabled = true;
+    $("#voice-copy").textContent = "语音服务未连接";
   }
 }
 
@@ -524,10 +699,18 @@ function bindControls() {
   });
   $("#quick-fill").addEventListener("click", writeQuickTask);
   $("#run-button").addEventListener("click", () => runInference());
+  attachSpeechInput();
   $("#mission-input").addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") runInference();
   });
-  $("#clear-button").addEventListener("click", () => {
+  $("#clear-button").addEventListener("click", async () => {
+    if (state.recording) {
+      try {
+        await stopXfyunVoice();
+      } catch (error) {
+        $("#voice-copy").textContent = `语音结束异常：${error.message}`;
+      }
+    }
     $("#mission-input").value = "";
     state.lastResult = null;
     resetResult();
@@ -564,4 +747,10 @@ window.addEventListener("DOMContentLoaded", async () => {
       modelLoader.lastChild.textContent = "三维组件未能加载，请检查网络后刷新页面";
     }
   }, 15000);
+});
+
+window.addEventListener("beforeunload", () => {
+  if (!state.voice) return;
+  state.voice.capturing = false;
+  state.voice.microphone.getTracks().forEach(track => track.stop());
 });

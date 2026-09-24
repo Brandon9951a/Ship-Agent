@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import json
 import os
 import socket
+import string
 import threading
 import time
 import webbrowser
@@ -18,6 +21,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from starlette.concurrency import run_in_threadpool
 
 from core.llm_layer import LLMClient, LLMConfig, LLMConfigError
+from core.speech import SpeechServiceError, XfyunSpeechManager
 from ui.app import run, run_text
 
 
@@ -26,6 +30,8 @@ REFERENCE_UI_ROOT = Path(__file__).resolve().parents[1] / "docs/参考/原版UI�
 REFERENCE_STYLESHEET = REFERENCE_UI_ROOT / "static/app.css"
 REFERENCE_BACKGROUND = REFERENCE_UI_ROOT / "static/vessel-ocean-background.jpg"
 MAX_REQUEST_BYTES = 64 * 1024
+MAX_VOICE_REQUEST_BYTES = 96 * 1024
+MAX_VOICE_CHUNK_BYTES = 64 * 1024
 STATIC_FILES = {
     "app.css": (REFERENCE_STYLESHEET, "text/css; charset=utf-8"),
     "interaction.css": (ROOT / "interaction.css", "text/css; charset=utf-8"),
@@ -52,7 +58,10 @@ def _error(status_code: int, code: str) -> JSONResponse:
 
 
 def create_app(
-    *, llm_client: LLMClient | None = None, llm_mode: str = "disabled",
+    *,
+    llm_client: LLMClient | None = None,
+    llm_mode: str = "disabled",
+    speech_manager: XfyunSpeechManager | None = None,
 ) -> FastAPI:
     app = FastAPI(
         title="绿航智算本地演示",
@@ -62,6 +71,7 @@ def create_app(
     )
     app.state.llm_client = llm_client
     app.state.llm_mode = llm_mode
+    app.state.speech_manager = speech_manager or XfyunSpeechManager()
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
@@ -98,7 +108,109 @@ def create_app(
             "scope": "synthetic_demo",
             "real_ship_validation": False,
             "llm_mode": app.state.llm_mode,
+            "speech_mode": (
+                "iflytek_iat" if app.state.speech_manager.available else "unconfigured"
+            ),
         }
+
+    @app.get("/api/voice/status", include_in_schema=False)
+    async def voice_status() -> dict[str, Any]:
+        return {
+            "available": app.state.speech_manager.available,
+            "provider": "iflytek_iat",
+        }
+
+    @app.post("/api/voice/start", include_in_schema=False)
+    async def voice_start():
+        if not app.state.speech_manager.available:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "unavailable",
+                    "error": "科大讯飞语音服务尚未配置",
+                },
+            )
+        try:
+            session_id = await run_in_threadpool(app.state.speech_manager.start)
+        except SpeechServiceError as exc:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "unavailable", "error": str(exc)},
+            )
+        except Exception:
+            return JSONResponse(
+                status_code=502,
+                content={"status": "failed", "error": "语音服务连接失败"},
+            )
+        return {"session_id": session_id, "text": ""}
+
+    @app.post("/api/voice/chunk", include_in_schema=False)
+    async def voice_chunk(request: Request):
+        body = await request.body()
+        if not body or len(body) > MAX_VOICE_REQUEST_BYTES:
+            return _error(413 if body else 400, "invalid_voice_request")
+        try:
+            payload = json.loads(body.decode("utf-8"))
+            if not isinstance(payload, dict):
+                raise ValueError
+            session_id = str(payload.get("session_id", ""))
+            encoded_audio = str(payload.get("audio", ""))
+            if (
+                len(session_id) != 32
+                or any(character not in string.hexdigits for character in session_id)
+            ):
+                raise ValueError
+            pcm = base64.b64decode(encoded_audio, validate=True)
+            if not pcm or len(pcm) > MAX_VOICE_CHUNK_BYTES:
+                raise ValueError
+            text = await run_in_threadpool(
+                app.state.speech_manager.chunk, session_id, pcm,
+            )
+        except (UnicodeDecodeError, json.JSONDecodeError, binascii.Error, ValueError):
+            return _error(400, "invalid_voice_request")
+        except SpeechServiceError as exc:
+            return JSONResponse(
+                status_code=400,
+                content={"status": "failed", "error": str(exc)},
+            )
+        except Exception:
+            return JSONResponse(
+                status_code=502,
+                content={"status": "failed", "error": "语音识别失败"},
+            )
+        return {"text": text}
+
+    @app.post("/api/voice/finish", include_in_schema=False)
+    async def voice_finish(request: Request):
+        body = await request.body()
+        if not body or len(body) > MAX_VOICE_REQUEST_BYTES:
+            return _error(413 if body else 400, "invalid_voice_request")
+        try:
+            payload = json.loads(body.decode("utf-8"))
+            if not isinstance(payload, dict):
+                raise ValueError
+            session_id = str(payload.get("session_id", ""))
+            if (
+                len(session_id) != 32
+                or any(character not in string.hexdigits for character in session_id)
+            ):
+                raise ValueError
+            text = await run_in_threadpool(
+                app.state.speech_manager.finish, session_id,
+            )
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+            return _error(400, "invalid_voice_request")
+        except SpeechServiceError as exc:
+            return JSONResponse(
+                status_code=400,
+                content={"status": "failed", "error": str(exc)},
+            )
+        except Exception:
+            return JSONResponse(
+                status_code=502,
+                content={"status": "failed", "error": "语音识别结束失败"},
+            )
+        return {"text": text}
 
     @app.post("/api/run", include_in_schema=False)
     async def run_api(request: Request):

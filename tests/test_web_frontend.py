@@ -31,6 +31,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "安全下限由系统锁定", "确认修改并重新计算",
         "船舶三维运行态势", "五工具计算结果的软件回放",
         "峡谷内河演示环境",
+        "开始科大讯飞语音输入", "正在检查语音服务",
         'id="vessel-canvas"', 'id="vessel-segment-select"',
     ):
         assert label in html
@@ -42,6 +43,8 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
         "applyAdjustmentOption", "readCorrectionPayload", "payloadOverride",
         "ship3d:update", "updateVesselView", "option.verified && option.modification",
+        "startXfyunVoice", "/api/voice/start", "/api/voice/chunk",
+        "/api/voice/finish", "pcm16Base64",
     ):
         assert marker in js
     ship_js = (ROOT / "ship-3d.js").read_text(encoding="utf-8")
@@ -61,7 +64,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "系统仅给出能量管理建议", "软件关注线",
     ):
         assert internal_copy not in js
-    for removed in ("Arduino", "语音输入", "/api/hardware", "/api/voice", "/api/infer"):
+    for removed in ("Arduino", "/api/hardware", "/api/infer"):
         assert removed not in html
         assert removed not in js
 
@@ -98,7 +101,69 @@ def test_index_health_static_and_security_headers():
         "scope": "synthetic_demo",
         "real_ship_validation": False,
         "llm_mode": "enabled",
+        "speech_mode": "unconfigured",
     }
+
+
+def test_voice_routes_bridge_audio_without_exposing_credentials():
+    class FakeSpeechManager:
+        available = True
+
+        def __init__(self):
+            self.calls = []
+
+        def start(self):
+            self.calls.append(("start",))
+            return "a" * 32
+
+        def chunk(self, session_id, pcm):
+            self.calls.append(("chunk", session_id, pcm))
+            return "从平顶山港到军李船闸"
+
+        def finish(self, session_id):
+            self.calls.append(("finish", session_id))
+            return "从平顶山港到军李船闸，六小时内到达"
+
+    manager = FakeSpeechManager()
+    with TestClient(create_app(speech_manager=manager)) as client:
+        status = client.get("/api/voice/status")
+        started = client.post("/api/voice/start")
+        chunk = client.post(
+            "/api/voice/chunk",
+            json={"session_id": "a" * 32, "audio": "AAECAw=="},
+        )
+        finished = client.post(
+            "/api/voice/finish", json={"session_id": "a" * 32},
+        )
+    assert status.json() == {"available": True, "provider": "iflytek_iat"}
+    assert started.json() == {"session_id": "a" * 32, "text": ""}
+    assert chunk.json()["text"] == "从平顶山港到军李船闸"
+    assert finished.json()["text"].endswith("六小时内到达")
+    assert manager.calls == [
+        ("start",),
+        ("chunk", "a" * 32, b"\x00\x01\x02\x03"),
+        ("finish", "a" * 32),
+    ]
+    response_text = status.text + started.text + chunk.text + finished.text
+    assert "api_key" not in response_text.lower()
+    assert "api_secret" not in response_text.lower()
+
+
+def test_voice_routes_reject_missing_configuration_and_invalid_audio():
+    class UnconfiguredSpeechManager:
+        available = False
+
+    with TestClient(create_app(speech_manager=UnconfiguredSpeechManager())) as client:
+        assert client.get("/api/voice/status").json()["available"] is False
+        unavailable = client.post("/api/voice/start")
+        malformed = client.post(
+            "/api/voice/chunk",
+            json={"session_id": "not-a-session", "audio": "not-base64"},
+        )
+    assert unavailable.status_code == 503
+    assert unavailable.json()["status"] == "unavailable"
+    assert malformed.status_code == 400
+    assert malformed.json()["error"] == "invalid_voice_request"
 
 
 def test_web_request_really_uses_configured_llm_client():

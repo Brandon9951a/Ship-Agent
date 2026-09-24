@@ -65,6 +65,21 @@
 .vessel-controls svg { width: 13px; height: 13px; }
 .vessel-help { right: 14px; bottom: 12px; max-width: calc(100% - 28px); margin: 0; color: rgba(230, 242, 250, .82); font-size: 9px; text-align: right; text-shadow: 0 1px 3px rgba(0, 24, 42, .5); }
 
+#voice-button { flex: 0 0 auto; transition: color .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+#voice-button:active:not(:disabled) { transform: scale(.96); }
+#voice-button.recording { animation: voice-pulse 1.45s ease-in-out infinite; }
+#voice-button:focus-visible { outline: 2px solid #1769d4; outline-offset: 2px; }
+#voice-copy { min-width: 0; overflow: hidden; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(197, 61, 67, .12); }
+  50% { box-shadow: 0 0 0 7px rgba(197, 61, 67, .04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #voice-button.recording { animation: none; }
+}
+
 .correction-workbench {
   overflow: hidden;
   background: rgba(255, 255, 255, .95);
