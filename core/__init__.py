@@ -1,4 +1,5 @@
-from .agent import AgentV2
-from .pipeline import run_placeholder_pipeline
+"""Public workflow entry points."""
 
-__all__ = ["AgentV2", "run_placeholder_pipeline"]
+from .orchestrator import build_workflow, run_structured_workflow, run_workflow
+
+__all__ = ["build_workflow", "run_structured_workflow", "run_workflow"]

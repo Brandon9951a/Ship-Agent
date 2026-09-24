@@ -139,7 +139,7 @@ def _verify_boundaries(root: Path, raw: dict[str, Any]) -> dict[str, Any]:
 
 def _verify_documents(root: Path) -> dict[str, list[str]]:
     requirements = {
-        "README.md": ["40项批量实验", "22.5220%", "不是实船节能率"],
+        "README.md": ["40 项批量实验", "22.5220%", "不是实船节能率"],
         "docs/协作/D5_B_完成汇总.md": [
             "40项全部通过", "32项可比案例", "不能写成实船节能率",
         ],

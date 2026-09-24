@@ -1,6 +1,6 @@
-"""Shared records and validators; existing skeleton messages remain compatible."""
+"""Shared workflow records and validators."""
 
-from .messages import AgentResponse, ToolStepResult
+from .messages import ToolStepResult
 from .types import (
     ConstraintCheck, DataConflict, DataContext, EnergyResult, InfeasibleType,
     ManagementPlan, OptimizationResult, ParameterValue, Segment, SocPoint,
@@ -12,7 +12,7 @@ from .validate import (
 )
 
 __all__ = [
-    "AgentResponse", "ToolStepResult", "ConstraintCheck", "DataConflict", "DataContext",
+    "ToolStepResult", "ConstraintCheck", "DataConflict", "DataContext",
     "EnergyResult", "InfeasibleType", "ManagementPlan", "OptimizationResult",
     "ParameterValue", "Segment", "SocPoint", "SourceRef", "Status", "ToolResponse",
     "TraceEvent", "VesselState", "VoyagePlan", "VoyageRequest", "SchemaValidationError",

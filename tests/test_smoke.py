@@ -1,22 +1,27 @@
-from core.agent import AgentV2
-from core.pipeline import run_placeholder_pipeline
+from core import build_workflow, run_workflow
 
 
-def test_agent_status_response() -> None:
-    response = AgentV2().run("status")
+NORMAL_TASK = (
+    "从平顶山港到军李船闸，2026-09-18 09:00出发，"
+    "SOC85%，半载，6小时内到达"
+)
 
-    assert response.ok is True
-    assert response.message == "agent_v2 is ready."
+
+def test_public_graph_factory_builds() -> None:
+    graph = build_workflow()
+
+    assert graph is not None
 
 
-def test_placeholder_pipeline_order() -> None:
-    results = run_placeholder_pipeline()
+def test_public_workflow_runs_real_five_tool_chain() -> None:
+    state = run_workflow(NORMAL_TASK)
 
-    assert [result.name for result in results] == [
+    assert state["status"] == "ok"
+    assert [item["tool"] for item in state["tool_results"]] == [
         "Tdata",
         "Tseg",
         "Tenergy",
         "Tspeed",
         "Tmanagement",
     ]
-    assert all(result.status == "ok" for result in results)
+    assert all(item["status"] == "ok" for item in state["tool_results"])
