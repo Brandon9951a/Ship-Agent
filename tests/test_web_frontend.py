@@ -46,6 +46,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     assert "@media" in css
     assert "vessel-ocean-background.jpg" in css
     assert BACKGROUND.is_file()
+    assert '$("#infeasible-alert").hidden = true' in js
     for marker in (
         "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text", "AI 提示已更新",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",

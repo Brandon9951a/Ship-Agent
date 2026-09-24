@@ -497,6 +497,11 @@ function renderResult(result) {
   renderRecommendations(result);
 
   if (okay) {
+    // A resumed run replaces the previous infeasible decision panel. Do not
+    // leave the old interrupt prompt or its loading label over a new plan.
+    $("#infeasible-alert").hidden = true;
+    $("#correction-feedback").classList.remove("error");
+    $("#correction-feedback").textContent = "";
     $("#metric-energy").textContent = formatNumber(summary.required_energy?.value, " kWh");
     $("#metric-time").textContent = formatNumber(summary.total_duration?.value, " h", 2);
     $("#metric-eta").textContent = formatEta(summary.eta?.value);
