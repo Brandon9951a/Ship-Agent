@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from core.llm_layer import LLMCallResult, LLMConfigError
 from core.speech import XfyunASRConfig, XfyunSpeechManager
 from ui.web_server import (
-    MAX_REQUEST_BYTES, REFERENCE_BACKGROUND, REFERENCE_STYLESHEET, ROOT,
+    BACKGROUND, MAX_REQUEST_BYTES, ROOT, STYLESHEET,
     _load_llm, _open_browser_when_ready, create_app,
 )
 
@@ -29,7 +29,7 @@ def _client(*, llm_mode="disabled"):
 
 def test_frontend_assets_exist_and_have_core_surfaces():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
-    css = REFERENCE_STYLESHEET.read_text(encoding="utf-8")
+    css = STYLESHEET.read_text(encoding="utf-8")
     js = (ROOT / "app.js").read_text(encoding="utf-8")
     for label in (
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
@@ -45,7 +45,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         assert label in html
     assert "@media" in css
     assert "vessel-ocean-background.jpg" in css
-    assert REFERENCE_BACKGROUND.is_file()
+    assert BACKGROUND.is_file()
     for marker in (
         "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text", "AI 提示已更新",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
@@ -94,7 +94,7 @@ def test_index_health_static_and_security_headers():
             assert client.get(f"/static/{name}").status_code == 200
         stylesheet = client.get("/static/app.css")
         assert stylesheet.status_code == 200
-        assert stylesheet.content == REFERENCE_STYLESHEET.read_bytes()
+        assert stylesheet.content == STYLESHEET.read_bytes()
         assert client.get("/static/vessel-ocean-background.jpg").status_code == 200
         assert client.get("/static/unknown.txt").status_code == 404
         ship = client.get("/assets/ship.glb")

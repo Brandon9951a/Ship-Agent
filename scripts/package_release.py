@@ -35,6 +35,12 @@ CODE_PREFIXES = (
     "tools/",
     "ui/",
 )
+PACKAGE_EXCLUDED_TESTS = {
+    # 依赖不随工程包分发的原始路线证据文件。
+    "tests/test_c_route_evidence.py",
+    # 验证打包器本身，需要 Git 元数据；ZIP 内不包含 .git。
+    "tests/test_release_package.py",
+}
 DOCUMENT_FILES = {
     "docs/architecture.md",
     "docs/工程交付说明.md",
@@ -75,6 +81,8 @@ def _git(root: Path, *args: str) -> bytes:
 def _allowed(relative: str) -> bool:
     path = PurePosixPath(relative)
     if path.name in FORBIDDEN_NAMES or path.suffix.lower() in FORBIDDEN_SUFFIXES:
+        return False
+    if relative in PACKAGE_EXCLUDED_TESTS:
         return False
     if relative in ROOT_FILES or relative in DOCUMENT_FILES:
         return True

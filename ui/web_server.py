@@ -31,14 +31,13 @@ from ui.app import _result_from_state
 
 
 ROOT = Path(__file__).resolve().parent / "frontend"
-REFERENCE_UI_ROOT = Path(__file__).resolve().parents[1] / "docs/参考/原版UI前端"
-REFERENCE_STYLESHEET = REFERENCE_UI_ROOT / "static/app.css"
-REFERENCE_BACKGROUND = REFERENCE_UI_ROOT / "static/vessel-ocean-background.jpg"
+STYLESHEET = ROOT / "app.css"
+BACKGROUND = ROOT / "vessel-ocean-background.jpg"
 MAX_REQUEST_BYTES = 64 * 1024
 MAX_VOICE_REQUEST_BYTES = 96 * 1024
 MAX_VOICE_CHUNK_BYTES = 64 * 1024
 STATIC_FILES = {
-    "app.css": (REFERENCE_STYLESHEET, "text/css; charset=utf-8"),
+    "app.css": (STYLESHEET, "text/css; charset=utf-8"),
     "interaction.css": (ROOT / "interaction.css", "text/css; charset=utf-8"),
     "app.js": (ROOT / "app.js", "text/javascript; charset=utf-8"),
     "ship-3d.js": (ROOT / "ship-3d.js", "text/javascript; charset=utf-8"),
@@ -48,7 +47,7 @@ STATIC_FILES = {
     "GLTFLoader.js": (ROOT / "vendor" / "GLTFLoader.js", "text/javascript; charset=utf-8"),
     "BufferGeometryUtils.js": (ROOT / "vendor" / "BufferGeometryUtils.js", "text/javascript; charset=utf-8"),
     "THREE-LICENSE.txt": (ROOT / "vendor" / "THREE-LICENSE.txt", "text/plain; charset=utf-8"),
-    "vessel-ocean-background.jpg": (REFERENCE_BACKGROUND, "image/jpeg"),
+    "vessel-ocean-background.jpg": (BACKGROUND, "image/jpeg"),
 }
 ASSET_FILES = {
     "ship.glb": (ROOT / "assets" / "ship.glb", "model/gltf-binary"),

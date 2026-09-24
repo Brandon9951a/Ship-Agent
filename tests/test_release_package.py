@@ -22,6 +22,10 @@ def test_release_allowlist_excludes_private_materials_and_old_logs():
     assert "docs/验证/D5_B_冻结证据/raw_results.json" in included
     assert "docs/团队资料/README_团队资料导航.md" in excluded
     assert "docs/协作/D6_B_数字与证据复核.md" in excluded
+    assert "tests/test_c_route_evidence.py" in excluded
+    assert "tests/test_release_package.py" in excluded
+    assert "ui/frontend/app.css" in included
+    assert "ui/frontend/vessel-ocean-background.jpg" in included
     assert all(".venv" not in item and ".git/" not in item for item in included)
     scan_release_files(Path(__file__).resolve().parents[1], included)
 
