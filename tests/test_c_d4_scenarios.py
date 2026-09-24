@@ -25,7 +25,7 @@ def test_time_infeasible_scenario_shows_bounded_choices():
     payload = deepcopy(base_payload())
     payload["max_duration_h"] = 1
     result = run(payload)
-    assert result["status"] == Status.INFEASIBLE.value
+    assert result["status"] == Status.AWAITING_CHOICE.value
     tspeed = result["tspeed"]
     assert tspeed["infeasible_type"] == InfeasibleType.TIME.value
     options = result["adjustment_options"]
@@ -39,7 +39,7 @@ def test_soc_infeasible_scenario_does_not_promise_unknown_charging():
     payload = deepcopy(base_payload())
     payload["soc_initial"] = 0.31
     result = run(payload)
-    assert result["status"] == Status.INFEASIBLE.value
+    assert result["status"] == Status.AWAITING_CHOICE.value
     tspeed = result["tspeed"]
     assert tspeed["infeasible_type"] == InfeasibleType.SOC.value
     assert [item["direction"] for item in result["adjustment_options"]] == [

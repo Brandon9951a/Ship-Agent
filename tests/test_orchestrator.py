@@ -1,5 +1,5 @@
 from schemas.messages import ToolStepResult
-from schemas.types import Status, ToolResponse
+from schemas.types import InfeasibleType, Status, ToolResponse
 from tools.tdata import load_config
 
 
@@ -92,9 +92,12 @@ def test_default_graph_stops_on_tight_time_constraint():
     from core.orchestrator import run_workflow
 
     state = run_workflow("从平顶山港到军李船闸，SOC85%，半载，2小时内到达")
-    assert state["status"] == Status.INFEASIBLE.value
+    assert state["status"] == Status.AWAITING_CHOICE.value
     assert state["failed_tool"] == "Tspeed"
     assert "plan" not in state
+    assert state["decision"]["type"] == "adjustment_choice"
+    assert state["pending_decision_id"].endswith(":0")
+    assert all("option_id" in item for item in state["adjustment_options"])
 
 
 def test_demo_model_is_explicit_single_point_synthetic_anchor():
@@ -118,3 +121,89 @@ def test_adapter_names_must_match_contract():
         assert "missing" in str(error)
     else:
         raise AssertionError("Incomplete adapters must be rejected")
+
+
+def test_give_up_resumes_to_terminal_infeasible_without_recalculation():
+    from uuid import uuid4
+
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langgraph.types import Command
+
+    from core.orchestrator import build_workflow
+
+    thread_id = str(uuid4())
+    graph = build_workflow(checkpointer=InMemorySaver())
+    config = {"configurable": {"thread_id": thread_id}}
+    blocked = graph.invoke({
+        "user_input": "从平顶山港到军李船闸，SOC85%，半载，2小时内到达",
+        "trace": [], "tool_results": [], "decision_history": [],
+        "tool_mode": "synthetic_demo", "thread_id": thread_id,
+        "replan_count": 0, "max_replans": 2,
+    }, config)
+    before = len(blocked["tool_results"])
+    finished = graph.invoke(Command(resume={
+        "decision_id": blocked["decision"]["decision_id"],
+        "option_id": "give_up",
+        "selected_at": "2026-09-24T00:00:00+00:00",
+    }), config)
+    assert finished["status"] == Status.INFEASIBLE.value
+    assert len(finished["tool_results"]) == before
+    assert finished["decision_history"][-1]["option_id"] == "give_up"
+    assert finished["replan_count"] == 0
+    assert "船员选择保留" in finished["final_message"]
+
+
+def test_replanning_stops_after_two_failed_adjustments():
+    from uuid import uuid4
+
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langgraph.types import Command
+
+    from core.orchestrator import _default_tools, build_workflow
+
+    tools = _default_tools()
+    original_speed = tools["Tspeed"]
+
+    def stubborn_speed(state):
+        result = original_speed(state)
+        if not state.get("thread_id"):
+            return result
+        payload = dict(result.payload or {})
+        payload.update(
+            feasible=False,
+            infeasible_type=InfeasibleType.TIME,
+            reason="测试：外部条件变化后仍不可行。",
+        )
+        return ToolResponse(
+            "Tspeed", Status.INFEASIBLE, payload=payload,
+            reason="测试：外部条件变化后仍不可行。",
+            infeasible_type=InfeasibleType.TIME,
+        )
+
+    tools["Tspeed"] = stubborn_speed
+    thread_id = str(uuid4())
+    graph = build_workflow(tools, checkpointer=InMemorySaver())
+    config = {"configurable": {"thread_id": thread_id}}
+    state = graph.invoke({
+        "user_input": "从平顶山港到周口港，SOC85%，半载，20小时内到达",
+        "trace": [], "tool_results": [], "decision_history": [],
+        "tool_mode": "synthetic_demo", "thread_id": thread_id,
+        "replan_count": 0, "max_replans": 2,
+    }, config)
+    for expected_round in (1, 2):
+        assert state["status"] == Status.AWAITING_CHOICE.value
+        assert state["decision"]["round"] == expected_round
+        option = next(
+            item for item in state["adjustment_options"]
+            if item["option_id"] != "give_up"
+        )
+        state = graph.invoke(Command(resume={
+            "decision_id": state["decision"]["decision_id"],
+            "option_id": option["option_id"],
+            "selected_at": "2026-09-24T00:00:00+00:00",
+        }), config)
+    assert state["status"] == Status.INFEASIBLE.value
+    assert state["replan_count"] == 2
+    assert state["replan_limit_reached"] is True
+    assert state["decision"] == {}
+    assert "两轮调整上限" in state["final_message"]

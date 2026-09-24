@@ -3,6 +3,7 @@ import json
 from fastapi.testclient import TestClient
 
 from core.llm_layer import LLMCallResult, LLMConfigError
+from core.speech import XfyunASRConfig, XfyunSpeechManager
 from ui.web_server import (
     MAX_REQUEST_BYTES, REFERENCE_BACKGROUND, REFERENCE_STYLESHEET, ROOT,
     _load_llm, _open_browser_when_ready, create_app,
@@ -16,7 +17,14 @@ NORMAL_TEXT = (
 
 
 def _client(*, llm_mode="disabled"):
-    return TestClient(create_app(llm_mode=llm_mode))
+    speech_manager = XfyunSpeechManager(config=XfyunASRConfig())
+    return TestClient(
+        create_app(
+            llm_mode=llm_mode,
+            speech_manager=speech_manager,
+            checkpoint_backend="memory",
+        )
+    )
 
 
 def test_frontend_assets_exist_and_have_core_surfaces():
@@ -27,7 +35,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
         "任务描述", "快捷输入", "工况补充", "航线与分段方案",
         "航段能耗与速度", "推荐航速方案", "安全校验", "能量管理建议",
-        "航行执行摘要", "工具调用过程", "选择已验证方案后自动更新并重算",
+        "航行执行摘要", "工具调用过程", "选择已验证方案后恢复并重算",
         "安全下限由系统锁定", "确认修改并重新计算",
         "船舶三维运行态势", "五工具计算结果的软件回放",
         "峡谷内河演示环境",
@@ -39,9 +47,10 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     assert "vessel-ocean-background.jpg" in css
     assert REFERENCE_BACKGROUND.is_file()
     for marker in (
-        "/api/run", "/healthz", "task_text", "AI 提示已更新",
+        "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text", "AI 提示已更新",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
         "applyAdjustmentOption", "readCorrectionPayload", "payloadOverride",
+        "ACTIVE_THREAD_KEY", "restorePendingRun", "decision_id", "option_id",
         "ship3d:update", "updateVesselView", "option.verified && option.modification",
         "startXfyunVoice", "/api/voice/start", "/api/voice/chunk",
         "/api/voice/finish", "pcm16Base64",
@@ -102,6 +111,8 @@ def test_index_health_static_and_security_headers():
         "real_ship_validation": False,
         "llm_mode": "enabled",
         "speech_mode": "unconfigured",
+        "checkpoint_backend": "memory",
+        "checkpoint_ready": True,
     }
 
 
@@ -125,7 +136,7 @@ def test_voice_routes_bridge_audio_without_exposing_credentials():
             return "从平顶山港到军李船闸，六小时内到达"
 
     manager = FakeSpeechManager()
-    with TestClient(create_app(speech_manager=manager)) as client:
+    with TestClient(create_app(speech_manager=manager, checkpoint_backend="memory")) as client:
         status = client.get("/api/voice/status")
         started = client.post("/api/voice/start")
         chunk = client.post(
@@ -153,7 +164,7 @@ def test_voice_routes_reject_missing_configuration_and_invalid_audio():
     class UnconfiguredSpeechManager:
         available = False
 
-    with TestClient(create_app(speech_manager=UnconfiguredSpeechManager())) as client:
+    with TestClient(create_app(speech_manager=UnconfiguredSpeechManager(), checkpoint_backend="memory")) as client:
         assert client.get("/api/voice/status").json()["available"] is False
         unavailable = client.post("/api/voice/start")
         malformed = client.post(
@@ -233,13 +244,15 @@ def test_infeasible_responses_do_not_include_success_report():
     with _client() as client:
         results = [client.post("/api/run", json={"task_text": text}).json() for text, _ in cases]
     for result, (_, expected_type) in zip(results, cases):
-        assert result["status"] == "infeasible"
+        assert result["status"] == "awaiting_choice"
         assert result["tspeed"]["infeasible_type"] == expected_type
         assert "report" not in result
         assert result["adjustment_options"]
         assert result["request"]["origin"] == "平顶山港"
         assert result["failed_tool"] == "Tspeed"
         assert result["boundary_diagnostics"]["diagnostic_only"] is True
+        assert result["decision"]["type"] == "adjustment_choice"
+        assert result["thread_id"] in result["decision"]["decision_id"]
         assert "未显示航速推荐、ETA、最终能耗或 SOC 成功结论" in result["dashboard"]
 
 
@@ -252,12 +265,18 @@ def test_operator_time_adjustment_reenters_same_workflow():
             item for item in blocked["adjustment_options"]
             if item["direction"] == "accept_late"
         )
-        corrected = {**blocked["request"], **option["modification"]}
-        rerun = client.post("/api/run", json=corrected).json()
+        rerun = client.post("/api/resume", json={
+            "thread_id": blocked["thread_id"],
+            "decision_id": blocked["decision"]["decision_id"],
+            "option_id": option["option_id"],
+        }).json()
     assert rerun["status"] == "ok"
-    assert [item["node"] for item in rerun["trace"] if item["node"].startswith("T")] == [
+    tool_trace = [item for item in rerun["trace"] if item["node"].startswith("T")]
+    assert [item["node"] for item in tool_trace] == [
+        "Tdata", "Tseg", "Tenergy", "Tspeed",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
     ]
+    assert [item["iteration"] for item in tool_trace] == [0, 0, 0, 0, 1, 1, 1, 1, 1]
 
 
 def test_operator_soc_adjustment_reenters_same_workflow():
@@ -269,9 +288,12 @@ def test_operator_soc_adjustment_reenters_same_workflow():
             item for item in blocked["adjustment_options"]
             if item["direction"] == "recharge"
         )
-        corrected = {**blocked["request"], **recharge["modification"]}
-        rerun = client.post("/api/run", json=corrected).json()
-    assert blocked["status"] == "infeasible"
+        rerun = client.post("/api/resume", json={
+            "thread_id": blocked["thread_id"],
+            "decision_id": blocked["decision"]["decision_id"],
+            "option_id": recharge["option_id"],
+        }).json()
+    assert blocked["status"] == "awaiting_choice"
     assert blocked["tspeed"]["infeasible_type"] == "soc"
     assert "accept_lower_soc" not in {
         option["direction"] for option in blocked["adjustment_options"]
@@ -285,6 +307,52 @@ def test_operator_soc_adjustment_reenters_same_workflow():
     assert "需 A 批准" not in json.dumps(blocked, ensure_ascii=False)
     assert rerun["status"] == "ok"
     assert rerun["report"]["summary"]["soc_initial"]["value"] == 0.325
+    assert rerun["replan_count"] == 1
+    assert any(
+        item["node"] == "apply_adjustment" and item["iteration"] == 1
+        for item in rerun["trace"]
+    )
+
+
+def test_resume_rejects_invalid_and_repeated_decisions():
+    with _client() as client:
+        blocked = client.post(
+            "/api/run", json={"task_text": NORMAL_TEXT.replace("6小时", "1小时")},
+        ).json()
+        base = {
+            "thread_id": blocked["thread_id"],
+            "decision_id": blocked["decision"]["decision_id"],
+        }
+        invalid = client.post("/api/resume", json={**base, "option_id": "unsafe"})
+        accepted = client.post("/api/resume", json={**base, "option_id": "accept_late"})
+        repeated = client.post("/api/resume", json={**base, "option_id": "accept_late"})
+    assert invalid.status_code == 409
+    assert invalid.json()["error"] == "invalid_adjustment_option"
+    assert accepted.status_code == 200
+    assert accepted.json()["status"] == "ok"
+    assert repeated.status_code == 409
+    assert repeated.json()["error"] == "workflow_not_awaiting_choice"
+
+
+def test_sqlite_checkpoint_survives_app_recreation(tmp_path):
+    database = tmp_path / "checkpoints.sqlite3"
+    first_app = create_app(checkpoint_backend="sqlite", checkpoint_sqlite_path=database)
+    with TestClient(first_app) as client:
+        blocked = client.post(
+            "/api/run", json={"task_text": NORMAL_TEXT.replace("6小时", "1小时")},
+        ).json()
+    second_app = create_app(checkpoint_backend="sqlite", checkpoint_sqlite_path=database)
+    with TestClient(second_app) as client:
+        restored = client.get(f"/api/runs/{blocked['thread_id']}")
+        resumed = client.post("/api/resume", json={
+            "thread_id": blocked["thread_id"],
+            "decision_id": blocked["decision"]["decision_id"],
+            "option_id": "accept_late",
+        })
+    assert restored.status_code == 200
+    assert restored.json()["status"] == "awaiting_choice"
+    assert resumed.status_code == 200
+    assert resumed.json()["status"] == "ok"
 
 
 def test_missing_llm_config_and_unexpected_workflow_error_are_safe(monkeypatch):
@@ -296,11 +364,11 @@ def test_missing_llm_config_and_unexpected_workflow_error_are_safe(monkeypatch):
     assert client is None
     assert mode == "config_unavailable_template_fallback"
 
-    def fail_workflow(*_args, **_kwargs):
+    async def fail_workflow(*_args, **_kwargs):
         raise RuntimeError("private internal detail")
 
-    monkeypatch.setattr("ui.web_server.run_text", fail_workflow)
     with _client() as web_client:
+        monkeypatch.setattr(web_client.app.state.workflow_runtime, "start_text", fail_workflow)
         response = web_client.post("/api/run", json={"task_text": NORMAL_TEXT})
     assert response.status_code == 500
     assert response.json() == {"status": "failed", "error": "workflow_failed"}

@@ -13,8 +13,11 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import format_datetime
+from pathlib import Path
 from typing import Callable, Protocol
 from urllib.parse import urlencode, urlparse
+
+from core.llm_layer import _read_dotenv
 
 
 XFYUN_IAT_URL = "wss://iat-api.xfyun.cn/v2/iat"
@@ -34,12 +37,19 @@ class XfyunASRConfig:
     host_url: str = XFYUN_IAT_URL
 
     @classmethod
-    def from_env(cls) -> "XfyunASRConfig":
+    def from_env(
+        cls,
+        env: dict[str, str] | None = None,
+        env_file: Path | None = None,
+    ) -> "XfyunASRConfig":
+        path = env_file or Path(__file__).resolve().parents[1] / ".env"
+        values = _read_dotenv(path)
+        values.update(os.environ if env is None else env)
         return cls(
-            app_id=os.getenv("XFYUN_APPID", "").strip(),
-            api_key=os.getenv("XFYUN_API_KEY", "").strip(),
-            api_secret=os.getenv("XFYUN_API_SECRET", "").strip(),
-            host_url=os.getenv("XFYUN_IAT_URL", XFYUN_IAT_URL).strip()
+            app_id=values.get("XFYUN_APPID", "").strip(),
+            api_key=values.get("XFYUN_API_KEY", "").strip(),
+            api_secret=values.get("XFYUN_API_SECRET", "").strip(),
+            host_url=values.get("XFYUN_IAT_URL", XFYUN_IAT_URL).strip()
             or XFYUN_IAT_URL,
         )
 

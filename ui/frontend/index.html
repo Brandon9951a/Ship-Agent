@@ -103,8 +103,8 @@
               <div class="infeasible-block suggestion"><strong>可选调整</strong><p id="infeasible-suggestion"></p></div>
               <section class="correction-workbench" id="correction-workbench">
                 <div class="correction-heading">
-                  <div><span class="surface-kicker">VERIFIED ALTERNATIVES</span><h4>选择已验证方案后自动更新并重算</h4></div>
-                  <span class="correction-lock"><i data-lucide="shield-check"></i> 安全下限由系统锁定</span>
+                  <div><span class="surface-kicker">VERIFIED ALTERNATIVES</span><h4 id="correction-title">选择已验证方案后恢复并重算</h4></div>
+                  <span class="correction-lock" id="correction-lock"><i data-lucide="shield-check"></i> 安全下限由系统锁定</span>
                 </div>
                 <div class="adjustment-options" id="adjustment-options"></div>
                 <div class="correction-grid" hidden>
@@ -115,7 +115,7 @@
                   <label><span>初始 SOC (%)</span><input id="correction-soc" type="number" min="0" max="100" step="0.1" /></label>
                   <label><span>装载状态</span><select id="correction-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
                 </div>
-                <p class="correction-note" id="correction-note">系统只展示已通过完整五工具链复算的参数方案；选择后自动更新任务输入。</p>
+                <p class="correction-note" id="correction-note">系统只展示已通过完整五工具链复算的参数方案；选择后从已保存状态继续执行。</p>
                 <div class="correction-actions" hidden>
                   <button class="secondary-action" id="sync-correction" type="button"><i data-lucide="file-pen-line"></i> 仅更新任务描述</button>
                   <button class="confirm-action" id="apply-correction" type="button"><i data-lucide="refresh-cw"></i> 确认修改并重新计算</button>

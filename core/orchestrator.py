@@ -6,9 +6,12 @@ from collections.abc import Callable, Mapping
 from dataclasses import asdict
 from operator import add
 from pathlib import Path
-from typing import Annotated, Any, TypedDict
+from typing import Annotated, Any, Literal, TypedDict
+from uuid import uuid4
 
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
 from core.intent_explainer import build_task_understanding
 from core.intent_translator import build_boundary_diagnostics, enumerate_options
@@ -51,6 +54,14 @@ class AgentState(TypedDict, total=False):
     adjustment_options: list[dict[str, Any]]
     boundary_diagnostics: dict[str, Any]
     value_lock_pass: bool
+    thread_id: str
+    replan_count: int
+    max_replans: int
+    pending_decision_id: str | None
+    selected_option_id: str | None
+    decision: dict[str, Any]
+    decision_history: Annotated[list[dict[str, Any]], add]
+    replan_limit_reached: bool
 
 
 def _default_tools() -> dict[str, ToolAdapter]:
@@ -142,6 +153,7 @@ def build_workflow(
     *,
     tool_mode: str = "synthetic_demo",
     llm_client: LLMClient | None = None,
+    checkpointer: Any | None = None,
 ):
     adapters = dict(_default_tools() if tools is None else tools)
     missing = [name for name in TOOL_ORDER if name not in adapters]
@@ -189,6 +201,7 @@ def build_workflow(
             verified_options: list[dict[str, Any]] = []
             for option in options:
                 record = asdict(option)
+                record["option_id"] = option.direction
                 modification = record.get("modification")
                 if option.direction == "give_up":
                     verified_options.append(record)
@@ -237,6 +250,7 @@ def build_workflow(
             return [], {}
 
     def parse_node(state: AgentState) -> dict[str, Any]:
+        iteration = int(state.get("replan_count", 0))
         if state.get("request") and not state.get("user_input"):
             decoded, checked = parse_structured_request(state["request"])
             request_record = decoded.to_dict() if decoded is not None else state["request"]
@@ -251,7 +265,8 @@ def build_workflow(
                 "questions": checked.questions,
                 "warnings": [],
                 "tool_mode": state.get("tool_mode", tool_mode),
-                "trace": [{"node": "parse", "status": checked.status.value}],
+                "trace": [{"node": "parse", "status": checked.status.value,
+                           "iteration": iteration}],
             }
         result = parse_voyage_request(state.get("user_input", ""))
         return {
@@ -265,7 +280,8 @@ def build_workflow(
             "questions": result.questions,
             "warnings": result.warnings,
             "tool_mode": state.get("tool_mode", tool_mode),
-            "trace": [{"node": "parse", "status": result.status.value}],
+            "trace": [{"node": "parse", "status": result.status.value,
+                       "iteration": iteration}],
         }
 
     def parse_route(state: AgentState) -> str:
@@ -273,44 +289,195 @@ def build_workflow(
 
     def make_tool_node(name: str):
         def node(state: AgentState) -> dict[str, Any]:
+            iteration = int(state.get("replan_count", 0))
             try:
                 record = _normalise_tool_result(name, adapters[name](state))
+                record["iteration"] = iteration
                 status = _status_text(record.get("status"))
                 update: dict[str, Any] = {
                     "status": status,
                     "tool_results": [record],
-                    "trace": [{"node": name, "status": status}],
+                    "trace": [{"node": name, "status": status,
+                               "iteration": iteration}],
                 }
                 if status == Status.NEED_CLARIFICATION.value:
                     update["missing_fields"] = list(record.get("missing_fields") or [])
                     update["questions"] = list(record.get("questions") or [])
                 if status != Status.OK.value:
                     update["failed_tool"] = name
-                if status == Status.INFEASIBLE.value and name == "Tspeed":
-                    speed_payload = record.get("payload")
-                    if isinstance(speed_payload, dict):
-                        options, diagnostics = compute_adjustment(state, speed_payload)
-                        update["adjustment_options"] = options
-                        update["boundary_diagnostics"] = diagnostics
                 return update
             except Exception as exc:
                 return {
                     "status": Status.FAILED.value,
                     "failed_tool": name,
                     "tool_results": [{"tool": name, "status": Status.FAILED.value,
-                                      "reason": type(exc).__name__}],
-                    "trace": [{"node": name, "status": Status.FAILED.value}],
+                                      "reason": type(exc).__name__,
+                                      "iteration": iteration}],
+                    "trace": [{"node": name, "status": Status.FAILED.value,
+                               "iteration": iteration}],
                 }
         return node
 
     def tool_route(state: AgentState) -> str:
         return "continue" if state.get("status") == Status.OK.value else "finish"
 
+    def speed_route(state: AgentState) -> str:
+        if state.get("status") == Status.OK.value:
+            return "continue"
+        if state.get("status") == Status.INFEASIBLE.value:
+            return "adjust"
+        return "finish"
+
+    def prepare_adjustment_node(state: AgentState) -> dict[str, Any]:
+        iteration = int(state.get("replan_count", 0))
+        max_replans = int(state.get("max_replans", 2))
+        speed_payload = _prior_payload(state, "Tspeed")
+        if not isinstance(speed_payload, dict):
+            return {
+                "status": Status.INFEASIBLE.value,
+                "adjustment_options": [],
+                "boundary_diagnostics": {},
+                "trace": [{"node": "prepare_adjustment", "status": "no_options",
+                           "iteration": iteration}],
+            }
+
+        options, diagnostics = compute_adjustment(state, speed_payload)
+        unique: dict[str, dict[str, Any]] = {}
+        for option in options:
+            option_id = str(option.get("option_id") or option.get("direction") or "")
+            if option_id and option_id not in unique:
+                unique[option_id] = {**option, "option_id": option_id}
+        choices = list(unique.values())
+        actionable = [
+            item for item in choices
+            if item["option_id"] == "give_up"
+            or (item.get("verified") and isinstance(item.get("modification"), dict))
+        ]
+        if iteration >= max_replans:
+            return {
+                "status": Status.INFEASIBLE.value,
+                "adjustment_options": choices,
+                "boundary_diagnostics": diagnostics,
+                "replan_limit_reached": True,
+                "decision": {},
+                "pending_decision_id": None,
+                "final_message": "已达到两轮调整上限，当前任务仍不可行。",
+                "trace": [{"node": "prepare_adjustment", "status": "limit_reached",
+                           "iteration": iteration}],
+            }
+        if not actionable:
+            return {
+                "status": Status.INFEASIBLE.value,
+                "adjustment_options": choices,
+                "boundary_diagnostics": diagnostics,
+                "decision": {},
+                "pending_decision_id": None,
+                "trace": [{"node": "prepare_adjustment", "status": "no_options",
+                           "iteration": iteration}],
+            }
+
+        decision_id = f"{state['thread_id']}:{iteration}"
+        decision = {
+            "decision_id": decision_id,
+            "type": "adjustment_choice",
+            "round": iteration + 1,
+            "max_rounds": max_replans,
+            "prompt": "当前航次不可行，请选择已验证的调整方案",
+            "options": actionable,
+        }
+        return {
+            "status": Status.AWAITING_CHOICE.value,
+            "adjustment_options": actionable,
+            "boundary_diagnostics": diagnostics,
+            "pending_decision_id": decision_id,
+            "decision": decision,
+            "replan_limit_reached": False,
+            "final_message": "当前航次不可行，任务状态已保存，等待船员选择调整方案。",
+            "trace": [{"node": "prepare_adjustment", "status": Status.AWAITING_CHOICE.value,
+                       "iteration": iteration}],
+        }
+
+    def adjustment_route(state: AgentState) -> str:
+        return "wait" if state.get("status") == Status.AWAITING_CHOICE.value else "finish"
+
+    def await_choice_node(
+        state: AgentState,
+    ) -> Command[Literal["apply_adjustment", "finalize"]]:
+        selection = interrupt(state["decision"])
+        if not isinstance(selection, dict):
+            raise ValueError("resume payload must be an object")
+        option_id = str(selection.get("option_id") or "")
+        decision_id = str(selection.get("decision_id") or "")
+        if decision_id != state.get("pending_decision_id"):
+            raise ValueError("resume decision is stale")
+        options = {
+            str(item.get("option_id")): item
+            for item in state.get("adjustment_options", [])
+        }
+        option = options.get(option_id)
+        if option is None:
+            raise ValueError("resume option is invalid")
+        iteration = int(state.get("replan_count", 0))
+        history = {
+            "decision_id": decision_id,
+            "option_id": option_id,
+            "label": option.get("label"),
+            "modification": option.get("modification"),
+            "iteration": iteration,
+            "selected_at": selection.get("selected_at"),
+        }
+        update: dict[str, Any] = {
+            "selected_option_id": option_id,
+            "decision_history": [history],
+            "trace": [{"node": "await_choice", "status": "selected",
+                       "iteration": iteration, "option_id": option_id}],
+        }
+        if option_id == "give_up":
+            update.update(
+                status=Status.INFEASIBLE.value,
+                decision={},
+                pending_decision_id=None,
+                final_message="船员选择保留当前不可行结论，未修改任务。",
+            )
+            return Command(update=update, goto="finalize")
+        if not option.get("verified") or not isinstance(option.get("modification"), dict):
+            raise ValueError("resume option is not verified")
+        return Command(update=update, goto="apply_adjustment")
+
+    def apply_adjustment_node(state: AgentState) -> dict[str, Any]:
+        options = {
+            str(item.get("option_id")): item
+            for item in state.get("adjustment_options", [])
+        }
+        option = options.get(str(state.get("selected_option_id") or ""))
+        if option is None or not isinstance(option.get("modification"), dict):
+            raise ValueError("selected adjustment is unavailable")
+        next_iteration = int(state.get("replan_count", 0)) + 1
+        return {
+            "request": {**state["request"], **option["modification"]},
+            "status": Status.OK.value,
+            "failed_tool": None,
+            "replan_count": next_iteration,
+            "pending_decision_id": None,
+            "decision": {},
+            "adjustment_options": [],
+            "boundary_diagnostics": {},
+            "trace": [{"node": "apply_adjustment", "status": Status.OK.value,
+                       "iteration": next_iteration,
+                       "option_id": state.get("selected_option_id")}],
+        }
+
     def finalize_node(state: AgentState) -> dict[str, Any]:
         status = state.get("status", Status.FAILED.value)
         update: dict[str, Any] = {}
         if status == Status.NEED_CLARIFICATION.value:
             message = "需要补充信息后再继续计算。"
+        elif status == Status.AWAITING_CHOICE.value:
+            message = "任务状态已保存，等待船员选择调整方案。"
+        elif state.get("selected_option_id") == "give_up":
+            message = "船员选择保留当前不可行结论，未修改任务或生成航行方案。"
+        elif state.get("replan_limit_reached"):
+            message = "已达到两轮调整上限，当前任务仍不可行，请重新发起任务。"
         elif status != Status.OK.value:
             failed = state.get("failed_tool") or "parse"
             options = state.get("adjustment_options") or []
@@ -367,26 +534,41 @@ def build_workflow(
         else:
             message = "五工具流程运行完成，结果仍需通过最终数值锁定。"
         update.update(final_message=message,
-                      trace=[{"node": "finalize", "status": status}])
+                      trace=[{"node": "finalize", "status": status,
+                              "iteration": int(state.get("replan_count", 0))}])
         return update
 
     builder = StateGraph(AgentState)
     builder.add_node("parse", parse_node)
     for name in TOOL_ORDER:
         builder.add_node(name, make_tool_node(name))
+    builder.add_node("prepare_adjustment", prepare_adjustment_node)
+    builder.add_node("await_choice", await_choice_node)
+    builder.add_node("apply_adjustment", apply_adjustment_node)
     builder.add_node("finalize", finalize_node)
     builder.add_edge(START, "parse")
     builder.add_conditional_edges("parse", parse_route, {"tools": "Tdata", "finish": "finalize"})
     for index, name in enumerate(TOOL_ORDER):
         next_node = TOOL_ORDER[index + 1] if index + 1 < len(TOOL_ORDER) else "finalize"
-        if name == TOOL_ORDER[-1]:
+        if name == "Tspeed":
+            builder.add_conditional_edges(
+                name, speed_route,
+                {"continue": "Tmanagement", "adjust": "prepare_adjustment",
+                 "finish": "finalize"},
+            )
+        elif name == TOOL_ORDER[-1]:
             builder.add_edge(name, "finalize")
         else:
             builder.add_conditional_edges(
                 name, tool_route, {"continue": next_node, "finish": "finalize"}
             )
+    builder.add_conditional_edges(
+        "prepare_adjustment", adjustment_route,
+        {"wait": "await_choice", "finish": "finalize"},
+    )
+    builder.add_edge("apply_adjustment", "Tdata")
     builder.add_edge("finalize", END)
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
 
 
 def run_workflow(
@@ -396,13 +578,23 @@ def run_workflow(
     tool_mode: str = "synthetic_demo",
     llm_client: LLMClient | None = None,
 ) -> AgentState:
-    graph = build_workflow(tools, tool_mode=tool_mode, llm_client=llm_client)
+    checkpointer = InMemorySaver()
+    graph = build_workflow(
+        tools, tool_mode=tool_mode, llm_client=llm_client,
+        checkpointer=checkpointer,
+    )
+    thread_id = str(uuid4())
     return graph.invoke({
         "user_input": user_input,
         "trace": [],
         "tool_results": [],
+        "decision_history": [],
         "tool_mode": tool_mode,
-    })
+        "thread_id": thread_id,
+        "replan_count": 0,
+        "max_replans": 2,
+        "replan_limit_reached": False,
+    }, {"configurable": {"thread_id": thread_id}})
 
 
 def run_structured_workflow(
@@ -413,10 +605,20 @@ def run_structured_workflow(
     llm_client: LLMClient | None = None,
 ) -> AgentState:
     """Run the same graph from an already structured request payload."""
-    graph = build_workflow(tools, tool_mode=tool_mode, llm_client=llm_client)
+    checkpointer = InMemorySaver()
+    graph = build_workflow(
+        tools, tool_mode=tool_mode, llm_client=llm_client,
+        checkpointer=checkpointer,
+    )
+    thread_id = str(uuid4())
     return graph.invoke({
         "request": payload,
         "trace": [],
         "tool_results": [],
+        "decision_history": [],
         "tool_mode": tool_mode,
-    })
+        "thread_id": thread_id,
+        "replan_count": 0,
+        "max_replans": 2,
+        "replan_limit_reached": False,
+    }, {"configurable": {"thread_id": thread_id}})

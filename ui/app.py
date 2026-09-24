@@ -113,7 +113,7 @@ def render_dashboard(
                     f"口径 {item['energy_scope']}；模型 {item['model_id']}"
                 )
 
-    if report and report.get("status") == Status.OK.value and final_status == Status.OK.value:
+    if report and report.get("status") == Status.OK.value:
         summary = report.get("summary") or {}
         lines.extend(("", "最终航行方案（synthetic_demo，仅软件仿真）："))
         for item in report.get("segments") or []:
@@ -149,6 +149,7 @@ def _result_from_state(state: dict[str, Any]) -> dict[str, Any]:
     """Expose an orchestration result without adding UI-originated values."""
     result = {
         "status": state["status"],
+        "thread_id": state.get("thread_id"),
         "request": state.get("request", {}),
         "failed_tool": state.get("failed_tool"),
         "missing_fields": state.get("missing_fields", []),
@@ -157,8 +158,13 @@ def _result_from_state(state: dict[str, Any]) -> dict[str, Any]:
         "adjustment_options": state.get("adjustment_options", []),
         "boundary_diagnostics": state.get("boundary_diagnostics", {}),
         "value_lock_pass": state.get("value_lock_pass"),
-        "final_message": state["final_message"],
+        "final_message": state.get("final_message", ""),
         "trace": state.get("trace", []),
+        "replan_count": state.get("replan_count", 0),
+        "max_replans": state.get("max_replans", 2),
+        "decision": state.get("decision", {}),
+        "decision_history": state.get("decision_history", []),
+        "replan_limit_reached": state.get("replan_limit_reached", False),
     }
     for response in state.get("tool_results", []):
         result[response["tool"].lower()] = response

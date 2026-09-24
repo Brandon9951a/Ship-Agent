@@ -12,6 +12,7 @@ import string
 import threading
 import time
 import webbrowser
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -22,7 +23,11 @@ from starlette.concurrency import run_in_threadpool
 
 from core.llm_layer import LLMClient, LLMConfig, LLMConfigError
 from core.speech import SpeechServiceError, XfyunSpeechManager
-from ui.app import run, run_text
+from core.workflow_runtime import (
+    InvalidAdjustmentOptionError, WorkflowNotAwaitingChoiceError,
+    WorkflowNotFoundError, open_workflow_runtime, validate_thread_id,
+)
+from ui.app import _result_from_state
 
 
 ROOT = Path(__file__).resolve().parent / "frontend"
@@ -57,17 +62,39 @@ def _error(status_code: int, code: str) -> JSONResponse:
     )
 
 
+def _workflow_error(status_code: int, code: str) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={"status": "failed", "error": code},
+    )
+
+
 def create_app(
     *,
     llm_client: LLMClient | None = None,
     llm_mode: str = "disabled",
     speech_manager: XfyunSpeechManager | None = None,
+    checkpoint_backend: str | None = None,
+    checkpoint_database_url: str | None = None,
+    checkpoint_sqlite_path: str | Path | None = None,
 ) -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(application: FastAPI):
+        async with open_workflow_runtime(
+            llm_client=llm_client,
+            backend=checkpoint_backend,
+            database_url=checkpoint_database_url,
+            sqlite_path=checkpoint_sqlite_path,
+        ) as runtime:
+            application.state.workflow_runtime = runtime
+            yield
+
     app = FastAPI(
         title="绿航智算本地演示",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
+        lifespan=lifespan,
     )
     app.state.llm_client = llm_client
     app.state.llm_mode = llm_mode
@@ -108,6 +135,8 @@ def create_app(
             "scope": "synthetic_demo",
             "real_ship_validation": False,
             "llm_mode": app.state.llm_mode,
+            "checkpoint_backend": app.state.workflow_runtime.checkpoint_backend,
+            "checkpoint_ready": app.state.workflow_runtime.checkpoint_ready,
             "speech_mode": (
                 "iflytek_iat" if app.state.speech_manager.available else "unconfigured"
             ),
@@ -234,13 +263,10 @@ def create_app(
             return _error(400, "request_must_be_object")
         try:
             if "task_text" in payload:
-                result = await run_in_threadpool(
-                    run_text, payload["task_text"], llm_client=app.state.llm_client,
-                )
+                state = await app.state.workflow_runtime.start_text(payload["task_text"])
             else:
-                result = await run_in_threadpool(
-                    run, payload, llm_client=app.state.llm_client,
-                )
+                state = await app.state.workflow_runtime.start_structured(payload)
+            result = _result_from_state(state)
         except (TypeError, ValueError, KeyError):
             return _error(400, "invalid_request")
         except Exception:
@@ -249,6 +275,58 @@ def create_app(
                 content={"status": "failed", "error": "workflow_failed"},
             )
         return JSONResponse(content=result)
+
+    @app.post("/api/resume", include_in_schema=False)
+    async def resume_api(request: Request):
+        body = await request.body()
+        if not body or len(body) > MAX_REQUEST_BYTES:
+            return _workflow_error(
+                413 if body else 400,
+                "request_too_large" if body else "invalid_resume_request",
+            )
+        try:
+            payload = json.loads(body.decode("utf-8"))
+            if not isinstance(payload, dict):
+                raise ValueError
+            thread_id = validate_thread_id(str(payload.get("thread_id", "")))
+            decision_id = str(payload.get("decision_id", ""))
+            option_id = str(payload.get("option_id", ""))
+            if (
+                not decision_id
+                or len(decision_id) > 300
+                or not option_id
+                or len(option_id) > 100
+            ):
+                raise ValueError
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
+            return _workflow_error(400, "invalid_resume_request")
+        try:
+            state = await app.state.workflow_runtime.resume(
+                thread_id, decision_id, option_id,
+            )
+        except WorkflowNotFoundError:
+            return _workflow_error(404, "workflow_not_found")
+        except WorkflowNotAwaitingChoiceError:
+            return _workflow_error(409, "workflow_not_awaiting_choice")
+        except InvalidAdjustmentOptionError:
+            return _workflow_error(409, "invalid_adjustment_option")
+        except Exception:
+            return _workflow_error(500, "workflow_failed")
+        return JSONResponse(content=_result_from_state(state))
+
+    @app.get("/api/runs/{thread_id}", include_in_schema=False)
+    async def get_run_api(thread_id: str):
+        try:
+            thread_id = validate_thread_id(thread_id)
+        except ValueError:
+            return _workflow_error(400, "invalid_resume_request")
+        try:
+            state = await app.state.workflow_runtime.get_state(thread_id)
+        except WorkflowNotFoundError:
+            return _workflow_error(404, "workflow_not_found")
+        except Exception:
+            return _workflow_error(500, "workflow_failed")
+        return JSONResponse(content=_result_from_state(state))
 
     return app
 

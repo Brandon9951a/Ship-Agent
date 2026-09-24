@@ -13,6 +13,16 @@ const state = {
   trace: [], finalAnswer: "", running: false, lastResult: null,
   voice: null, recording: false, speechAvailable: false,
 };
+
+const OPTION_LABELS = {
+  accept_late: "接受延时",
+  adjust_departure: "提前出发",
+  recharge: "补能后出发",
+  recharge_and_extend: "补能并延长航时",
+  shorten_route: "缩短航线",
+  give_up: "放弃任务",
+};
+const ACTIVE_THREAD_KEY = "ship-agent.active-thread";
 const ALL_ROUTE_NODES = [...new Set(ROUTES.forward)];
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
@@ -256,7 +266,7 @@ function managementAdvice(result) {
 }
 
 function renderRecommendations(result) {
-  const options = result.adjustment_options || [];
+  const options = result.status === "awaiting_choice" ? (result.adjustment_options || []) : [];
   if (options.length) {
     $("#recommendation-list").innerHTML = options.map(option => `<div class="recommendation info">${escapeHtml(option.label || option)}</div>`).join("");
     return;
@@ -269,7 +279,15 @@ function renderRecommendations(result) {
 
 function renderTrace(trace) {
   state.trace = trace || [];
-  $("#trace-list").innerHTML = state.trace.map((item, index) => `<li class="trace-item"><span class="trace-index">${index + 1}</span><div><strong>${escapeHtml(item.node || "流程")}</strong><p>${escapeHtml(item.status || "完成")}</p></div></li>`).join("");
+  $("#trace-list").innerHTML = state.trace.map((item, index) => {
+    const iteration = Number(item.iteration || 0);
+    const round = iteration ? `第${iteration}次调整` : "初始计算";
+    const option = item.option_id ? ` · ${OPTION_LABELS[item.option_id] || item.option_id}` : "";
+    const label = item.node === "prepare_adjustment" && item.status === "awaiting_choice"
+      ? "等待船员确认"
+      : item.node === "await_choice" ? "船员已选择" : (item.node || "流程");
+    return `<li class="trace-item"><span class="trace-index">${index + 1}</span><div><strong>${escapeHtml(label)}</strong><p>${escapeHtml(`${round} · ${item.status || "完成"}${option}`)}</p></div></li>`;
+  }).join("");
   $("#trace-meta").textContent = state.trace.length ? `${state.trace.length} 个步骤` : "等待任务";
 }
 
@@ -279,7 +297,7 @@ function renderModel(result) {
   const llmUsed = reportMode === "llm_qualitative" || understandingMode === "llm_qualitative";
   const explanation = result.status === "ok"
     ? (result.report?.explanation || "航行方案已生成，请查看下方执行建议。")
-    : result.status === "infeasible"
+    : (result.status === "infeasible" || result.status === "awaiting_choice")
       ? "当前任务不可执行，请根据可选调整修改航时、电量或航线后重新计算。"
       : "请补充或修正任务信息后重新计算。";
   $("#model-mode").textContent = llmUsed ? "AI 提示已更新" : "系统提示";
@@ -320,19 +338,44 @@ async function applyAdjustmentOption(index) {
   clearCorrectionAttention();
   const button = $(`[data-option-index="${index}"]`);
   if (button) button.classList.add("selected");
-  if (option.direction === "give_up") {
-    $("#correction-feedback").textContent = "已保留本次不可行结论；未修改任务，也未生成航行方案。";
-    return;
-  }
-  if (!option.verified || !option.modification) {
+  if (option.direction !== "give_up" && (!option.verified || !option.modification)) {
     $("#correction-feedback").textContent = "该选项没有通过完整工具链验证，不能采用。";
     return;
   }
-  const payload = { ...(state.lastResult?.request || {}), ...option.modification };
-  syncCorrectionToTask(payload);
-  fillCorrectionForm(payload);
-  $("#correction-feedback").textContent = "已写入经过完整工具链验证的参数，正在重新计算。";
-  await runInference(payload);
+  const decision = state.lastResult?.decision || {};
+  if (!state.lastResult?.thread_id || !decision.decision_id || !option.option_id) {
+    $("#correction-feedback").textContent = "当前任务没有可恢复的决策状态，请重新发起任务。";
+    return;
+  }
+  state.running = true;
+  document.querySelectorAll(".adjustment-option").forEach(item => { item.disabled = true; });
+  if (button) button.querySelector("b").textContent = "正在恢复并重算";
+  $("#correction-feedback").classList.remove("error");
+  $("#correction-feedback").textContent = option.direction === "give_up"
+    ? "正在保存船员决定并结束本次任务。"
+    : "正在从已保存的 LangGraph 状态恢复并重新执行五工具链。";
+  try {
+    const response = await fetch("/api/resume", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        thread_id: state.lastResult.thread_id,
+        decision_id: decision.decision_id,
+        option_id: option.option_id,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "恢复失败");
+    renderResult(result);
+  } catch (error) {
+    $("#correction-feedback").classList.add("error");
+    $("#correction-feedback").textContent = error.message === "workflow_not_awaiting_choice"
+      ? "该决策已经处理或已过期，请刷新任务状态。"
+      : `恢复失败：${error.message}`;
+    renderAdjustmentOptions(state.lastResult?.adjustment_options || []);
+  } finally {
+    state.running = false;
+  }
 }
 
 function syncCorrectionOnly() {
@@ -359,15 +402,31 @@ function showInfeasible(result) {
   const failedRecord = result[result.failed_tool?.toLowerCase()] || result.tspeed || {};
   const failedPayload = failedRecord.payload || {};
   const infeasible = result.status === "infeasible";
-  $("#infeasible-title").textContent = infeasible ? "航次不可行" : "任务需要修正";
+  const awaiting = result.status === "awaiting_choice";
+  $("#infeasible-title").textContent = awaiting ? "航次不可行，等待船员确认" : infeasible ? "航次不可行" : "任务需要修正";
   $("#infeasible-reason").textContent = failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成可执行方案。";
-  const options = result.adjustment_options || [];
+  const options = awaiting ? (result.adjustment_options || []) : [];
   $("#infeasible-suggestion").textContent = options.length
     ? options.map((option, index) => `${index + 1}. ${option.label || option}`).join("\n")
-    : (result.questions || []).join("\n") || "请补充所需参数后重新计算。";
+    : result.replan_limit_reached
+      ? "已达到两轮调整上限，请重新发起任务。"
+      : (result.questions || []).join("\n") || result.final_message || "请补充所需参数后重新计算。";
   fillCorrectionForm(result.request || {});
   renderAdjustmentOptions(options);
-  $("#correction-feedback").textContent = "";
+  const round = result.decision?.round || Math.min((result.replan_count || 0) + 1, result.max_replans || 2);
+  $("#correction-title").textContent = awaiting
+    ? `等待船员确认 · 第 ${round}/${result.max_replans || 2} 轮`
+    : result.replan_limit_reached ? "已达到调整上限" : "当前任务未形成可执行方案";
+  $("#correction-lock").innerHTML = awaiting
+    ? '<i data-lucide="database-zap"></i> 状态已保存，可稍后继续'
+    : '<i data-lucide="shield-check"></i> 安全下限由系统锁定';
+  $("#correction-note").textContent = result.replan_limit_reached
+    ? "已达到两轮调整上限，请重新发起任务并修改初始条件。"
+    : awaiting
+      ? "只可选择后端已验证方案；选择后从 checkpoint 恢复，客户端不能改写工程参数。"
+      : "本次流程已结束，未生成航行方案。";
+  $("#correction-feedback").classList.remove("error");
+  $("#correction-feedback").textContent = awaiting ? "任务状态已保存，可关闭页面后继续。" : "";
   $("#infeasible-alert").hidden = false;
 }
 
@@ -415,19 +474,22 @@ function renderResult(result) {
   state.lastResult = result;
   const okay = result.status === "ok";
   const infeasible = result.status === "infeasible";
+  const awaiting = result.status === "awaiting_choice";
   const route = rawSegments(result);
   const segments = planSegments(result);
   const summary = result.report?.summary || {};
   const checks = result.report?.checks || result.tspeed?.payload?.checks || [];
   const warnings = result.report?.warnings || result.tmanagement?.payload?.warnings || [];
 
-  updateStatus(okay ? "success" : "error", okay ? "方案已生成" : infeasible ? "航次不可行" : "需要补充");
+  updateStatus(okay ? "success" : awaiting ? "running" : "error", okay ? "方案已生成" : awaiting ? "等待船员确认" : infeasible ? "航次不可行" : "需要补充");
   $("#mission-title").textContent = route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "方案已生成" : "任务未完成");
   $("#mission-subtitle").textContent = okay
     ? "方案已生成，请查看推荐航速、能耗与电量安排。"
-    : infeasible
+    : awaiting
       ? "当前任务不满足执行条件，请选择下方调整方案。"
-      : "请补充或修正任务信息后重新计算。";
+      : infeasible
+        ? "本次任务保留不可行结论，未生成航行方案。"
+        : "请补充或修正任务信息后重新计算。";
   renderProgress(result.trace || []);
   renderRoute(route, result.tdata?.payload?.route_id || "航线待识别");
   renderModel(result);
@@ -448,9 +510,15 @@ function renderResult(result) {
     renderTable([]);
     renderSafety(checks, warnings);
     showInfeasible(result);
-    updateVesselView(infeasible ? "infeasible" : "incomplete", {
-      message: infeasible ? "当前航次不可行，回放已停止" : "任务信息需要补充，回放已停止",
+    updateVesselView((infeasible || awaiting) ? "infeasible" : "incomplete", {
+      message: (infeasible || awaiting) ? "当前航次不可行，回放已停止" : "任务信息需要补充，回放已停止",
     });
+  }
+
+  if (awaiting && result.thread_id) {
+    localStorage.setItem(ACTIVE_THREAD_KEY, result.thread_id);
+  } else if (result.thread_id === localStorage.getItem(ACTIVE_THREAD_KEY)) {
+    localStorage.removeItem(ACTIVE_THREAD_KEY);
   }
 
   state.finalAnswer = operatorSummary(result, route, summary);
@@ -687,6 +755,25 @@ async function loadHealth() {
   }
 }
 
+async function restorePendingRun() {
+  const threadId = localStorage.getItem(ACTIVE_THREAD_KEY);
+  if (!threadId) return;
+  try {
+    const response = await fetch(`/api/runs/${encodeURIComponent(threadId)}`);
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "恢复失败");
+    if (result.status === "awaiting_choice") {
+      renderResult(result);
+      $("#correction-feedback").textContent = "已恢复上次等待确认的任务。";
+    } else {
+      localStorage.removeItem(ACTIVE_THREAD_KEY);
+    }
+  } catch (_error) {
+    localStorage.removeItem(ACTIVE_THREAD_KEY);
+    $("#mission-subtitle").textContent = "上次任务状态已失效，请重新发起任务。";
+  }
+}
+
 function bindControls() {
   $("#route-select").addEventListener("change", syncRouteNodes);
   $("#time-minus").addEventListener("click", () => {
@@ -713,6 +800,7 @@ function bindControls() {
     }
     $("#mission-input").value = "";
     state.lastResult = null;
+    localStorage.removeItem(ACTIVE_THREAD_KEY);
     resetResult();
     updateStatus("idle", "待命");
     $("#mission-title").textContent = "等待航行任务";
@@ -740,6 +828,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   bindControls();
   refreshIcons();
   await loadHealth();
+  await restorePendingRun();
   window.setTimeout(() => {
     const modelLoader = $("#vessel-loading");
     if (!window.Ship3DReady && modelLoader && !modelLoader.hidden) {
