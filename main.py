@@ -6,7 +6,7 @@ from core.llm_layer import LLMClient, LLMConfig, LLMConfigError
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="绿航智算 D3 五工具命令行入口")
+    parser = argparse.ArgumentParser(description="智行合一 D3 五工具命令行入口")
     parser.add_argument("task", nargs="?", help="中文航行任务")
     parser.add_argument("--llm", action="store_true", help="启用已配置的云端模型做定性解释")
     args = parser.parse_args()

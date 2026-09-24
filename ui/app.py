@@ -191,7 +191,7 @@ def run_text(task_text: str, *, llm_client: LLMClient | None = None) -> dict[str
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="绿航智算 D3 文本演示界面")
+    parser = argparse.ArgumentParser(description="智行合一 D3 文本演示界面")
     parser.add_argument("--input", default=ROOT / "configs/examples/voyage_request.json")
     args = parser.parse_args()
     payload = json.loads(Path(args.input).read_text(encoding="utf-8"))

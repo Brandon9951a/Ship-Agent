@@ -157,7 +157,7 @@ def build_release_package(
     }
     internal_manifest = {
         "format_version": 1,
-        "project": "绿航智算：船舶能效管理智能体",
+        "project": "智行合一：船舶能效管理智能体",
         "source_commit": commit,
         "file_count": len(files),
         "files": file_hashes,
@@ -216,12 +216,12 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "dist/绿航智算-工程资料-20260925.zip",
+        default=ROOT / "dist/智行合一-工程资料-20260925.zip",
     )
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=ROOT / "dist/绿航智算-工程资料-20260925.json",
+        default=ROOT / "dist/智行合一-工程资料-20260925.json",
     )
     parser.add_argument(
         "--allow-dirty",

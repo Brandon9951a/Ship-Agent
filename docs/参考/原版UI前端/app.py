@@ -1,4 +1,4 @@
-"""绿航智算 · Flask 前端 — Figma 风格船舶决策台
+"""智行合一 · Flask 前端 — Figma 风格船舶决策台
 启动: python app.py --port 7860
 迁移自 Gradio → Flask + Jinja2 + SSE（2026-08-03）
 Arduino 双向联动完整保留
@@ -218,13 +218,13 @@ def hardware_lock():
 # ═══════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="绿航智算 Flask 前端 — Figma 风格船舶决策台")
+    parser = argparse.ArgumentParser(description="智行合一 Flask 前端 — Figma 风格船舶决策台")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", default=7860, type=int)
     args = parser.parse_args()
 
     print("=" * 60)
-    print("  绿航智算 · 内河船舶航速优化与能效管理智能决策系统")
+    print("  智行合一 · 内河船舶航速优化与能效管理智能决策系统")
     print("  模型: ship-qwen (Qwen2.5-7B + LoRA)")
     print("  框架: Flask + Jinja2 + SSE（Figma 前端）+ Arduino 桥接")
     print(f"  本地访问: http://{args.host}:{args.port}")

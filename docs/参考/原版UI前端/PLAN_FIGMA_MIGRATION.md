@@ -146,7 +146,7 @@ def get_hardware_status() -> dict: ...  # 返回 {connected, seq, water_ms, wind
 
 | 改动 | 说明 |
 |------|------|
-| 标题 `h1` | 从"船舶航速优化..."改为"绿航智算 · 内河船舶航速优化与能效管理智能决策系统" |
+| 标题 `h1` | 从"船舶航速优化..."改为"智行合一 · 内河船舶航速优化与能效管理智能决策系统" |
 | eyebrow | 从 "YUJIAOTOU 001 · LOCAL DECISION CONSOLE" 改为 "YUJIAOTOU 001 · FIXED 5-STEP TOOLCHAIN · ARDUINO LINK" |
 | 新增硬件控制区 | 左侧面板底部增加：COM口选择、连接/断开按钮、锁定旋钮按钮、状态显示 |
 | 快捷示例按钮 | 从"港口A→港口C"改为"平顶山港→周口港（全程）"等具体航线 |

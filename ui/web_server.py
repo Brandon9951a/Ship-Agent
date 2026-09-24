@@ -89,7 +89,7 @@ def create_app(
             yield
 
     app = FastAPI(
-        title="绿航智算本地演示",
+        title="智行合一本地演示",
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
@@ -374,7 +374,7 @@ def _open_browser_when_ready(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="运行绿航智算本地驾驶舱")
+    parser = argparse.ArgumentParser(description="运行智行合一本地驾驶舱")
     parser.add_argument("--host", default=os.environ.get("SHIP_WEB_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8765")))
     parser.add_argument(
