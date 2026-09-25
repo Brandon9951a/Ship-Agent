@@ -43,6 +43,8 @@ parse → Tdata → Tseg → Tenergy → Tspeed → Tmanagement → finalize
 - DeepSeek 定性理解与说明；服务不可用时自动使用本地模板。
 - 正常、缺参、时间不可行、低 SOC、工具失败和恢复重算测试。
 
+历史训练的 Qwen2.5-7B-Instruct LoRA 适配器、配置和训练结果记录见 [`models/qwen2.5-7b-lora-evidence/`](models/qwen2.5-7b-lora-evidence/README.md)。该模型材料用于展示第一次智能体训练产物，不接入当前在线版；完整基座权重按上游链接获取。
+
 ## 项目结构
 
 ```text
@@ -55,6 +57,7 @@ parse → Tdata → Tseg → Tenergy → Tspeed → Tmanagement → finalize
 ├── scripts/       # 数据检查、验证、审计和工程打包
 ├── tests/         # 自动化测试
 ├── docs/          # 架构、接口、算法、数据和验收记录
+├── models/        # 历史训练模型产物及说明
 ├── main.py        # 命令行入口
 ├── render.yaml    # Render Blueprint
 └── requirements.txt
