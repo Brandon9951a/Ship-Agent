@@ -366,6 +366,8 @@ async function applyAdjustmentOption(index) {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "恢复失败");
+    // Mirror the server-owned, verified modification into every task input.
+    if (result.request) syncCorrectionToTask(result.request);
     renderResult(result);
   } catch (error) {
     $("#correction-feedback").classList.add("error");
@@ -428,6 +430,7 @@ function showInfeasible(result) {
   $("#correction-feedback").classList.remove("error");
   $("#correction-feedback").textContent = awaiting ? "任务状态已保存，可关闭页面后继续。" : "";
   $("#infeasible-alert").hidden = false;
+  $("#infeasible-alert").setAttribute("aria-hidden", "false");
 }
 
 function resetResult() {
@@ -446,6 +449,7 @@ function resetResult() {
   renderProgress([], true);
   $("#reply-panel").hidden = true;
   $("#infeasible-alert").hidden = true;
+  $("#infeasible-alert").setAttribute("aria-hidden", "true");
   $("#final-response").hidden = true;
   refreshIcons();
 }
@@ -475,6 +479,13 @@ function renderResult(result) {
   const okay = result.status === "ok";
   const infeasible = result.status === "infeasible";
   const awaiting = result.status === "awaiting_choice";
+  if (okay) {
+    // Clear the previous decision panel before rendering any new result data.
+    $("#infeasible-alert").hidden = true;
+    $("#infeasible-alert").setAttribute("aria-hidden", "true");
+    $("#correction-feedback").classList.remove("error");
+    $("#correction-feedback").textContent = "";
+  }
   const route = rawSegments(result);
   const segments = planSegments(result);
   const summary = result.report?.summary || {};
@@ -497,11 +508,6 @@ function renderResult(result) {
   renderRecommendations(result);
 
   if (okay) {
-    // A resumed run replaces the previous infeasible decision panel. Do not
-    // leave the old interrupt prompt or its loading label over a new plan.
-    $("#infeasible-alert").hidden = true;
-    $("#correction-feedback").classList.remove("error");
-    $("#correction-feedback").textContent = "";
     $("#metric-energy").textContent = formatNumber(summary.required_energy?.value, " kWh");
     $("#metric-time").textContent = formatNumber(summary.total_duration?.value, " h", 2);
     $("#metric-eta").textContent = formatEta(summary.eta?.value);

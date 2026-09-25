@@ -47,6 +47,8 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     assert "vessel-ocean-background.jpg" in css
     assert BACKGROUND.is_file()
     assert '$("#infeasible-alert").hidden = true' in js
+    assert "if (result.request) syncCorrectionToTask(result.request);" in js
+    assert 'setAttribute("aria-hidden", "true")' in js
     for marker in (
         "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text", "AI 提示已更新",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
@@ -272,6 +274,7 @@ def test_operator_time_adjustment_reenters_same_workflow():
             "option_id": option["option_id"],
         }).json()
     assert rerun["status"] == "ok"
+    assert rerun["request"]["max_duration_h"] > blocked["request"]["max_duration_h"]
     tool_trace = [item for item in rerun["trace"] if item["node"].startswith("T")]
     assert [item["node"] for item in tool_trace] == [
         "Tdata", "Tseg", "Tenergy", "Tspeed",
@@ -307,6 +310,7 @@ def test_operator_soc_adjustment_reenters_same_workflow():
     assert recharge["preview"]["soc_final"] >= 0.20
     assert "需 A 批准" not in json.dumps(blocked, ensure_ascii=False)
     assert rerun["status"] == "ok"
+    assert rerun["request"]["soc_initial"] == 0.325
     assert rerun["report"]["summary"]["soc_initial"]["value"] == 0.325
     assert rerun["replan_count"] == 1
     assert any(
