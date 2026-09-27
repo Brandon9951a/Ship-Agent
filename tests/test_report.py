@@ -82,6 +82,9 @@ def test_management_advice_changes_with_voyage_energy_margin():
     assert "演示模型估算" in high_advice[0]
     assert "低于模型规划线" in low_advice[0]
     assert "现场完成充电并确认实测 SOC" in low_advice[1]
+    assumptions = high["report"]["assumptions"]
+    assert all("建议保持常规角色分工" not in item for item in assumptions)
+    assert any("不代表实船供电状态或操作要求" in item for item in assumptions)
 
 
 def test_missing_fields_stop_before_any_llm_call():

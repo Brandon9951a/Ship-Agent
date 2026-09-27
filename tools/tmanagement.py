@@ -112,8 +112,8 @@ def run_tmanagement(request: VoyageRequest, data: DataContext,
         )
     assumptions = list(optimization.assumptions)
     assumptions.append(
-        "双电池演示策略：组1推进优先，组2日常负载优先且必要时辅助推进；"
-        "允许并联供电，但系统只输出建议，不下发断电或接触器控制命令。"
+        "双电池分工仅为模型假设：组1推进优先，组2日常负载优先且模型允许并联辅助；"
+        "软件未接入实船供电状态，也不控制断路器或接触器。"
     )
     parallel_threshold = data.parameters.get("parallel_enter_propulsion_kw")
     threshold = parallel_threshold.value if parallel_threshold is not None else None
@@ -121,11 +121,13 @@ def run_tmanagement(request: VoyageRequest, data: DataContext,
         peak = max(item.peak_power_kw or 0 for item in optimization.energy_results)
         if peak > threshold:
             assumptions.append(
-                f"推进峰值{peak:g}kW超过{threshold:g}kW演示进入阈值，列为两组并联协同候选。"
+                f"演示模型估算推进峰值{peak:g}kW超过{threshold:g}kW模型分类阈值；"
+                "该判断不确认实船并联能力或操作条件。"
             )
         else:
             assumptions.append(
-                f"推进峰值{peak:g}kW未超过{threshold:g}kW演示进入阈值，建议保持常规角色分工。"
+                f"演示模型估算推进峰值{peak:g}kW未超过{threshold:g}kW模型分类阈值；"
+                "该判断不代表实船供电状态或操作要求。"
             )
     if optimization.energy_scope == "total":
         assumptions.append("辅助能耗已包含在total能耗中；分项由采用辅助功率乘总时长估算，不重复加入总需求")
