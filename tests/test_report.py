@@ -37,7 +37,7 @@ def test_template_report_keeps_units_sources_and_tool_values():
 def test_llm_can_only_add_number_free_qualitative_wording():
     client = FakeClient(LLMCallResult(
         "ok", "deepseek", "test-model",
-        text="建议按推荐航速执行，并持续关注电量变化和现场通航条件。",
+        text="本次估算反映输入任务条件下的能量变化。",
     ))
     state = run_workflow(TASK, llm_client=client)
     assert state["task_understanding"]["mode"] == "llm_qualitative"
@@ -64,8 +64,8 @@ def test_internal_validation_wording_is_not_exposed_to_operator():
     state = run_workflow(TASK, llm_client=client)
     assert state["report"]["explanation_mode"] == "template_fallback"
     explanation = state["report"]["explanation"]
-    for term in ("软件演示", "仿真", "结论边界", "工程数值", "工具计算"):
-        assert term not in explanation
+    assert "软件仿真" in explanation
+    assert "不构成航行或设备操作指令" in explanation
 
 
 def test_management_advice_changes_with_voyage_energy_margin():
@@ -79,9 +79,9 @@ def test_management_advice_changes_with_voyage_energy_margin():
     high_advice = high["report"]["management_advice"]
     low_advice = low["report"]["management_advice"]
     assert high_advice != low_advice
-    assert "电量余度充足" in high_advice[0]
-    assert "到港电量余度偏低" in low_advice[0]
-    assert "补能或缩短航程" in low_advice[1]
+    assert "演示模型估算" in high_advice[0]
+    assert "低于模型规划线" in low_advice[0]
+    assert "现场完成充电并确认实测 SOC" in low_advice[1]
 
 
 def test_missing_fields_stop_before_any_llm_call():

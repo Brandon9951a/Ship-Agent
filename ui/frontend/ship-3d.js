@@ -136,7 +136,7 @@ function stopWithStatus(text, kind = "error") {
   playback.completed = false;
   playback.segments = [];
   playback.summary = {};
-  segmentSelect.innerHTML = "<option>等待可执行方案</option>";
+  segmentSelect.innerHTML = "<option>等待仿真方案</option>";
   segmentSelect.disabled = true;
   playButton.disabled = true;
   rateButton.disabled = true;
@@ -177,7 +177,7 @@ function handleWorkflowUpdate(event) {
     return;
   }
   if (["infeasible", "incomplete", "failed"].includes(detail.status)) {
-    stopWithStatus(detail.message || "当前没有可执行回放", "error");
+    stopWithStatus(detail.message || "当前没有仿真回放", "error");
     return;
   }
   stopWithStatus("等待计算", "");
@@ -599,6 +599,30 @@ function resetView() {
   controls.update();
 }
 
+function handleCanvasKeydown(event) {
+  if (!controls) return;
+  if (event.key === "Home") {
+    resetView();
+    event.preventDefault();
+    return;
+  }
+  const offset = camera.position.clone().sub(controls.target);
+  const spherical = new THREE.Spherical().setFromVector3(offset);
+  const step = Math.PI / 36;
+  if (event.key === "ArrowLeft") spherical.theta += step;
+  else if (event.key === "ArrowRight") spherical.theta -= step;
+  else if (event.key === "ArrowUp") spherical.phi -= step;
+  else if (event.key === "ArrowDown") spherical.phi += step;
+  else if (event.key === "+" || event.key === "=") spherical.radius *= 0.9;
+  else if (event.key === "-") spherical.radius /= 0.9;
+  else return;
+  spherical.radius = THREE.MathUtils.clamp(spherical.radius, controls.minDistance, controls.maxDistance);
+  spherical.makeSafe();
+  camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(spherical));
+  controls.update();
+  event.preventDefault();
+}
+
 function resizeRenderer() {
   const width = Math.max(stage.clientWidth, 1);
   const height = Math.max(stage.clientHeight, 1);
@@ -685,6 +709,7 @@ segmentSelect.addEventListener("change", () => {
 });
 
 resetViewButton.addEventListener("click", resetView);
+canvas.addEventListener("keydown", handleCanvasKeydown);
 document.addEventListener("ship3d:update", handleWorkflowUpdate);
 new ResizeObserver(resizeRenderer).observe(stage);
 new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting ?? true; }, { rootMargin: "120px" }).observe(stage);

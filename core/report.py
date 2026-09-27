@@ -11,9 +11,10 @@ from schemas.validate import validate
 
 
 def _template_explanation(plan: VoyagePlan) -> str:
-    if plan.management and plan.management.warnings:
-        return "建议先查看能量管理提示，并在出发前确认电量和任务安排。"
-    return "建议按推荐航速执行，并在航行中持续关注电量变化和现场通航条件。"
+    return (
+        "本结果为软件仿真，仅用于演示和方法验证；未纳入实时通航、船闸等待、"
+        "现场充电条件及实船状态，不构成航行或设备操作指令。"
+    )
 
 
 def _operator_facing(text: str) -> bool:
@@ -22,6 +23,7 @@ def _operator_facing(text: str) -> bool:
         "软件演示", "仿真", "结论边界", "语义边界", "工程数值", "工具计算",
         "模型输出", "实船验证", "运营批准", "数值锁定", "演示", "边界",
         "验证", "批准", "审批", "锁定", "工具", "模型",
+        "执行", "启用", "切换", "保持航向", "加速", "减速", "出发前补能",
     )
     return not contains_engineering_value(text) and not any(
         term in text for term in internal_terms
@@ -35,13 +37,13 @@ def _qualitative_explanation(plan: VoyagePlan, client: LLMClient | None) -> tupl
     needs_attention = bool(plan.management and plan.management.warnings)
     prompt = (
         f"航行方案已经生成，当前{'存在电量关注事项' if needs_attention else '没有额外电量提示'}。"
-        "请用一句中文给船员明确、自然的执行提示。不要复述起终点，不要描述系统内部验证过程，"
-        "不得出现任何数字、单位或新增工程参数。"
+        "请用一句中文描述输入条件下的定性估算，不要给船员动作或设备操作指令。"
+        "不要复述起终点，不得出现任何数字、单位或新增工程参数。"
     )
     result = client.complete_text(
         prompt,
         system_text=(
-            "你是船舶驾驶舱助手，只输出面向船员的简洁动作建议。不得出现阿拉伯数字，"
+            "你是船舶能量估算助手，只输出简洁的定性描述，不得输出航行、充电或设备操作指令。不得出现阿拉伯数字，"
             "不得增加速度、时间、功率、能耗、SOC、距离或阈值。禁止使用软件演示、"
             "仿真、结论边界、语义边界、工程数值、工具、模型、验证、批准、锁定等内部措辞。"
         ),
@@ -53,7 +55,7 @@ def _qualitative_explanation(plan: VoyagePlan, client: LLMClient | None) -> tupl
 
 
 def _management_advice(plan: VoyagePlan) -> list[str]:
-    """Build operator actions from deterministic management and power results."""
+    """Describe simulation estimates without turning them into operator actions."""
     management = plan.management
     optimization = plan.optimization
     data = plan.data
@@ -69,28 +71,23 @@ def _management_advice(plan: VoyagePlan) -> list[str]:
     advice: list[str] = []
     if isinstance(threshold, (int, float)) and peak_power > threshold:
         advice.append(
-            "推进负荷达到并联辅助条件：建议两组电池协同供电，"
-            "通过高负荷航段后恢复常规分工。"
+            "按演示模型估算，峰值推进负荷达到模型内并联辅助阈值；这不是实船供电切换指令。"
         )
     elif final_soc < alarm:
         advice.append(
-            "到港电量余度偏低：电池组一保持推进供电，电池组二优先保障"
-            "必要日常负载并保留辅助推进能力。"
+            "按演示模型估算，到港 SOC 低于模型规划线；实船电量与 BMS 状态尚未核实。"
         )
     else:
         advice.append(
-            "本航次电量余度充足：电池组一承担推进，电池组二保障日常负载；"
-            "出现瞬时高负荷时再启用并联辅助。"
+            "按演示模型估算，到港 SOC 高于模型规划线；这不代表实船电量或安全裕度已确认。"
         )
     if final_soc < alarm:
         advice.append(
-            f"预计到港电量 {final_soc:.1%}；建议出发前补能或缩短航程，"
-            "并提高航行中的电量检查频次。"
+            f"预计到港 SOC 为 {final_soc:.1%}；如考虑补能，需先在现场完成充电并确认实测 SOC 后重新计算。"
         )
     else:
         advice.append(
-            f"预计到港电量 {final_soc:.1%}；当前任务无需途中补能，"
-            "航行中按计划检查电量变化。"
+            f"预计到港 SOC 为 {final_soc:.1%}；实际可用电量、充电条件与航行约束仍需现场核实。"
         )
     return advice
 

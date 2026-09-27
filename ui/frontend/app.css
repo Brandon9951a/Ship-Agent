@@ -95,3 +95,27 @@ textarea:focus, select:focus, input:focus { border-color: var(--blue); box-shado
 .sample-list-button:hover { background: var(--canvas); border-color: var(--muted); }
 @media (max-width: 1080px) { .workspace { grid-template-columns: 310px minmax(0, 1fr); }.kpi-grid { grid-template-columns: repeat(2, 1fr); }.analysis-grid { grid-template-columns: 1fr; } }
 @media (max-width: 780px) { .app-shell { padding: 0 14px 18px; }.topbar { min-height: 70px; }.topbar-meta { display: none; }.workspace { display: block; padding-top: 14px; }.mission-panel { position: static; margin-bottom: 14px; }.bottom-grid { grid-template-columns: 1fr; }.decision-heading { align-items: flex-start; }.decision-status { margin-top: 3px; }.route-pair { gap: 5px; }.metro-route { min-width: max(100%, calc(var(--stops) * 62px)); } }
+@media (max-width: 780px) {
+  html, body { overflow-x: clip; }
+  .app-shell, .workspace, .decision-canvas, .analysis-grid, .bottom-grid, .surface, .table-surface, .table-scroll { min-width: 0; max-width: 100%; }
+  .table-surface { overflow: hidden; }
+  .table-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+  .table-scroll:focus-visible { outline: 3px solid rgba(23, 105, 212, .35); outline-offset: 2px; }
+  .mission-panel { padding: 14px; }
+  textarea { min-height: 92px; }
+  .panel-copy { margin-bottom: 12px; }
+  .empty-inline { min-height: 62px; gap: 5px; }
+  .route-track { min-height: 94px; }
+  .energy-chart { min-height: 120px; }
+  .bar-chart { height: 104px; }
+  .table-surface { margin-top: 10px; }
+  .table-surface .surface-header { min-height: 60px; padding: 11px 13px; }
+  .safety-surface, .recommendation-surface { min-height: 0; }
+  .safety-surface .surface-header, .recommendation-surface .surface-header { min-height: 58px; padding: 11px 14px; }
+  .safety-list, .recommendation-list { min-height: 0; gap: 8px; padding: 10px 12px; }
+  .safety-item { min-height: 60px; gap: 8px; padding: 10px; }
+  .safety-item .safety-label { font-size: 13px; }
+  .safety-item .safety-content, .safety-item.benefit .safety-content, .safety-item.soc .safety-content { font-size: 15px; white-space: normal; }
+  .safety-item .safety-content span { white-space: normal; }
+  .recommendation { padding: 9px 10px; font-size: 12px; }
+}

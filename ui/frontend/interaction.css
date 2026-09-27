@@ -69,6 +69,7 @@
 #voice-button:active:not(:disabled) { transform: scale(.96); }
 #voice-button.recording { animation: voice-pulse 1.45s ease-in-out infinite; }
 #voice-button:focus-visible { outline: 2px solid #1769d4; outline-offset: 2px; }
+#vessel-canvas:focus-visible { outline: 3px solid #b9d8ff; outline-offset: -4px; }
 #voice-copy { min-width: 0; overflow: hidden; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 
 @keyframes voice-pulse {
@@ -145,6 +146,7 @@
 .correction-grid .field-attention select { border-color: #1769d4; box-shadow: 0 0 0 3px rgba(23, 105, 212, .12); }
 
 .correction-note, .correction-feedback { margin: 0; padding: 0 16px 11px; color: #6c7e90; font-size: 11px; line-height: 1.55; }
+.correction-form-heading { margin: 12px 16px 8px; color: #334b60; font-size: 12px; font-weight: 700; }
 .correction-feedback { min-height: 17px; padding-top: 9px; color: #1769d4; font-weight: 650; }
 .correction-feedback.error { color: #a23a32; }
 
@@ -176,4 +178,8 @@
   .correction-grid { grid-template-columns: 1fr; }
   .correction-actions { flex-direction: column; }
   .correction-actions button { width: 100%; }
+}
+
+@media (max-width: 620px) {
+  .vessel-stage, #vessel-canvas { min-height: 350px; height: 350px; }
 }

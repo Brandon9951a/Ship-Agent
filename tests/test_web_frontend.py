@@ -34,16 +34,21 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     for label in (
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
         "任务描述", "快捷输入", "工况补充", "航线与分段方案",
-        "航段能耗与速度", "推荐航速方案", "安全校验", "能量管理建议",
-        "航行执行摘要", "工具调用过程", "选择已验证方案后恢复并重算",
-        "安全下限由系统锁定", "确认修改并重新计算",
+        "航段能耗与速度", "仿真航速方案", "约束检查（软件演示）", "能量管理建议",
+        "航次仿真摘要", "工具调用过程", "选择已验证方案后恢复并重算",
+        "模型规划线固定，非实船安全核验", "确认修改并重新计算",
         "船舶三维运行态势", "五工具计算结果的软件回放",
+        "计算口径与数据依据", "历史航行数据仅用于覆盖范围检查",
+        "左右方向键横向滚动", 'id="segment-table-scroll"',
         "峡谷内河演示环境",
         "开始科大讯飞语音输入", "正在检查语音服务",
-        'id="vessel-canvas"', 'id="vessel-segment-select"',
+        'id="vessel-canvas"', 'id="vessel-segment-select"', 'aria-keyshortcuts=',
     ):
         assert label in html
     assert "@media" in css
+    assert "resultStale" in js
+    assert "localDateTime" in js
+    assert "需填写实测值" in js
     assert "vessel-ocean-background.jpg" in css
     assert BACKGROUND.is_file()
     assert '$("#infeasible-alert").hidden = true' in js
@@ -189,7 +194,7 @@ def test_web_request_really_uses_configured_llm_client():
             self.calls += 1
             return LLMCallResult(
                 "ok", "deepseek", "deepseek-v4-pro",
-                text="建议按推荐航速执行，并持续关注电量变化和现场通航条件。",
+                text="本次估算反映输入任务条件下的能量变化。",
                 response_model="deepseek-v4-pro",
             )
 

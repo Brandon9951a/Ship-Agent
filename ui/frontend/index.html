@@ -30,10 +30,10 @@
         <aside class="mission-panel" aria-label="任务输入">
           <div class="panel-kicker"><i data-lucide="navigation"></i> 航行任务</div>
           <h2>创建决策任务</h2>
-          <p class="panel-copy">输入航次约束，系统将联合航速优化与电池能量管理生成可执行方案。</p>
+          <p class="panel-copy">输入航次条件，系统将运行五工具链并生成软件仿真结果，供演示和方法验证。</p>
 
           <label class="field-label" for="mission-input">任务描述</label>
-          <textarea id="mission-input" rows="5" placeholder="例如：从平顶山港到军李船闸，2026-09-18 09:00出发，SOC 85%，半载，6小时内到达">从平顶山港到军李船闸，2026-09-18 09:00出发，SOC85%，半载，6小时内到达</textarea>
+          <textarea id="mission-input" rows="5" placeholder="正在生成明日示例航次…"></textarea>
 
           <div class="input-actions">
             <button class="icon-button" id="voice-button" type="button" aria-label="开始科大讯飞语音输入" aria-pressed="false" title="开始科大讯飞语音输入" disabled><i data-lucide="mic"></i></button>
@@ -60,7 +60,7 @@
             <div class="advanced-grid">
               <label><span>SOC (%)</span><input id="adv-soc" type="number" value="85" min="0" max="100" step="1" /></label>
               <label><span>装载状态</span><select id="adv-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
-              <label><span>出发时间</span><input id="departure-input" type="datetime-local" value="2026-09-18T09:00" /></label>
+              <label><span>出发时间</span><input id="departure-input" type="datetime-local" /></label>
               <label><span>时间窗口 (h)</span><input id="adv-time" type="number" value="6" min="0.5" max="72" step="0.5" /></label>
             </div>
           </details>
@@ -74,7 +74,7 @@
             </div>
           </div>
 
-          <p class="panel-copy">当前结果均为 synthetic_demo 历史数据驱动模拟，不代表实船安全或运营批准。</p>
+          <p class="panel-copy">当前模型为 synthetic_demo 软件仿真。历史航行数据仅用于覆盖范围检查，尚未用于实船模型标定。</p>
         </aside>
 
         <section class="decision-canvas" aria-live="polite">
@@ -87,6 +87,7 @@
             <div class="decision-status idle" id="decision-status"><span></span>待命</div>
           </section>
 
+          <div class="result-stale" id="result-stale" role="status" hidden></div>
           <section class="progress-track" id="progress-track">
             <div class="progress-labels" id="progress-labels">
               <span>数据获取</span><span>航段划分</span><span>能耗预测</span><span>航速优化</span><span>能量管理</span>
@@ -104,18 +105,19 @@
               <section class="correction-workbench" id="correction-workbench">
                 <div class="correction-heading">
                   <div><span class="surface-kicker">VERIFIED ALTERNATIVES</span><h4 id="correction-title">选择已验证方案后恢复并重算</h4></div>
-                  <span class="correction-lock" id="correction-lock"><i data-lucide="shield-check"></i> 安全下限由系统锁定</span>
+                  <span class="correction-lock" id="correction-lock"><i data-lucide="shield-check"></i> 模型规划线固定，非实船安全核验</span>
                 </div>
                 <div class="adjustment-options" id="adjustment-options"></div>
+                <p class="correction-form-heading" id="correction-form-heading" hidden>手动修改已知任务条件并重新计算仿真</p>
                 <div class="correction-grid" hidden>
                   <label><span>起点</span><select id="correction-origin"></select></label>
                   <label><span>终点</span><select id="correction-destination"></select></label>
                   <label><span>出发时间</span><input id="correction-departure" type="datetime-local" /></label>
                   <label><span>最长航时 (h)</span><input id="correction-duration" type="number" min="0.01" max="120" step="0.01" /></label>
                   <label><span>初始 SOC (%)</span><input id="correction-soc" type="number" min="0" max="100" step="0.1" /></label>
-                  <label><span>装载状态</span><select id="correction-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
+                  <label><span>装载状态</span><select id="correction-load"><option value="">请选择载况</option><option>半载</option><option>空载</option><option>满载</option></select></label>
                 </div>
-                <p class="correction-note" id="correction-note">系统只展示已通过完整五工具链复算的参数方案；选择后从已保存状态继续执行。</p>
+                <p class="correction-note" id="correction-note">方案仅为软件仿真结果，不代表实船安全校验或运营批准。</p>
                 <div class="correction-actions" hidden>
                   <button class="secondary-action" id="sync-correction" type="button"><i data-lucide="file-pen-line"></i> 仅更新任务描述</button>
                   <button class="confirm-action" id="apply-correction" type="button"><i data-lucide="refresh-cw"></i> 确认修改并重新计算</button>
@@ -136,6 +138,45 @@
             <article class="kpi-card"><span class="kpi-label">预计到达</span><strong id="metric-eta">--</strong><small>工具计算 ETA</small></article>
             <article class="kpi-card"><span class="kpi-label">到港 SOC</span><strong id="metric-soc">--</strong><small>系统有效容量口径</small></article>
           </section>
+          <div class="result-scope-banner" id="result-scope-banner" role="note" hidden></div>
+          <details class="surface evidence-panel" id="evidence-panel" hidden>
+            <summary><span>计算口径与数据依据</span><span>模型、来源、假设与未知项</span></summary>
+            <div id="evidence-content"></div>
+          </details>
+
+          <section class="analysis-grid">
+            <article class="surface route-surface">
+              <header class="surface-header"><div><span class="surface-kicker">ROUTE PLAN</span><h3>航线与分段方案</h3></div><span class="route-chip" id="route-chip">未选择航线</span></header>
+              <div class="route-track" id="route-track"><div class="empty-inline"><i data-lucide="route"></i><span>航段识别完成后显示路径与速度建议</span></div></div>
+              <div class="segment-summary" id="segment-summary"></div>
+            </article>
+
+            <article class="surface energy-surface">
+              <header class="surface-header"><div><span class="surface-kicker">ENERGY PROFILE</span><h3>航段能耗与速度</h3></div><span class="legend"><b></b> 推荐能耗</span></header>
+              <div class="energy-chart" id="energy-chart"><div class="empty-inline"><i data-lucide="chart-no-axes-combined"></i><span>优化完成后显示分段对比</span></div></div>
+            </article>
+          </section>
+
+          <section class="surface table-surface">
+            <header class="surface-header"><div><span class="surface-kicker">SIMULATION TABLE</span><h3>仿真航速方案</h3></div><span class="result-count" id="result-count">0 个航段</span></header>
+            <div class="table-scroll" id="segment-table-scroll" tabindex="0" role="region" aria-keyshortcuts="ArrowLeft ArrowRight Home End" aria-label="航段仿真结果。左右方向键横向滚动，Home 和 End 跳到首尾">
+              <table>
+                <thead><tr><th>航段</th><th>距离</th><th>推荐航速</th><th>航行时间</th><th>推进能耗</th></tr></thead>
+                <tbody id="segment-table"><tr class="placeholder-row"><td colspan="5">等待航速优化结果</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="bottom-grid">
+            <article class="surface safety-surface">
+              <header class="surface-header"><div><span class="surface-kicker">CONSTRAINT CHECK</span><h3>约束检查（软件演示）</h3></div></header>
+              <div class="safety-list" id="safety-list"><div class="empty-inline">暂无校验结果</div></div>
+            </article>
+            <article class="surface recommendation-surface">
+              <header class="surface-header"><div><span class="surface-kicker">EMS ADVICE</span><h3>能量管理建议</h3></div></header>
+              <div class="recommendation-list" id="recommendation-list"><div class="empty-inline">等待 EMS 仿真结果</div></div>
+            </article>
+          </section>
 
           <section class="surface vessel-surface" id="vessel-surface" aria-labelledby="vessel-heading">
             <header class="surface-header vessel-header">
@@ -146,7 +187,7 @@
               </div>
             </header>
             <div class="vessel-stage" id="vessel-stage">
-              <canvas id="vessel-canvas" aria-label="可旋转缩放的货船三维模型"></canvas>
+              <canvas id="vessel-canvas" tabindex="0" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home + -" aria-label="货船三维仿真视图。可用方向键旋转，加号和减号缩放，Home 键重置视角"></canvas>
               <div class="vessel-loading" id="vessel-loading" role="status"><span></span>正在加载船舶模型</div>
               <div class="vessel-environment-label"><i data-lucide="mountain-snow"></i> 峡谷内河演示环境</div>
               <div class="vessel-overlay vessel-overlay-primary">
@@ -169,42 +210,8 @@
             </div>
           </section>
 
-          <section class="analysis-grid">
-            <article class="surface route-surface">
-              <header class="surface-header"><div><span class="surface-kicker">ROUTE PLAN</span><h3>航线与分段方案</h3></div><span class="route-chip" id="route-chip">未选择航线</span></header>
-              <div class="route-track" id="route-track"><div class="empty-inline"><i data-lucide="route"></i><span>航段识别完成后显示路径与速度建议</span></div></div>
-              <div class="segment-summary" id="segment-summary"></div>
-            </article>
-
-            <article class="surface energy-surface">
-              <header class="surface-header"><div><span class="surface-kicker">ENERGY PROFILE</span><h3>航段能耗与速度</h3></div><span class="legend"><b></b> 推荐能耗</span></header>
-              <div class="energy-chart" id="energy-chart"><div class="empty-inline"><i data-lucide="chart-no-axes-combined"></i><span>优化完成后显示分段对比</span></div></div>
-            </article>
-          </section>
-
-          <section class="surface table-surface">
-            <header class="surface-header"><div><span class="surface-kicker">EXECUTION TABLE</span><h3>推荐航速方案</h3></div><span class="result-count" id="result-count">0 个航段</span></header>
-            <div class="table-scroll">
-              <table>
-                <thead><tr><th>航段</th><th>距离</th><th>推荐航速</th><th>航行时间</th><th>推进能耗</th></tr></thead>
-                <tbody id="segment-table"><tr class="placeholder-row"><td colspan="5">等待航速优化结果</td></tr></tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="bottom-grid">
-            <article class="surface safety-surface">
-              <header class="surface-header"><div><span class="surface-kicker">RISK CHECK</span><h3>安全校验</h3></div></header>
-              <div class="safety-list" id="safety-list"><div class="empty-inline">暂无校验结果</div></div>
-            </article>
-            <article class="surface recommendation-surface">
-              <header class="surface-header"><div><span class="surface-kicker">EMS ADVICE</span><h3>能量管理建议</h3></div></header>
-              <div class="recommendation-list" id="recommendation-list"><div class="empty-inline">等待 EMS 仿真结果</div></div>
-            </article>
-          </section>
-
           <section class="final-response" id="final-response" hidden>
-            <header><span class="surface-kicker">VOYAGE SUMMARY</span><span class="detail-title">航行执行摘要</span><button class="icon-button subtle" id="copy-final" type="button" aria-label="复制航行执行摘要" title="复制航行执行摘要"><i data-lucide="copy"></i></button></header>
+            <header><span class="surface-kicker">VOYAGE SUMMARY</span><span class="detail-title">航次仿真摘要</span><button class="icon-button subtle" id="copy-final" type="button" aria-label="复制航次仿真摘要" title="复制航次仿真摘要"><i data-lucide="copy"></i></button></header>
             <div id="final-answer"></div>
           </section>
 

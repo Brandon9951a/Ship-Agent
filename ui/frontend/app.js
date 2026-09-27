@@ -3,15 +3,9 @@ const ROUTES = {
   reverse: ["周口港", "周口船闸", "葫芦湾船闸", "大路李船闸", "漯河港", "漯河船闸", "马湾船闸", "军李船闸", "平顶山港"],
 };
 
-const SAMPLES = {
-  normal: "从平顶山港到军李船闸，2026-09-18 09:00出发，SOC85%，半载，6小时内到达",
-  time: "从平顶山港到军李船闸，2026-09-18 09:00出发，SOC85%，半载，1小时内到达",
-  soc: "从平顶山港到军李船闸，2026-09-18 09:00出发，SOC31%，半载，6小时内到达",
-};
-
 const state = {
   trace: [], finalAnswer: "", running: false, lastResult: null,
-  voice: null, recording: false, speechAvailable: false,
+  voice: null, recording: false, speechAvailable: false, resultStale: false,
 };
 
 const OPTION_LABELS = {
@@ -48,7 +42,22 @@ function formatNumber(value, suffix = "", digits = 1) {
 function formatEta(value) {
   if (!value) return "--";
   const text = String(value).replace("T", " ");
-  return text.length >= 16 ? text.slice(5, 16) : text;
+  return text.length >= 16 ? text.slice(0, 16) : text;
+}
+
+function localDateTime(daysAhead = 1) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysAhead);
+  date.setHours(9, 0, 0, 0);
+  const pad = value => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T09:00`;
+}
+
+function sampleTask(kind) {
+  const departure = localDateTime().replace("T", " ");
+  const timeLimit = kind === "time" ? 1 : 6;
+  const soc = kind === "soc" ? 31 : 85;
+  return `从平顶山港到军李船闸，${departure}出发，SOC${soc}%，半载，${timeLimit}小时内到达`;
 }
 
 function updateStatus(kind, text) {
@@ -57,9 +66,10 @@ function updateStatus(kind, text) {
   target.innerHTML = `<span></span>${escapeHtml(text)}`;
 }
 
-function populateSelect(select, values, value) {
-  select.innerHTML = values.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
-  if (value && values.includes(value)) select.value = value;
+function populateSelect(select, values, value, emptyLabel = "") {
+  const emptyOption = emptyLabel ? `<option value="">${escapeHtml(emptyLabel)}</option>` : "";
+  select.innerHTML = emptyOption + values.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+  select.value = value && values.includes(value) ? value : "";
 }
 
 function localDateTimeValue(value) {
@@ -78,22 +88,23 @@ function withLocalOffset(value) {
 }
 
 function fillCorrectionForm(request = {}) {
-  const origin = request.origin || $("#start-select").value || ALL_ROUTE_NODES[0];
-  const destination = request.destination || $("#end-select").value || ALL_ROUTE_NODES.at(-1);
-  populateSelect($("#correction-origin"), ALL_ROUTE_NODES, origin);
-  populateSelect($("#correction-destination"), ALL_ROUTE_NODES, destination);
-  $("#correction-departure").value = localDateTimeValue(request.departure_at) || $("#departure-input").value;
-  $("#correction-duration").value = request.max_duration_h ?? $("#adv-time").value ?? "";
-  $("#correction-soc").value = request.soc_initial == null
-    ? $("#adv-soc").value
-    : Number(request.soc_initial) * 100;
-  $("#correction-load").value = request.load_state || $("#adv-load").value || "半载";
+  populateSelect($("#correction-origin"), ALL_ROUTE_NODES, request.origin || "", "请选择起点");
+  populateSelect($("#correction-destination"), ALL_ROUTE_NODES, request.destination || "", "请选择终点");
+  $("#correction-departure").value = localDateTimeValue(request.departure_at);
+  $("#correction-duration").value = request.max_duration_h ?? "";
+  $("#correction-soc").value = request.soc_initial == null ? "" : Number(request.soc_initial) * 100;
+  $("#correction-load").value = request.load_state || "";
 }
 
 function readCorrectionPayload() {
   const origin = $("#correction-origin").value;
   const destination = $("#correction-destination").value;
   const departure = $("#correction-departure").value;
+  if (!origin || !destination) throw new Error("请选择起点和终点。");
+  if (!departure) throw new Error("请填写出发时间。");
+  if (!$("#correction-duration").value) throw new Error("请填写最长航时。");
+  if (!$("#correction-soc").value) throw new Error("请填写初始 SOC。");
+  if (!$("#correction-load").value) throw new Error("请填写载况。");
   const duration = Number($("#correction-duration").value);
   const socPercent = Number($("#correction-soc").value);
   if (!origin || !destination || origin === destination) throw new Error("起点和终点必须不同。");
@@ -242,10 +253,23 @@ function checkValue(value, unit) {
 }
 
 function operatorWarning(warning) {
-  if (warning.includes("临界线")) return "预计到港电量过低，请重新规划航次并按船舶应急规程处置。";
-  if (warning.includes("警告线")) return "预计到港电量不足，不建议执行当前任务；请先补能或缩短航程。";
-  if (warning.includes("关注线")) return "预计到港电量偏低，建议出发前补能或缩短航程，并提高电量检查频次。";
-  return "检测到能量风险，请根据能量管理建议调整任务。";
+  if (warning.includes("临界线")) return "软件仿真估算触及电量临界线；实船 SOC 尚未核实，不构成应急判断。";
+  if (warning.includes("警告线")) return "软件仿真估算低于电量警告线；实船电量与可航条件尚未核实。";
+  if (warning.includes("关注线")) return "软件仿真估算接近电量关注线；实船电量和补能条件待核实。";
+  return "软件仿真提示存在能量风险；实船状态与运行约束尚未核实。";
+}
+
+function handleTableScrollKeydown(event) {
+  const container = event.currentTarget;
+  const page = Math.max(container.clientWidth * 0.7, 120);
+  if (event.key === "ArrowLeft") container.scrollBy({ left: -48, behavior: "smooth" });
+  else if (event.key === "ArrowRight") container.scrollBy({ left: 48, behavior: "smooth" });
+  else if (event.key === "Home") container.scrollTo({ left: 0, behavior: "smooth" });
+  else if (event.key === "End") container.scrollTo({ left: container.scrollWidth, behavior: "smooth" });
+  else if (event.key === "PageUp") container.scrollBy({ left: -page, behavior: "smooth" });
+  else if (event.key === "PageDown") container.scrollBy({ left: page, behavior: "smooth" });
+  else return;
+  event.preventDefault();
 }
 
 function renderSafety(checks, warnings = []) {
@@ -254,7 +278,9 @@ function renderSafety(checks, warnings = []) {
     const label = CHECK_LABELS[check.name] || "约束检查";
     const actual = checkValue(check.actual, check.unit);
     const limit = check.limit == null ? "未设置" : checkValue(check.limit, check.unit);
-    return `<div class="safety-item ${check.passed ? "ok" : "error"} state"><span class="safety-label">${escapeHtml(label)}</span><strong class="safety-content">${check.passed ? "通过" : "未通过"} · ${escapeHtml(actual)} / ${escapeHtml(limit)}</strong></div>`;
+    const stateLabel = check.passed === false ? "未通过" : check.limit == null || check.passed == null ? "待核验" : "通过";
+    const stateClass = check.passed === false ? "error" : check.limit == null || check.passed == null ? "warn" : "ok";
+    return `<div class="safety-item ${stateClass} state"><span class="safety-label">${escapeHtml(label)}</span><strong class="safety-content">${stateLabel} · ${escapeHtml(actual)} / ${escapeHtml(limit)}</strong></div>`;
   });
   warnings.forEach(warning => items.push(`<div class="safety-item warning state"><span class="safety-label">电量提示</span><strong class="safety-content">${escapeHtml(operatorWarning(warning))}</strong></div>`));
   $("#safety-list").innerHTML = items.length ? items.join("") : '<div class="empty-inline">暂无校验结果</div>';
@@ -284,8 +310,8 @@ function renderTrace(trace) {
     const round = iteration ? `第${iteration}次调整` : "初始计算";
     const option = item.option_id ? ` · ${OPTION_LABELS[item.option_id] || item.option_id}` : "";
     const label = item.node === "prepare_adjustment" && item.status === "awaiting_choice"
-      ? "等待船员确认"
-      : item.node === "await_choice" ? "船员已选择" : (item.node || "流程");
+      ? "等待用户选择"
+      : item.node === "await_choice" ? "用户已选择" : (item.node || "流程");
     return `<li class="trace-item"><span class="trace-index">${index + 1}</span><div><strong>${escapeHtml(label)}</strong><p>${escapeHtml(`${round} · ${item.status || "完成"}${option}`)}</p></div></li>`;
   }).join("");
   $("#trace-meta").textContent = state.trace.length ? `${state.trace.length} 个步骤` : "等待任务";
@@ -296,9 +322,9 @@ function renderModel(result) {
   const understandingMode = result.task_understanding?.mode;
   const llmUsed = reportMode === "llm_qualitative" || understandingMode === "llm_qualitative";
   const explanation = result.status === "ok"
-    ? (result.report?.explanation || "航行方案已生成，请查看下方执行建议。")
+    ? (result.report?.explanation || "仿真方案已生成。请结合现场条件核对后再作判断。")
     : (result.status === "infeasible" || result.status === "awaiting_choice")
-      ? "当前任务不可执行，请根据可选调整修改航时、电量或航线后重新计算。"
+      ? "当前输入条件下未生成仿真航速方案；下方展示系统内备选计算结果。"
       : "请补充或修正任务信息后重新计算。";
   $("#model-mode").textContent = llmUsed ? "AI 提示已更新" : "系统提示";
   $("#reply-answer").textContent = explanation;
@@ -309,6 +335,7 @@ function renderModel(result) {
 
 function optionAction(option) {
   if (option.direction === "give_up") return "保留结论";
+  if (option.requires_input) return "需填写实测值";
   if (option.verified && option.modification) return "采用并重算";
   return "不可直接采用";
 }
@@ -319,10 +346,12 @@ function renderAdjustmentOptions(options) {
     return;
   }
   $("#adjustment-options").innerHTML = options.map((option, index) => {
-    const note = option.direction === "give_up"
-      ? "保留本次不可行结论，不修改任务。"
-      : option.requires_input || "已通过 Tdata→Tseg→Tenergy→Tspeed→Tmanagement 完整复算。";
-    const disabled = option.direction !== "give_up" && (!option.verified || !option.modification);
+    const note = option.requires_input
+      ? "须先完成现场补能并录入实测 SOC，再通过下方表单重新计算；系统不会代替确认补能完成。"
+      : option.direction === "give_up"
+        ? "保留本次不可行结论，不修改任务。"
+        : "已通过 Tdata→Tseg→Tenergy→Tspeed→Tmanagement 完整复算。";
+    const disabled = option.requires_input || (option.direction !== "give_up" && (!option.verified || !option.modification));
     return `<button class="adjustment-option" type="button" data-option-index="${index}"${disabled ? " disabled" : ""}><span>${escapeHtml(option.label || option)}<small>${escapeHtml(note)}</small></span><b>${escapeHtml(optionAction(option))}</b></button>`;
   }).join("");
 }
@@ -334,7 +363,7 @@ function clearCorrectionAttention() {
 
 async function applyAdjustmentOption(index) {
   const option = state.lastResult?.adjustment_options?.[index];
-  if (!option || state.running) return;
+  if (!option || state.running || state.resultStale || option.requires_input) return;
   clearCorrectionAttention();
   const button = $(`[data-option-index="${index}"]`);
   if (button) button.classList.add("selected");
@@ -405,8 +434,8 @@ function showInfeasible(result) {
   const failedPayload = failedRecord.payload || {};
   const infeasible = result.status === "infeasible";
   const awaiting = result.status === "awaiting_choice";
-  $("#infeasible-title").textContent = awaiting ? "航次不可行，等待船员确认" : infeasible ? "航次不可行" : "任务需要修正";
-  $("#infeasible-reason").textContent = failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成可执行方案。";
+  $("#infeasible-title").textContent = awaiting ? "当前输入条件不满足，等待选择" : infeasible ? "当前输入条件不可行" : "任务需要补充或修正";
+  $("#infeasible-reason").textContent = failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成仿真方案。";
   const options = awaiting ? (result.adjustment_options || []) : [];
   $("#infeasible-suggestion").textContent = options.length
     ? options.map((option, index) => `${index + 1}. ${option.label || option}`).join("\n")
@@ -417,16 +446,19 @@ function showInfeasible(result) {
   renderAdjustmentOptions(options);
   const round = result.decision?.round || Math.min((result.replan_count || 0) + 1, result.max_replans || 2);
   $("#correction-title").textContent = awaiting
-    ? `等待船员确认 · 第 ${round}/${result.max_replans || 2} 轮`
-    : result.replan_limit_reached ? "已达到调整上限" : "当前任务未形成可执行方案";
+    ? `等待选择 · 第 ${round}/${result.max_replans || 2} 轮`
+    : result.replan_limit_reached ? "已达到调整上限" : "选用已复算方案或补充任务字段";
   $("#correction-lock").innerHTML = awaiting
-    ? '<i data-lucide="database-zap"></i> 状态已保存，可稍后继续'
-    : '<i data-lucide="shield-check"></i> 安全下限由系统锁定';
+    ? '<i data-lucide="database-zap"></i> 演示任务状态已保存'
+    : '<i data-lucide="shield-check"></i> 模型规划线固定，非实船安全核验';
   $("#correction-note").textContent = result.replan_limit_reached
     ? "已达到两轮调整上限，请重新发起任务并修改初始条件。"
     : awaiting
-      ? "只可选择后端已验证方案；选择后从 checkpoint 恢复，客户端不能改写工程参数。"
-      : "本次流程已结束，未生成航行方案。";
+      ? "已复算选项仅代表本系统内计算完成。补能选项须先在现场充电，再录入实测 SOC 重新计算；也可手动改写已知任务字段。"
+      : "请只填写本次任务已知的信息；缺失字段保持空白。提交后将按演示模型重新计算。";
+  $(".correction-grid").hidden = false;
+  $(".correction-actions").hidden = false;
+  $("#correction-form-heading").hidden = false;
   $("#correction-feedback").classList.remove("error");
   $("#correction-feedback").textContent = awaiting ? "任务状态已保存，可关闭页面后继续。" : "";
   $("#infeasible-alert").hidden = false;
@@ -434,6 +466,11 @@ function showInfeasible(result) {
 }
 
 function resetResult() {
+  state.lastResult = null;
+  state.resultStale = false;
+  $("#result-stale").hidden = true;
+  $("#result-scope-banner").hidden = true;
+  $("#evidence-panel").hidden = true;
   state.trace = [];
   state.finalAnswer = "";
   $("#mission-title").textContent = "正在准备决策任务";
@@ -459,13 +496,13 @@ function operatorSummary(result, route, summary) {
     const origin = route[0]?.origin || result.request?.origin || "起点";
     const destination = route.at(-1)?.destination || result.request?.destination || "终点";
     const lines = [
-      `${origin} → ${destination}`,
+      `软件仿真：${origin} → ${destination}`,
       `计划耗时：${formatNumber(summary.total_duration?.value, " h", 2)}`,
       `预计到达：${formatEta(summary.eta?.value)}`,
       `预计总能耗：${formatNumber(summary.required_energy?.value, " kWh")}`,
       `预计到港电量：${formatNumber((summary.soc_final?.value ?? 0) * 100, "%")}`,
     ];
-    managementAdvice(result).forEach(item => lines.push(`建议：${item}`));
+    managementAdvice(result).forEach(item => lines.push(`提示：${item}`));
     return lines.join("\n");
   }
   const failedRecord = result[result.failed_tool?.toLowerCase()] || result.tspeed || {};
@@ -474,8 +511,50 @@ function operatorSummary(result, route, summary) {
   return [`任务未生成航行方案。`, `原因：${reason}`, ...options].join("\n");
 }
 
+function renderEvidence(result) {
+  const report = result.report || {};
+  const evidenceSourceLabels = { capacity: "电池容量", power_limit: "功率边界", soc_min: "SOC 规划下限" };
+  const sourceLine = (label, source) => source
+    ? `<li><strong>${escapeHtml(label)}</strong>：${escapeHtml(source.source_id || "未知来源")}${source.locator ? ` · ${escapeHtml(source.locator)}` : ""}${source.confirmed ? "（资料已核对）" : "（演示假设/待确认）"}</li>`
+    : "";
+  const sources = report.sources || {};
+  const distances = (report.segments || []).map(segment => {
+    const source = segment.distance_source;
+    const location = source?.locator ? ` · ${source.locator}` : "";
+    return `<li>${escapeHtml(segment.origin)} → ${escapeHtml(segment.destination)}：${escapeHtml(source?.source_id || "未知距离来源")}${escapeHtml(location)}</li>`;
+  }).join("");
+  const modelIds = [...new Set((report.segments || []).map(segment => segment.model_id).filter(Boolean))];
+  const assumptions = report.assumptions || [];
+  $("#evidence-content").innerHTML = `
+    <div class="evidence-grid">
+      <section><h4>模型与范围</h4><p>模型：${escapeHtml(modelIds.join("、") || "未知")}</p><p>当前结果为 synthetic_demo 软件仿真；推进能耗系数由调研工况单点锚定，历史数据只用于覆盖范围检查，未用于实船标定。</p></section>
+      <section><h4>采用参数来源</h4><ul>${Object.entries(evidenceSourceLabels).map(([key, label]) => sourceLine(label, sources[key])).join("")}</ul></section>
+      <section><h4>航段距离来源</h4><ul>${distances || "<li>未提供航段来源。</li>"}</ul></section>
+      <section><h4>模型假设</h4><ul>${assumptions.length ? assumptions.map(item => `<li>${escapeHtml(item)}</li>`).join("") : "<li>报告未提供额外假设。</li>"}</ul></section>
+    </div>
+    <p class="evidence-limit">未核实的逐段真实限速、船闸等待、充电可用性与实船 BMS 参数不构成已通过的约束。</p>`;
+  $("#evidence-panel").hidden = false;
+}
+
+function markResultStale() {
+  if (!state.lastResult || state.running) return;
+  state.resultStale = true;
+  $("#result-stale").hidden = false;
+  $("#result-stale").textContent = state.lastResult.status === "awaiting_choice"
+    ? "输入已修改；下方待确认选项仍属于上一次任务。请重新计算后再选择。"
+    : "输入已修改；当前结果对应之前的任务，请重新计算以更新方案。";
+  document.querySelectorAll(".adjustment-option[data-option-index]").forEach(button => { button.disabled = true; });
+}
+
+function initializeTaskDefaults() {
+  $("#departure-input").value = localDateTime();
+  $("#mission-input").value = sampleTask("normal");
+}
+
 function renderResult(result) {
   state.lastResult = result;
+  state.resultStale = false;
+  $("#result-stale").hidden = true;
   const okay = result.status === "ok";
   const infeasible = result.status === "infeasible";
   const awaiting = result.status === "awaiting_choice";
@@ -492,10 +571,10 @@ function renderResult(result) {
   const checks = result.report?.checks || result.tspeed?.payload?.checks || [];
   const warnings = result.report?.warnings || result.tmanagement?.payload?.warnings || [];
 
-  updateStatus(okay ? "success" : awaiting ? "running" : "error", okay ? "方案已生成" : awaiting ? "等待船员确认" : infeasible ? "航次不可行" : "需要补充");
-  $("#mission-title").textContent = route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "方案已生成" : "任务未完成");
+  updateStatus(okay ? "success" : awaiting ? "running" : "error", okay ? "仿真方案已生成" : awaiting ? "等待确认" : infeasible ? "航次不可行" : "需要补充");
+  $("#mission-title").textContent = route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "仿真方案已生成" : "任务未完成");
   $("#mission-subtitle").textContent = okay
-    ? "方案已生成，请查看推荐航速、能耗与电量安排。"
+    ? "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。"
     : awaiting
       ? "当前任务不满足执行条件，请选择下方调整方案。"
       : infeasible
@@ -516,7 +595,16 @@ function renderResult(result) {
     renderTable(segments);
     renderSafety(checks, warnings);
     updateVesselView("success", { segments, summary });
+    renderEvidence(result);
+    const departure = result.request?.departure_at ? new Date(result.request.departure_at) : null;
+    const isPast = departure && departure.getTime() < Date.now();
+    $("#result-scope-banner").textContent = isPast
+      ? "历史时点仿真：出发时间已过。该结果用于软件演示，不代表历史实船记录或当前航行建议。"
+      : "软件仿真结果：模型参数和约束采用演示口径，不代表实船安全或运营批准。";
+    $("#result-scope-banner").hidden = false;
   } else {
+    $("#evidence-panel").hidden = true;
+    $("#result-scope-banner").hidden = true;
     renderEnergyChart([]);
     renderTable([]);
     renderSafety(checks, warnings);
@@ -740,11 +828,13 @@ async function runInference(payloadOverride = null) {
 
 function writeQuickTask() {
   const departure = $("#departure-input").value.replace("T", " ");
-  const hours = Number($("#adv-time").value || $("#time-input").value || 6);
+  const hours = Number($("#time-input").value || 6);
   const soc = Number($("#adv-soc").value || 85);
   const load = $("#adv-load").value;
   $("#time-input").value = hours;
+  $("#adv-time").value = hours;
   $("#mission-input").value = `从${$("#start-select").value}到${$("#end-select").value}，${departure}出发，SOC${soc}%，${load}，${hours}小时内到达`;
+  markResultStale();
 }
 
 async function loadHealth() {
@@ -774,6 +864,7 @@ async function restorePendingRun() {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "恢复失败");
     if (result.status === "awaiting_choice") {
+      if (result.request) syncCorrectionToTask(result.request);
       renderResult(result);
       $("#correction-feedback").textContent = "已恢复上次等待确认的任务。";
     } else {
@@ -786,14 +877,24 @@ async function restorePendingRun() {
 }
 
 function bindControls() {
-  $("#route-select").addEventListener("change", syncRouteNodes);
+  $("#segment-table-scroll").addEventListener("keydown", handleTableScrollKeydown);
+  $("#route-select").addEventListener("change", () => { syncRouteNodes(); markResultStale(); });
+  $("#mission-input").addEventListener("input", markResultStale);
+  ["#start-select", "#end-select", "#departure-input", "#adv-time", "#adv-soc", "#adv-load", "#correction-origin", "#correction-destination", "#correction-departure", "#correction-duration", "#correction-soc", "#correction-load"].forEach(selector => {
+    $(selector).addEventListener("input", markResultStale);
+    $(selector).addEventListener("change", markResultStale);
+  });
+  $("#time-input").addEventListener("input", () => { $("#adv-time").value = $("#time-input").value; markResultStale(); });
+  $("#adv-time").addEventListener("input", () => { $("#time-input").value = $("#adv-time").value; markResultStale(); });
   $("#time-minus").addEventListener("click", () => {
     $("#time-input").value = Math.max(0.5, Number($("#time-input").value || 6) - 0.5);
     $("#adv-time").value = $("#time-input").value;
+    markResultStale();
   });
   $("#time-plus").addEventListener("click", () => {
     $("#time-input").value = Math.min(72, Number($("#time-input").value || 6) + 0.5);
     $("#adv-time").value = $("#time-input").value;
+    markResultStale();
   });
   $("#quick-fill").addEventListener("click", writeQuickTask);
   $("#run-button").addEventListener("click", () => runInference());
@@ -819,7 +920,14 @@ function bindControls() {
     updateVesselView("idle");
   });
   document.querySelectorAll("[data-sample]").forEach(button => button.addEventListener("click", () => {
-    $("#mission-input").value = SAMPLES[button.dataset.sample];
+    const kind = button.dataset.sample;
+    $("#mission-input").value = sampleTask(kind);
+    $("#departure-input").value = localDateTime();
+    $("#adv-time").value = kind === "time" ? 1 : 6;
+    $("#time-input").value = $("#adv-time").value;
+    $("#adv-soc").value = kind === "soc" ? 31 : 85;
+    $("#adv-load").value = "半载";
+    markResultStale();
   }));
   $("#adjustment-options").addEventListener("click", event => {
     const button = event.target.closest("[data-option-index]");
@@ -836,6 +944,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   tickClock();
   setInterval(tickClock, 1000);
   syncRouteNodes();
+  initializeTaskDefaults();
   bindControls();
   refreshIcons();
   await loadHealth();
