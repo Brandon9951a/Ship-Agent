@@ -31,8 +31,11 @@ from ui.app import _result_from_state
 
 
 ROOT = Path(__file__).resolve().parent / "frontend"
+PROJECT_ROOT = ROOT.parents[1]
 STYLESHEET = ROOT / "app.css"
 BACKGROUND = ROOT / "vessel-ocean-background.jpg"
+RELEASE_PROFILE_PATH = PROJECT_ROOT / "configs" / "release_profile.json"
+DEMO_POLICY_PATH = PROJECT_ROOT / "configs" / "demo_policy.yaml"
 MAX_REQUEST_BYTES = 64 * 1024
 MAX_VOICE_REQUEST_BYTES = 96 * 1024
 MAX_VOICE_CHUNK_BYTES = 64 * 1024
@@ -52,6 +55,23 @@ STATIC_FILES = {
 ASSET_FILES = {
     "ship.glb": (ROOT / "assets" / "ship.glb", "model/gltf-binary"),
 }
+
+
+def _load_release_metadata() -> dict[str, Any]:
+    """Load the frozen web baseline and its adopted demo parameter profile."""
+    profile = json.loads(RELEASE_PROFILE_PATH.read_text(encoding="utf-8"))
+    policy = json.loads(DEMO_POLICY_PATH.read_text(encoding="utf-8"))
+    return {
+        **profile,
+        "parameter_approved_at": policy.get("approved_at"),
+        "effective_capacity_kwh": policy.get("battery", {}).get(
+            "total_effective_capacity_kwh"
+        ),
+        "soc_planning_min": policy.get("soc", {}).get("planning_min"),
+    }
+
+
+RELEASE_METADATA = _load_release_metadata()
 
 
 def _error(status_code: int, code: str) -> JSONResponse:
@@ -133,6 +153,7 @@ def create_app(
             "service": "ship-agent-web",
             "scope": "synthetic_demo",
             "real_ship_validation": False,
+            "release": RELEASE_METADATA,
             "llm_mode": app.state.llm_mode,
             "checkpoint_backend": app.state.workflow_runtime.checkpoint_backend,
             "checkpoint_ready": app.state.workflow_runtime.checkpoint_ready,

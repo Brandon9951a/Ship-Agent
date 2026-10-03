@@ -4,6 +4,10 @@
 
 当前版本用于软件演示和方法验证。工程数值来自确定性 Python 工具，大语言模型只参与任务理解确认和文字说明。所有结果均标记为 `synthetic_demo`，不代表实船安全认证、航道许可或运营批准。
 
+## 正式网站基线
+
+当前正式网站基线为 `ship-agent-render-release`。版本与参数标识记录在 `configs/release_profile.json`，页面和 `/healthz` 会显示同一份标识。当前采用 `synthetic_demo_user_override_2026-09-23` 参数档案；具体容量、SOC 规划下限及来源仍以 `configs/demo_policy.yaml` 和 `configs/limits.yaml` 为准。其他工作区中的 `Ship-Agent` 目录保留为原型基线，不应与本目录结果混用或直接比较。
+
 ## 核心流程
 
 ```text

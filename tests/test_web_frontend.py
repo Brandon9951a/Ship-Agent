@@ -33,7 +33,8 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     js = (ROOT / "app.js").read_text(encoding="utf-8")
     for label in (
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
-        "任务描述", "快捷输入", "工况补充", "航线与分段方案",
+        "正式网站基线 · 正在读取版本",
+        "任务描述", "快捷输入", "修改后自动同步到任务描述", "工况补充", "航线与分段方案",
         "航段能耗与速度", "仿真航速方案", "约束检查（软件演示）", "能量管理建议",
         "航次仿真摘要", "工具调用过程", "选择已验证方案后恢复并重算",
         "模型规划线固定，非实船安全核验", "确认修改并重新计算",
@@ -121,6 +122,17 @@ def test_index_health_static_and_security_headers():
         "speech_mode": "unconfigured",
         "checkpoint_backend": "memory",
         "checkpoint_ready": True,
+        "release": {
+            "baseline_id": "ship-agent-render-release",
+            "baseline_status": "official_web_baseline",
+            "app_version": "1.0.0",
+            "parameter_profile": "synthetic_demo_user_override_2026-09-23",
+            "parameter_source": "configs/demo_policy.yaml",
+            "scope": "software_demo_only",
+            "parameter_approved_at": "2026-09-23",
+            "effective_capacity_kwh": 1567.85,
+            "soc_planning_min": 0.20,
+        },
     }
 
 

@@ -6,6 +6,7 @@ const ROUTES = {
 const state = {
   trace: [], finalAnswer: "", running: false, lastResult: null,
   voice: null, recording: false, speechAvailable: false, resultStale: false,
+  inputRevision: 0, quickDirty: false, requestSequence: 0, activeRequest: null,
 };
 
 const OPTION_LABELS = {
@@ -143,6 +144,7 @@ function syncCorrectionToTask(payload) {
   syncRouteNodes();
   if ([...$("#start-select").options].some(option => option.value === payload.origin)) $("#start-select").value = payload.origin;
   if ([...$("#end-select").options].some(option => option.value === payload.destination)) $("#end-select").value = payload.destination;
+  state.quickDirty = false;
 }
 
 function syncRouteNodes() {
@@ -376,7 +378,17 @@ async function applyAdjustmentOption(index) {
     $("#correction-feedback").textContent = "当前任务没有可恢复的决策状态，请重新发起任务。";
     return;
   }
+  const threadId = state.lastResult.thread_id;
+  const requestId = ++state.requestSequence;
+  const submittedRevision = state.inputRevision;
+  const controller = typeof AbortController === "function"
+    ? new AbortController()
+    : { signal: undefined, abort() {} };
+  state.activeRequest = { id: requestId, controller };
+  const isCurrentRequest = () => state.activeRequest?.id === requestId;
   state.running = true;
+  $("#run-button").disabled = true;
+  $("#voice-button").disabled = true;
   document.querySelectorAll(".adjustment-option").forEach(item => { item.disabled = true; });
   if (button) button.querySelector("b").textContent = "正在恢复并重算";
   $("#correction-feedback").classList.remove("error");
@@ -388,24 +400,36 @@ async function applyAdjustmentOption(index) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        thread_id: state.lastResult.thread_id,
+        thread_id: threadId,
         decision_id: decision.decision_id,
         option_id: option.option_id,
       }),
+      signal: controller.signal,
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "恢复失败");
+    if (!isCurrentRequest()) return;
+    if (submittedRevision !== state.inputRevision) {
+      discardStaleResponse();
+      return;
+    }
     // Mirror the server-owned, verified modification into every task input.
     if (result.request) syncCorrectionToTask(result.request);
     renderResult(result);
   } catch (error) {
+    if (!isCurrentRequest() || error.name === "AbortError") return;
     $("#correction-feedback").classList.add("error");
     $("#correction-feedback").textContent = error.message === "workflow_not_awaiting_choice"
       ? "该决策已经处理或已过期，请刷新任务状态。"
       : `恢复失败：${error.message}`;
     renderAdjustmentOptions(state.lastResult?.adjustment_options || []);
   } finally {
-    state.running = false;
+    if (isCurrentRequest()) {
+      state.activeRequest = null;
+      state.running = false;
+      $("#run-button").disabled = false;
+      $("#voice-button").disabled = !state.speechAvailable;
+    }
   }
 }
 
@@ -537,7 +561,14 @@ function renderEvidence(result) {
 }
 
 function markResultStale() {
-  if (!state.lastResult || state.running) return;
+  state.inputRevision += 1;
+  if (state.running) {
+    state.resultStale = true;
+    $("#result-stale").hidden = false;
+    $("#result-stale").textContent = "输入已修改；当前计算结果不会覆盖新任务，请重新发送。";
+    return;
+  }
+  if (!state.lastResult) return;
   state.resultStale = true;
   $("#result-stale").hidden = false;
   $("#result-stale").textContent = state.lastResult.status === "awaiting_choice"
@@ -546,9 +577,21 @@ function markResultStale() {
   document.querySelectorAll(".adjustment-option[data-option-index]").forEach(button => { button.disabled = true; });
 }
 
+function discardStaleResponse() {
+  state.resultStale = true;
+  updateStatus("idle", "输入已修改");
+  $("#mission-title").textContent = "当前计算结果已忽略";
+  $("#mission-subtitle").textContent = "任务条件在计算期间发生变化，请重新发送当前任务。";
+  $("#result-stale").hidden = false;
+  $("#result-stale").textContent = "已忽略旧任务返回的结果；当前输入尚未计算。";
+  updateVesselView("idle", { message: "输入已修改，旧结果未应用" });
+}
+
 function initializeTaskDefaults() {
   $("#departure-input").value = localDateTime();
-  $("#mission-input").value = sampleTask("normal");
+  $("#start-select").value = "平顶山港";
+  $("#end-select").value = "军李船闸";
+  writeQuickTask({ markChanged: false });
 }
 
 function renderResult(result) {
@@ -791,11 +834,19 @@ async function runInference(payloadOverride = null) {
       $("#voice-copy").textContent = `语音结束异常：${error.message}`;
     }
   }
+  if (!payloadOverride && state.quickDirty && !writeQuickTask({ markChanged: false })) return;
   const message = $("#mission-input").value.trim();
   if ((!message && !payloadOverride) || state.running) {
     if (!message && !payloadOverride) $("#mission-input").focus();
     return;
   }
+  const requestId = ++state.requestSequence;
+  const submittedRevision = state.inputRevision;
+  const controller = typeof AbortController === "function"
+    ? new AbortController()
+    : { signal: undefined, abort() {} };
+  state.activeRequest = { id: requestId, controller };
+  const isCurrentRequest = () => state.activeRequest?.id === requestId;
   state.running = true;
   $("#run-button").disabled = true;
   $("#voice-button").disabled = true;
@@ -807,11 +858,18 @@ async function runInference(payloadOverride = null) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payloadOverride || { task_text: message }),
+      signal: controller.signal,
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "请求失败");
+    if (!isCurrentRequest()) return;
+    if (submittedRevision !== state.inputRevision) {
+      discardStaleResponse();
+      return;
+    }
     renderResult(result);
   } catch (error) {
+    if (!isCurrentRequest() || error.name === "AbortError") return;
     updateStatus("error", "计算失败");
     $("#mission-title").textContent = "任务执行失败";
     $("#mission-subtitle").textContent = error.message;
@@ -820,21 +878,73 @@ async function runInference(payloadOverride = null) {
     $("#reply-panel").hidden = false;
     updateVesselView("failed", { message: "计算失败，回放已停止" });
   } finally {
-    state.running = false;
-    $("#run-button").disabled = false;
-    $("#voice-button").disabled = !state.speechAvailable;
+    if (isCurrentRequest()) {
+      state.activeRequest = null;
+      state.running = false;
+      $("#run-button").disabled = false;
+      $("#voice-button").disabled = !state.speechAvailable;
+    }
   }
 }
 
-function writeQuickTask() {
-  const departure = $("#departure-input").value.replace("T", " ");
-  const hours = Number($("#time-input").value || 6);
-  const soc = Number($("#adv-soc").value || 85);
+function quickTaskError(message, selector) {
+  const error = new Error(message);
+  error.selector = selector;
+  throw error;
+}
+
+function writeQuickTask({ silent = false, markChanged = true } = {}) {
+  const origin = $("#start-select").value;
+  const destination = $("#end-select").value;
+  const departureValue = $("#departure-input").value;
+  const hoursValue = $("#time-input").value;
+  const socValue = $("#adv-soc").value;
   const load = $("#adv-load").value;
-  $("#time-input").value = hours;
-  $("#adv-time").value = hours;
-  $("#mission-input").value = `从${$("#start-select").value}到${$("#end-select").value}，${departure}出发，SOC${soc}%，${load}，${hours}小时内到达`;
+  try {
+    if (!origin) quickTaskError("请选择起点。", "#start-select");
+    if (!destination) quickTaskError("请选择终点。", "#end-select");
+    if (origin === destination) quickTaskError("起点和终点必须不同。", "#end-select");
+    if (!departureValue) quickTaskError("请填写出发时间。", "#departure-input");
+    if (hoursValue === "") quickTaskError("请填写限时。", "#time-input");
+    if (socValue === "") quickTaskError("请填写初始 SOC。", "#adv-soc");
+    if (!load) quickTaskError("请选择装载状态。", "#adv-load");
+    const hours = Number(hoursValue);
+    const soc = Number(socValue);
+    if (!Number.isFinite(hours) || hours < 0.5 || hours > 72) {
+      quickTaskError("限时必须在 0.5 到 72 小时之间。", "#time-input");
+    }
+    if (!Number.isFinite(soc) || soc < 0 || soc > 100) {
+      quickTaskError("初始 SOC 必须在 0% 到 100% 之间。", "#adv-soc");
+    }
+    const departure = departureValue.replace("T", " ");
+    $("#time-input").value = hours;
+    $("#adv-time").value = hours;
+    $("#mission-input").value = `从${origin}到${destination}，${departure}出发，SOC${soc}%，${load}，${hours}小时内到达`;
+    state.quickDirty = false;
+    if (markChanged) markResultStale();
+    return true;
+  } catch (error) {
+    state.quickDirty = true;
+    if (!silent) {
+      $("#mission-subtitle").textContent = error.message;
+      $(error.selector)?.focus();
+    }
+    return false;
+  }
+}
+
+function markQuickInputChanged() {
+  state.quickDirty = true;
+  writeQuickTask({ silent: true, markChanged: false });
   markResultStale();
+}
+
+function cancelActiveRequest() {
+  state.activeRequest?.controller.abort();
+  state.activeRequest = null;
+  state.running = false;
+  $("#run-button").disabled = false;
+  $("#voice-button").disabled = !state.speechAvailable;
 }
 
 async function loadHealth() {
@@ -842,12 +952,24 @@ async function loadHealth() {
     const health = await (await fetch("/healthz")).json();
     const enabled = health.llm_mode === "enabled";
     const speechEnabled = health.speech_mode === "iflytek_iat";
+    const release = health.release || {};
+    const version = release.app_version ? `v${release.app_version}` : "版本未知";
+    const profile = release.parameter_profile || "参数档案未知";
+    const parameterDate = release.parameter_approved_at || "日期未知";
+    $("#release-meta").textContent = `正式网站 · ${version} · 参数 ${parameterDate}`;
+    $("#release-meta").title = [
+      `基线：${release.baseline_id || "未知"}`,
+      `参数档案：${profile}`,
+      `有效容量：${formatNumber(release.effective_capacity_kwh, " kWh")}`,
+      `SOC 规划下限：${formatNumber(Number(release.soc_planning_min) * 100, "%")}`,
+    ].join("；");
     $("#model-label").textContent = enabled ? "DeepSeek API 已启用" : "DeepSeek 模板回退";
     $("#model-dot").className = enabled ? "status-dot" : "status-dot offline";
     state.speechAvailable = speechEnabled;
     $("#voice-button").disabled = !speechEnabled;
     $("#voice-copy").textContent = speechEnabled ? "点击麦克风语音输入" : "语音服务待配置";
   } catch (_error) {
+    $("#release-meta").textContent = "正式网站 · 版本信息暂不可用";
     $("#model-label").textContent = "本地决策引擎未连接";
     $("#model-dot").className = "status-dot offline";
     state.speechAvailable = false;
@@ -862,7 +984,15 @@ async function restorePendingRun() {
   try {
     const response = await fetch(`/api/runs/${encodeURIComponent(threadId)}`);
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || "恢复失败");
+    if (!response.ok) {
+      if (response.status === 400 || response.status === 404) {
+        localStorage.removeItem(ACTIVE_THREAD_KEY);
+        $("#mission-subtitle").textContent = "上次任务状态已失效，请重新发起任务。";
+      } else {
+        $("#mission-subtitle").textContent = "暂时无法恢复上次任务，恢复标识已保留；请稍后刷新重试。";
+      }
+      return;
+    }
     if (result.status === "awaiting_choice") {
       if (result.request) syncCorrectionToTask(result.request);
       renderResult(result);
@@ -871,30 +1001,33 @@ async function restorePendingRun() {
       localStorage.removeItem(ACTIVE_THREAD_KEY);
     }
   } catch (_error) {
-    localStorage.removeItem(ACTIVE_THREAD_KEY);
-    $("#mission-subtitle").textContent = "上次任务状态已失效，请重新发起任务。";
+    $("#mission-subtitle").textContent = "网络暂时不可用，恢复标识已保留；请稍后刷新重试。";
   }
 }
 
 function bindControls() {
   $("#segment-table-scroll").addEventListener("keydown", handleTableScrollKeydown);
-  $("#route-select").addEventListener("change", () => { syncRouteNodes(); markResultStale(); });
-  $("#mission-input").addEventListener("input", markResultStale);
-  ["#start-select", "#end-select", "#departure-input", "#adv-time", "#adv-soc", "#adv-load", "#correction-origin", "#correction-destination", "#correction-departure", "#correction-duration", "#correction-soc", "#correction-load"].forEach(selector => {
+  $("#route-select").addEventListener("change", () => { syncRouteNodes(); markQuickInputChanged(); });
+  $("#mission-input").addEventListener("input", () => { state.quickDirty = false; markResultStale(); });
+  ["#start-select", "#end-select", "#departure-input", "#adv-soc", "#adv-load"].forEach(selector => {
+    $(selector).addEventListener("input", markQuickInputChanged);
+    $(selector).addEventListener("change", markQuickInputChanged);
+  });
+  ["#correction-origin", "#correction-destination", "#correction-departure", "#correction-duration", "#correction-soc", "#correction-load"].forEach(selector => {
     $(selector).addEventListener("input", markResultStale);
     $(selector).addEventListener("change", markResultStale);
   });
-  $("#time-input").addEventListener("input", () => { $("#adv-time").value = $("#time-input").value; markResultStale(); });
-  $("#adv-time").addEventListener("input", () => { $("#time-input").value = $("#adv-time").value; markResultStale(); });
+  $("#time-input").addEventListener("input", () => { $("#adv-time").value = $("#time-input").value; markQuickInputChanged(); });
+  $("#adv-time").addEventListener("input", () => { $("#time-input").value = $("#adv-time").value; markQuickInputChanged(); });
   $("#time-minus").addEventListener("click", () => {
     $("#time-input").value = Math.max(0.5, Number($("#time-input").value || 6) - 0.5);
     $("#adv-time").value = $("#time-input").value;
-    markResultStale();
+    markQuickInputChanged();
   });
   $("#time-plus").addEventListener("click", () => {
     $("#time-input").value = Math.min(72, Number($("#time-input").value || 6) + 0.5);
     $("#adv-time").value = $("#time-input").value;
-    markResultStale();
+    markQuickInputChanged();
   });
   $("#quick-fill").addEventListener("click", writeQuickTask);
   $("#run-button").addEventListener("click", () => runInference());
@@ -903,6 +1036,7 @@ function bindControls() {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") runInference();
   });
   $("#clear-button").addEventListener("click", async () => {
+    cancelActiveRequest();
     if (state.recording) {
       try {
         await stopXfyunVoice();
@@ -911,6 +1045,8 @@ function bindControls() {
       }
     }
     $("#mission-input").value = "";
+    state.inputRevision += 1;
+    state.quickDirty = false;
     state.lastResult = null;
     localStorage.removeItem(ACTIVE_THREAD_KEY);
     resetResult();
@@ -921,13 +1057,16 @@ function bindControls() {
   });
   document.querySelectorAll("[data-sample]").forEach(button => button.addEventListener("click", () => {
     const kind = button.dataset.sample;
-    $("#mission-input").value = sampleTask(kind);
+    $("#route-select").value = "forward";
+    syncRouteNodes();
+    $("#start-select").value = "平顶山港";
+    $("#end-select").value = "军李船闸";
     $("#departure-input").value = localDateTime();
     $("#adv-time").value = kind === "time" ? 1 : 6;
     $("#time-input").value = $("#adv-time").value;
     $("#adv-soc").value = kind === "soc" ? 31 : 85;
     $("#adv-load").value = "半载";
-    markResultStale();
+    writeQuickTask();
   }));
   $("#adjustment-options").addEventListener("click", event => {
     const button = event.target.closest("[data-option-index]");
