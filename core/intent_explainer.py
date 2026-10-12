@@ -40,6 +40,7 @@ def build_task_understanding(
     labels = "、".join(recognised) if recognised else "尚未识别到完整任务字段"
     fallback = f"确定性解析器已识别：{labels}；缺失项将由校验器追问。"
     mode = "template_fallback"
+    call_status = "not_attempted"
     text = fallback
     if client is not None:
         result = client.complete_text(
@@ -51,12 +52,14 @@ def build_task_understanding(
             ),
             max_tokens=96,
         )
+        call_status = result.status
         if result.status == "ok" and result.text and not contains_engineering_value(result.text):
             text = result.text.strip()
             mode = "llm_qualitative"
     return {
         "status": "confirmed",
         "mode": mode,
+        "llm_call_status": call_status,
         "scope": "semantic_confirmation_only",
         "text": text,
         "recognised_fields": [

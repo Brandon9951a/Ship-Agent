@@ -28,8 +28,14 @@
       </header>
 
       <main class="workspace">
-        <aside class="mission-panel" aria-label="任务输入">
+        <aside class="mission-panel" aria-label="任务输入" tabindex="0">
           <div class="panel-kicker"><i data-lucide="navigation"></i> 航行任务</div>
+          <details class="history-panel" id="history-panel">
+            <summary><i data-lucide="history" aria-hidden="true"></i><span>历史对话</span><small id="history-count">0</small><i data-lucide="chevron-down" class="history-chevron" aria-hidden="true"></i></summary>
+            <div class="history-list" id="history-list"></div>
+            <p class="history-feedback" id="history-feedback" role="status"></p>
+            <p class="history-scope">仅保存在当前浏览器</p>
+          </details>
           <h2>创建决策任务</h2>
           <p class="panel-copy">输入航次条件，系统将运行五工具链并生成软件仿真结果，供演示和方法验证。</p>
 
@@ -42,30 +48,53 @@
             <button class="text-button" id="clear-button" type="button"><i data-lucide="rotate-ccw"></i> 重置</button>
           </div>
 
-          <button class="run-button" id="run-button" type="button"><i data-lucide="send"></i><span>发送任务</span></button>
+          <button class="run-button" id="run-button" type="button"><i data-lucide="send"></i><span>计算仿真方案</span></button>
+          <p class="model-availability" id="model-availability" role="status">正在确认大模型调用状态…</p>
 
-          <div class="route-form" aria-label="快捷输入">
-            <div class="section-label">快捷输入</div>
-            <p class="quick-note">修改后自动同步到任务描述；手工编辑任务描述时，以任务描述为准。</p>
-            <label><span>航线</span><select id="route-select"><option value="forward">平顶山港—周口港</option><option value="reverse">周口港—平顶山港</option></select></label>
-            <div class="route-pair">
-              <label><span>起点</span><select id="start-select"></select></label>
-              <i data-lucide="arrow-right" class="route-arrow" aria-hidden="true"></i>
-              <label><span>终点</span><select id="end-select"></select></label>
-            </div>
-            <label class="time-field"><span>限时</span><span class="stepper"><button id="time-minus" type="button" aria-label="减少限时">-</button><input id="time-input" type="number" min="0.5" max="72" value="6" step="0.5" /><button id="time-plus" type="button" aria-label="增加限时">+</button><em>h</em></span></label>
-            <button class="primary-button" id="quick-fill" type="button"><i data-lucide="wand-sparkles"></i> 写入任务描述</button>
-          </div>
+          <button class="quick-open" id="quick-open" type="button" aria-haspopup="dialog" aria-controls="quick-dialog">
+            <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+            <span><strong>快捷输入</strong><small>点击修改起终点、限时与工况条件</small></span>
+            <i data-lucide="chevron-right" aria-hidden="true"></i>
+          </button>
 
-          <details class="advanced-panel">
-            <summary><i data-lucide="sliders-horizontal"></i> 工况补充</summary>
-            <div class="advanced-grid">
-              <label><span>SOC (%)</span><input id="adv-soc" type="number" value="85" min="0" max="100" step="1" /></label>
-              <label><span>装载状态</span><select id="adv-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
-              <label><span>出发时间</span><input id="departure-input" type="datetime-local" /></label>
-              <label><span>时间窗口 (h)</span><input id="adv-time" type="number" value="6" min="0.5" max="72" step="0.5" /></label>
+          <dialog class="quick-dialog" id="quick-dialog" aria-labelledby="quick-dialog-title">
+            <div class="quick-dialog-header">
+              <div><span class="surface-kicker">QUICK EDIT</span><h2 id="quick-dialog-title">快捷修改航次条件</h2></div>
+              <button class="quick-close" id="quick-close" type="button" aria-label="关闭快捷修改弹窗"><i data-lucide="x"></i></button>
             </div>
-          </details>
+            <div class="route-form" aria-label="快捷输入">
+              <p class="quick-note">调整后点击“应用到任务描述”才会生效；直接编辑任务描述时，以描述内容计算。</p>
+              <div class="route-pair">
+                <label><span>起点</span><select id="start-select"></select></label>
+                <i data-lucide="arrow-right" class="route-arrow" aria-hidden="true"></i>
+                <label><span>终点</span><select id="end-select"></select></label>
+              </div>
+              <section class="quick-route-preview" aria-label="所选航段与距离" aria-live="polite">
+                <div class="quick-route-main">
+                  <div class="quick-route-heading"><strong>航段示意</strong><span id="quick-route-count"></span></div>
+                  <div class="quick-route-steps" id="quick-route-steps" tabindex="0" aria-label="航段横向示意，可左右滚动查看"></div>
+                </div>
+                <div class="quick-route-total">
+                  <span>总距离</span>
+                  <strong id="quick-route-distance">--</strong>
+                </div>
+              </section>
+              <p class="quick-route-source" id="quick-route-source"></p>
+              <label class="time-field"><span>限时</span><span class="stepper"><button id="time-minus" type="button" aria-label="减少限时">-</button><input id="time-input" type="number" min="0.5" max="72" value="6" step="0.001" /><button id="time-plus" type="button" aria-label="增加限时">+</button><em>h</em></span></label>
+              <div class="section-label condition-title">工况补充</div>
+              <div class="advanced-grid">
+                <label><span>SOC (%)</span><input id="adv-soc" type="number" value="85" min="0" max="100" step="1" /></label>
+                <label><span>装载状态</span><select id="adv-load"><option>半载</option><option>空载</option><option>满载</option></select></label>
+                <label><span>出发时间</span><input id="departure-input" type="datetime-local" /></label>
+                <label><span>优化目标</span><select id="optimization-goal"><option value="min_energy">最低总能耗</option><option value="min_time">最短航时</option></select></label>
+              </div>
+              <p class="quick-error" id="quick-error" role="alert"></p>
+              <div class="quick-dialog-actions">
+                <button class="quick-cancel" id="quick-cancel" type="button">取消</button>
+                <button class="primary-button" id="quick-fill" type="button"><i data-lucide="wand-sparkles"></i> 应用到任务描述</button>
+              </div>
+            </div>
+          </dialog>
 
           <div class="sample-block">
             <div class="section-label">示例航次</div>
@@ -79,12 +108,12 @@
           <p class="panel-copy">当前模型为 synthetic_demo 软件仿真。历史航行数据仅用于覆盖范围检查，尚未用于实船模型标定。</p>
         </aside>
 
-        <section class="decision-canvas" aria-live="polite">
+        <section class="decision-canvas" aria-label="仿真结果" aria-live="polite" tabindex="0">
           <section class="decision-heading">
             <div>
               <p class="eyebrow">MISSION STATUS</p>
               <h2 id="mission-title">等待航行任务</h2>
-              <p id="mission-subtitle">输入自然语言需求，或使用左侧快捷航线开始。</p>
+              <p id="mission-subtitle">输入自然语言需求，或打开左侧快捷输入。</p>
             </div>
             <div class="decision-status idle" id="decision-status"><span></span>待命</div>
           </section>
@@ -103,35 +132,33 @@
             <header><span class="infeasible-icon"><i data-lucide="circle-x"></i></span><div><span class="surface-kicker">VOYAGE ALERT</span><h3 id="infeasible-title">航次不可行</h3></div></header>
             <div class="infeasible-content">
               <div class="infeasible-block"><strong>原因分析</strong><p id="infeasible-reason"></p></div>
-              <div class="infeasible-block suggestion"><strong>可选调整</strong><p id="infeasible-suggestion"></p></div>
+              <div class="infeasible-block suggestion" id="infeasible-suggestion-block"><strong>可选调整</strong><p id="infeasible-suggestion"></p></div>
               <section class="correction-workbench" id="correction-workbench">
                 <div class="correction-heading">
-                  <div><span class="surface-kicker">VERIFIED ALTERNATIVES</span><h4 id="correction-title">选择已验证方案后恢复并重算</h4></div>
+                  <div><span class="surface-kicker" id="correction-kicker">VERIFIED ALTERNATIVES</span><h4 id="correction-title">选择已验证方案后恢复并重算</h4></div>
                   <span class="correction-lock" id="correction-lock"><i data-lucide="shield-check"></i> 模型规划线固定，非实船安全核验</span>
                 </div>
                 <div class="adjustment-options" id="adjustment-options"></div>
-                <p class="correction-form-heading" id="correction-form-heading" hidden>手动修改已知任务条件并重新计算仿真</p>
+                <details class="manual-correction" id="manual-correction">
+                  <summary>手动修改任务条件并重新计算</summary>
                 <div class="correction-grid" hidden>
                   <label><span>起点</span><select id="correction-origin"></select></label>
                   <label><span>终点</span><select id="correction-destination"></select></label>
                   <label><span>出发时间</span><input id="correction-departure" type="datetime-local" /></label>
-                  <label><span>最长航时 (h)</span><input id="correction-duration" type="number" min="0.01" max="120" step="0.01" /></label>
+                  <label><span>最长航时 (h)</span><input id="correction-duration" type="number" min="0.001" max="120" step="0.001" /></label>
                   <label><span>初始 SOC (%)</span><input id="correction-soc" type="number" min="0" max="100" step="0.1" /></label>
                   <label><span>装载状态</span><select id="correction-load"><option value="">请选择载况</option><option>半载</option><option>空载</option><option>满载</option></select></label>
+                  <label><span>优化目标</span><select id="correction-goal"><option value="min_energy">最低总能耗</option><option value="min_time">最短航时</option></select></label>
                 </div>
                 <p class="correction-note" id="correction-note">方案仅为软件仿真结果，不代表实船安全校验或运营批准。</p>
                 <div class="correction-actions" hidden>
                   <button class="secondary-action" id="sync-correction" type="button"><i data-lucide="file-pen-line"></i> 仅更新任务描述</button>
                   <button class="confirm-action" id="apply-correction" type="button"><i data-lucide="refresh-cw"></i> 确认修改并重新计算</button>
                 </div>
+                </details>
                 <p class="correction-feedback" id="correction-feedback" role="status"></p>
               </section>
             </div>
-          </section>
-
-          <section class="reply-panel" id="reply-panel" hidden>
-            <header><div><span class="surface-kicker">VOYAGE TIP</span><h3>智能航行提示</h3></div><span class="result-count" id="model-mode">等待更新</span></header>
-            <div id="reply-answer"></div>
           </section>
 
           <section class="kpi-grid" id="kpi-grid">
@@ -141,9 +168,30 @@
             <article class="kpi-card"><span class="kpi-label">到港 SOC</span><strong id="metric-soc">--</strong><small>系统有效容量口径</small></article>
           </section>
           <div class="result-scope-banner" id="result-scope-banner" role="note" hidden></div>
+          <section class="task-review" id="task-review" aria-label="本次计算采用的任务条件" hidden></section>
+          <div class="result-actions" id="result-actions" hidden>
+            <button id="save-plan" type="button">保存此方案</button>
+            <button id="copy-task" type="button">复制为新任务</button>
+            <span id="saved-feedback" role="status"></span>
+          </div>
+          <section class="plan-comparison surface" id="plan-comparison" hidden>
+            <header class="surface-header"><div><span class="surface-kicker">PLAN COMPARISON</span><h3>同一条件下的目标对比</h3></div><span class="result-count">离散候选预览</span></header>
+            <p class="comparison-note">候选采用同一演示模型、航时、功率和 SOC 预算筛选；选用后会重新运行完整工具链。</p>
+            <div class="comparison-options" id="comparison-options"></div>
+          </section>
+          <section class="reply-panel" id="reply-panel" hidden>
+            <header><div><span class="surface-kicker">VOYAGE TIP</span><h3>智能航行提示</h3></div><span class="result-count" id="model-mode">等待更新</span></header>
+            <div id="reply-answer"></div>
+          </section>
           <details class="surface evidence-panel" id="evidence-panel" hidden>
             <summary><span>计算口径与数据依据</span><span>模型、来源、假设与未知项</span></summary>
             <div id="evidence-content"></div>
+          </details>
+          <details class="saved-plans" id="saved-plans">
+            <summary>已保存的方案 <span id="saved-count">0</span></summary>
+            <p>方案快照仅保存在当前浏览器。复用时会以保存的条件重新计算。</p>
+            <p id="saved-open-feedback" role="status"></p>
+            <div id="saved-plan-list"></div>
           </details>
 
           <section class="analysis-grid">
@@ -154,8 +202,15 @@
             </article>
 
             <article class="surface energy-surface">
-              <header class="surface-header"><div><span class="surface-kicker">ENERGY PROFILE</span><h3>航段能耗与速度</h3></div><span class="legend"><b></b> 推荐能耗</span></header>
+              <header class="surface-header"><div><span class="surface-kicker">ENERGY PROFILE</span><h3>航段能耗与速度</h3></div><span class="legend"><b></b> 推进能耗</span></header>
               <div class="energy-chart" id="energy-chart"><div class="empty-inline"><i data-lucide="chart-no-axes-combined"></i><span>优化完成后显示分段对比</span></div></div>
+              <div class="energy-breakdown" id="energy-breakdown" aria-label="预计总能耗组成" hidden>
+                <span>推进 <strong id="energy-propulsion">--</strong></span>
+                <span aria-hidden="true">+</span>
+                <span>辅助负载 <strong id="energy-auxiliary">--</strong></span>
+                <span aria-hidden="true">=</span>
+                <span>总能耗 <strong id="energy-total">--</strong></span>
+              </div>
             </article>
           </section>
 

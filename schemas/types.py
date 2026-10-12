@@ -81,6 +81,7 @@ class VoyageRequest(SchemaModel):
     load_state: str | None = None
     draft_m: float | None = None
     environment: dict[str, ParameterValue] = field(default_factory=dict)
+    optimization_goal: Literal["min_energy", "min_time"] = "min_energy"
 
 
 @dataclass(frozen=True)

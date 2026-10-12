@@ -212,7 +212,9 @@ def run_tspeed(request: VoyageRequest, segments: list[Segment],
         if current_time and current_soc:
             feasible.append((required, duration, tuple(item.speed_kmh for item in choices),
                              energy, choices))
-    description = (f"有限候选网格穷举{combinations}种组合；按总能耗、总耗时、航速序列排序；"
+    goal = request.optimization_goal
+    description = (f"有限候选网格穷举{combinations}种组合；"
+                   f"按{'总耗时、总能耗' if goal == 'min_time' else '总能耗、总耗时'}、航速序列排序；"
                    "仅保证所给离散网格内最优。")
     if not feasible:
         if time_pass and not soc_pass:
@@ -222,7 +224,11 @@ def run_tspeed(request: VoyageRequest, segments: list[Segment],
         else:
             kind, reason = InfeasibleType.COMBINED, "候选网格内时间与SOC约束无法同时满足。"
         return _infeasible(kind, reason, scope, description, assumptions)
-    _, duration, _, energy, selected = min(feasible, key=lambda item: item[:3])
+    _, duration, _, energy, selected = min(
+        feasible,
+        key=(lambda item: (item[1], item[0], item[2])) if goal == "min_time"
+        else (lambda item: item[:3]),
+    )
     eta = (departure + timedelta(hours=duration)).isoformat() if departure else None
     checks = [
         ConstraintCheck("time", True, duration, time_limit, "h",

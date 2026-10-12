@@ -1,12 +1,12 @@
-const ROUTES = {
-  forward: ["平顶山港", "军李船闸", "马湾船闸", "漯河船闸", "漯河港", "大路李船闸", "葫芦湾船闸", "周口船闸", "周口港"],
-  reverse: ["周口港", "周口船闸", "葫芦湾船闸", "大路李船闸", "漯河港", "漯河船闸", "马湾船闸", "军李船闸", "平顶山港"],
-};
+const ALL_ROUTE_NODES = ["平顶山港", "军李船闸", "马湾船闸", "漯河船闸", "漯河港", "大路李船闸", "葫芦湾船闸", "周口船闸", "周口港"];
+// 与 configs/route_facts.yaml 一致；来源：豫交投001港、闸之间距离情况.pptx，第 1–9 页。
+const ROUTE_SEGMENT_METERS = [25500, 25000, 44100, 689, 22600, 24900, 27400, 19600];
 
 const state = {
   trace: [], finalAnswer: "", running: false, lastResult: null,
   voice: null, recording: false, speechAvailable: false, resultStale: false,
   inputRevision: 0, quickDirty: false, requestSequence: 0, activeRequest: null,
+  llmMode: "unknown",
 };
 
 const OPTION_LABELS = {
@@ -17,8 +17,17 @@ const OPTION_LABELS = {
   shorten_route: "缩短航线",
   give_up: "放弃任务",
 };
+const MISSING_FIELD_LABELS = {
+  origin: "起点", destination: "终点", departure_at: "出发时间",
+  soc_initial: "初始 SOC", load_state_or_draft_m: "载况或吃水",
+  arrival_deadline_or_max_duration_h: "到达约束或最长航时",
+};
 const ACTIVE_THREAD_KEY = "ship-agent.active-thread";
-const ALL_ROUTE_NODES = [...new Set(ROUTES.forward)];
+const ACTIVE_TASK_TEXT_KEY = "ship-agent.active-task-text";
+const ACTIVE_REQUEST_KEY = "ship-agent.active-request";
+const SAVED_PLANS_KEY = "ship-agent.saved-plans";
+const HISTORY_KEY = "ship-agent.conversation-history";
+const HISTORY_MAX_CHARS = 1500000;
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
@@ -44,6 +53,12 @@ function formatEta(value) {
   if (!value) return "--";
   const text = String(value).replace("T", " ");
   return text.length >= 16 ? text.slice(0, 16) : text;
+}
+
+function formatHours(value) {
+  if (value === undefined || value === null || value === "") return "--";
+  const number = Number(value);
+  return Number.isFinite(number) ? `${Number(number.toFixed(3))} h` : "--";
 }
 
 function localDateTime(daysAhead = 1) {
@@ -95,6 +110,7 @@ function fillCorrectionForm(request = {}) {
   $("#correction-duration").value = request.max_duration_h ?? "";
   $("#correction-soc").value = request.soc_initial == null ? "" : Number(request.soc_initial) * 100;
   $("#correction-load").value = request.load_state || "";
+  $("#correction-goal").value = request.optimization_goal || "min_energy";
 }
 
 function readCorrectionPayload() {
@@ -124,33 +140,91 @@ function readCorrectionPayload() {
     load_state: loadState,
     draft_m: prior.load_state === loadState ? prior.draft_m ?? null : null,
     environment: prior.environment || {},
+    optimization_goal: $("#correction-goal").value,
   };
 }
 
-function syncCorrectionToTask(payload) {
+function syncCorrectionToTask(payload, { rewriteDescription = true } = {}) {
   const departure = localDateTimeValue(payload.departure_at).replace("T", " ");
   const soc = Number(payload.soc_initial) * 100;
   const socText = String(Number(soc.toFixed(1)));
   const durationText = String(Math.ceil(Number(payload.max_duration_h) * 1000) / 1000);
-  $("#mission-input").value = `从${payload.origin}到${payload.destination}，${departure}出发，SOC${socText}%，${payload.load_state}，${durationText}小时内到达`;
+  const goalText = payload.optimization_goal === "min_time" ? "，优先最短航时" : "";
+  if (rewriteDescription) $("#mission-input").value = `从${payload.origin}到${payload.destination}，${departure}出发，SOC${socText}%，${payload.load_state}，${durationText}小时内到达${goalText}`;
   $("#departure-input").value = localDateTimeValue(payload.departure_at);
-  $("#adv-time").value = payload.max_duration_h;
   $("#time-input").value = payload.max_duration_h;
   $("#adv-soc").value = Number(soc.toFixed(1));
   $("#adv-load").value = payload.load_state;
-  const originIndex = ALL_ROUTE_NODES.indexOf(payload.origin);
-  const destinationIndex = ALL_ROUTE_NODES.indexOf(payload.destination);
-  $("#route-select").value = originIndex <= destinationIndex ? "forward" : "reverse";
-  syncRouteNodes();
-  if ([...$("#start-select").options].some(option => option.value === payload.origin)) $("#start-select").value = payload.origin;
-  if ([...$("#end-select").options].some(option => option.value === payload.destination)) $("#end-select").value = payload.destination;
+  $("#optimization-goal").value = payload.optimization_goal || "min_energy";
+  $("#start-select").value = ALL_ROUTE_NODES.includes(payload.origin) ? payload.origin : "";
+  $("#end-select").value = ALL_ROUTE_NODES.includes(payload.destination) ? payload.destination : "";
+  renderQuickRoutePreview();
   state.quickDirty = false;
 }
 
-function syncRouteNodes() {
-  const nodes = ROUTES[$("#route-select").value] || ROUTES.forward;
-  populateSelect($("#start-select"), nodes, nodes[0]);
-  populateSelect($("#end-select"), nodes, nodes.at(-1));
+function requestCompleteForForm(request) {
+  return Boolean(request?.origin && request?.destination && request?.departure_at &&
+    request.max_duration_h != null && request.soc_initial != null && request.load_state);
+}
+
+function syncPartialRequestToInputs(request = {}) {
+  $("#start-select").value = ALL_ROUTE_NODES.includes(request.origin) ? request.origin : "";
+  $("#end-select").value = ALL_ROUTE_NODES.includes(request.destination) ? request.destination : "";
+  renderQuickRoutePreview();
+  $("#departure-input").value = localDateTimeValue(request.departure_at);
+  $("#time-input").value = request.max_duration_h ?? "";
+  $("#adv-soc").value = request.soc_initial == null ? "" : Number((request.soc_initial * 100).toFixed(1));
+  $("#adv-load").value = request.load_state || "";
+  $("#optimization-goal").value = request.optimization_goal || "min_energy";
+  state.quickDirty = false;
+}
+
+function initializeQuickRouteNodes() {
+  populateSelect($("#start-select"), ALL_ROUTE_NODES, ALL_ROUTE_NODES[0], "请选择起点");
+  populateSelect($("#end-select"), ALL_ROUTE_NODES, ALL_ROUTE_NODES.at(-1), "请选择终点");
+}
+
+function formatRouteKilometers(meters) {
+  return `${Number((meters / 1000).toFixed(3))} km`;
+}
+
+function renderQuickRoutePreview() {
+  const startIndex = ALL_ROUTE_NODES.indexOf($("#start-select").value);
+  const endIndex = ALL_ROUTE_NODES.indexOf($("#end-select").value);
+  const steps = $("#quick-route-steps");
+  const count = $("#quick-route-count");
+  const distance = $("#quick-route-distance");
+  const source = $("#quick-route-source");
+  if (startIndex < 0 || endIndex < 0 || startIndex === endIndex) {
+    steps.textContent = startIndex === endIndex && startIndex >= 0
+      ? "起点和终点不能相同。" : "选择起点和终点后显示完整航段。";
+    count.textContent = "";
+    distance.textContent = "--";
+    source.textContent = "";
+    return;
+  }
+
+  const direction = startIndex < endIndex ? 1 : -1;
+  const nodeIndexes = [];
+  for (let index = startIndex; ; index += direction) {
+    nodeIndexes.push(index);
+    if (index === endIndex) break;
+  }
+  let totalMeters = 0;
+  steps.innerHTML = nodeIndexes.map((index, position) => {
+    const label = position === 0 ? "起点" : position === nodeIndexes.length - 1 ? "终点" : "";
+    const node = `<div class="quick-route-node"><span class="quick-route-dot" aria-hidden="true"></span><strong>${escapeHtml(ALL_ROUTE_NODES[index])}</strong><small>${label}</small></div>`;
+    if (position === nodeIndexes.length - 1) return node;
+    const legMeters = ROUTE_SEGMENT_METERS[Math.min(index, nodeIndexes[position + 1])];
+    totalMeters += legMeters;
+    const legLabel = legMeters < 1000 ? `${legMeters} m` : formatRouteKilometers(legMeters);
+    return `${node}<div class="quick-route-leg"><span>${legLabel}</span></div>`;
+  }).join("");
+  count.textContent = `${nodeIndexes.length} 个节点 · ${nodeIndexes.length - 1} 个航段`;
+  distance.textContent = formatRouteKilometers(totalMeters);
+  source.textContent = direction < 0
+    ? "距离来源：豫交投001港、闸之间距离情况（第 1–9 页）。返程沿用相同航段距离，逆向通航条件尚未确认。"
+    : "距离来源：豫交投001港、闸之间距离情况（第 1–9 页）。仅为资料距离，不包含船闸等待。";
 }
 
 function renderProgress(trace = [], running = false) {
@@ -221,18 +295,29 @@ function renderRoute(segments, routeId = "航线待识别") {
   refreshIcons();
 }
 
-function renderEnergyChart(segments) {
+function renderEnergyChart(segments, summary = {}) {
   if (!segments.length) {
     $("#energy-chart").innerHTML = '<div class="empty-inline"><i data-lucide="chart-no-axes-combined"></i><span>优化完成后显示分段对比</span></div>';
+    $("#energy-breakdown").hidden = true;
     refreshIcons();
     return;
   }
   const maxEnergy = Math.max(...segments.map(segment => Number(segment.energy_kwh) || 0), 1);
-  $(".energy-surface .legend").innerHTML = '<span class="legend-energy"></span> 推荐能耗 <span class="legend-speed"></span> 对地航速';
+  $(".energy-surface .legend").innerHTML = '<span class="legend-energy"></span> 推进能耗 <span class="legend-speed"></span> 对地航速';
   $("#energy-chart").innerHTML = `<div class="bar-chart" style="--count:${segments.length}">${segments.map(segment => {
-    const height = Math.max(8, ((Number(segment.energy_kwh) || 0) / maxEnergy) * 100);
-    return `<div class="bar-group"><span class="bar-metrics"><span class="bar-speed-value">${formatNumber(segment.speed_kmh, " km/h", 2)}</span><span class="bar-value">${formatNumber(segment.energy_kwh, " kWh")}</span></span><div class="bar" style="height:${height}%"></div><span class="bar-label">${escapeHtml(segment.route)}</span></div>`;
+    const height = Math.max(0, ((Number(segment.energy_kwh) || 0) / maxEnergy) * 100);
+    return `<div class="bar-group"><span class="bar-metrics"><span class="bar-speed-value">${formatNumber(segment.speed_kmh, " km/h", 2)}</span><span class="bar-value">${formatNumber(segment.energy_kwh, " kWh")}</span></span><div class="bar-track"><div class="bar" style="height:${height}%"></div></div><span class="bar-label" title="${escapeHtml(segment.route)}">${escapeHtml(segment.route)}</span></div>`;
   }).join("")}</div>`;
+  const breakdown = $("#energy-breakdown");
+  const propulsion = summary.propulsion_energy?.value;
+  const auxiliary = summary.auxiliary_energy?.value;
+  const total = summary.required_energy?.value;
+  breakdown.hidden = propulsion == null || auxiliary == null || total == null;
+  if (!breakdown.hidden) {
+    $("#energy-propulsion").textContent = formatNumber(propulsion, " kWh");
+    $("#energy-auxiliary").textContent = formatNumber(auxiliary, " kWh");
+    $("#energy-total").textContent = formatNumber(total, " kWh");
+  }
 }
 
 function renderTable(segments) {
@@ -241,7 +326,7 @@ function renderTable(segments) {
     <td>${escapeHtml(segment.route)}</td>
     <td>${escapeHtml(formatNumber(segment.distance_km, " km"))}</td>
     <td>${escapeHtml(formatNumber(segment.speed_kmh, " km/h", 3))}</td>
-    <td>${escapeHtml(formatNumber(segment.duration_h, " h", 2))}</td>
+    <td>${escapeHtml(formatHours(segment.duration_h))}</td>
     <td>${escapeHtml(formatNumber(segment.energy_kwh, " kWh"))}</td>
   </tr>`).join("") : '<tr class="placeholder-row"><td colspan="5">等待航速优化结果</td></tr>';
 }
@@ -251,6 +336,7 @@ const CHECK_LABELS = { time: "航时约束", speed: "航速范围", power: "推�
 function checkValue(value, unit) {
   if (value == null) return "--";
   if (unit === "fraction") return formatNumber(Number(value) * 100, "%");
+  if (unit === "h") return formatHours(value);
   return `${formatNumber(value, "", 2)}${unit ? ` ${unit}` : ""}`;
 }
 
@@ -296,7 +382,7 @@ function managementAdvice(result) {
 function renderRecommendations(result) {
   const options = result.status === "awaiting_choice" ? (result.adjustment_options || []) : [];
   if (options.length) {
-    $("#recommendation-list").innerHTML = options.map(option => `<div class="recommendation info">${escapeHtml(option.label || option)}</div>`).join("");
+    $("#recommendation-list").innerHTML = '<div class="empty-inline">请先在上方选择调整方案；确认后更新能量管理建议。</div>';
     return;
   }
   const messages = managementAdvice(result);
@@ -331,8 +417,6 @@ function renderModel(result) {
   $("#model-mode").textContent = llmUsed ? "AI 提示已更新" : "系统提示";
   $("#reply-answer").textContent = explanation;
   $("#reply-panel").hidden = false;
-  $("#model-label").textContent = llmUsed ? "DeepSeek 实际调用完成" : "DeepSeek 回退模式";
-  $("#model-dot").className = llmUsed ? "status-dot" : "status-dot offline";
 }
 
 function optionAction(option) {
@@ -344,7 +428,7 @@ function optionAction(option) {
 
 function renderAdjustmentOptions(options) {
   if (!options.length) {
-    $("#adjustment-options").innerHTML = '<div class="adjustment-option"><span>请直接修改下方任务参数<small>补齐或更正输入后，重新经过五工具链校验。</small></span><b>人工修正</b></div>';
+    $("#adjustment-options").innerHTML = "";
     return;
   }
   $("#adjustment-options").innerHTML = options.map((option, index) => {
@@ -416,6 +500,7 @@ async function applyAdjustmentOption(index) {
     // Mirror the server-owned, verified modification into every task input.
     if (result.request) syncCorrectionToTask(result.request);
     renderResult(result);
+    rememberHistoryResult(result, $("#mission-input").value);
   } catch (error) {
     if (!isCurrentRequest() || error.name === "AbortError") return;
     $("#correction-feedback").classList.add("error");
@@ -459,11 +544,14 @@ function showInfeasible(result) {
   const infeasible = result.status === "infeasible";
   const awaiting = result.status === "awaiting_choice";
   $("#infeasible-title").textContent = awaiting ? "当前输入条件不满足，等待选择" : infeasible ? "当前输入条件不可行" : "任务需要补充或修正";
-  $("#infeasible-reason").textContent = failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成仿真方案。";
+  const missing = (result.missing_fields || []).map(field => MISSING_FIELD_LABELS[field] || field);
+  if (!result.request?.departure_at && !missing.includes("出发时间")) missing.push("出发时间");
+  $("#infeasible-reason").textContent = !awaiting && !infeasible && missing.length
+    ? `请补齐：${missing.join("、")}。`
+    : failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成仿真方案。";
   const options = awaiting ? (result.adjustment_options || []) : [];
-  $("#infeasible-suggestion").textContent = options.length
-    ? options.map((option, index) => `${index + 1}. ${option.label || option}`).join("\n")
-    : result.replan_limit_reached
+  $("#infeasible-suggestion-block").hidden = Boolean(options.length || missing.length);
+  $("#infeasible-suggestion").textContent = result.replan_limit_reached
       ? "已达到两轮调整上限，请重新发起任务。"
       : (result.questions || []).join("\n") || result.final_message || "请补充所需参数后重新计算。";
   fillCorrectionForm(result.request || {});
@@ -471,7 +559,8 @@ function showInfeasible(result) {
   const round = result.decision?.round || Math.min((result.replan_count || 0) + 1, result.max_replans || 2);
   $("#correction-title").textContent = awaiting
     ? `等待选择 · 第 ${round}/${result.max_replans || 2} 轮`
-    : result.replan_limit_reached ? "已达到调整上限" : "选用已复算方案或补充任务字段";
+    : result.replan_limit_reached ? "已达到调整上限" : "补齐任务条件后重新计算";
+  $("#correction-kicker").textContent = awaiting ? "VERIFIED ALTERNATIVES" : "TASK CORRECTION";
   $("#correction-lock").innerHTML = awaiting
     ? '<i data-lucide="database-zap"></i> 演示任务状态已保存'
     : '<i data-lucide="shield-check"></i> 模型规划线固定，非实船安全核验';
@@ -482,7 +571,7 @@ function showInfeasible(result) {
       : "请只填写本次任务已知的信息；缺失字段保持空白。提交后将按演示模型重新计算。";
   $(".correction-grid").hidden = false;
   $(".correction-actions").hidden = false;
-  $("#correction-form-heading").hidden = false;
+  $("#manual-correction").open = !awaiting;
   $("#correction-feedback").classList.remove("error");
   $("#correction-feedback").textContent = awaiting ? "任务状态已保存，可关闭页面后继续。" : "";
   $("#infeasible-alert").hidden = false;
@@ -495,10 +584,17 @@ function resetResult() {
   $("#result-stale").hidden = true;
   $("#result-scope-banner").hidden = true;
   $("#evidence-panel").hidden = true;
+  $("#task-review").hidden = true;
+  $("#plan-comparison").hidden = true;
+  $("#result-actions").hidden = true;
   state.trace = [];
   state.finalAnswer = "";
   $("#mission-title").textContent = "正在准备决策任务";
-  $("#mission-subtitle").textContent = "正在连接 LangGraph 五工具链并调用 DeepSeek。";
+  $("#mission-subtitle").textContent = state.llmMode === "enabled"
+    ? "五工具链正在计算，系统将尝试调用大模型；实际调用状态见本次结果。"
+    : state.llmMode === "unknown"
+      ? "五工具链正在计算；模型状态尚未确认，实际调用状态见本次结果。"
+      : "五工具链正在计算；大模型未启用，本次不会调用 DeepSeek API。";
   ["#metric-energy", "#metric-time", "#metric-eta", "#metric-soc"].forEach(id => { $(id).textContent = "--"; });
   $("#route-chip").textContent = "推理中";
   renderRoute([]);
@@ -521,7 +617,7 @@ function operatorSummary(result, route, summary) {
     const destination = route.at(-1)?.destination || result.request?.destination || "终点";
     const lines = [
       `软件仿真：${origin} → ${destination}`,
-      `计划耗时：${formatNumber(summary.total_duration?.value, " h", 2)}`,
+      `计划耗时：${formatHours(summary.total_duration?.value)}`,
       `预计到达：${formatEta(summary.eta?.value)}`,
       `预计总能耗：${formatNumber(summary.required_energy?.value, " kWh")}`,
       `预计到港电量：${formatNumber((summary.soc_final?.value ?? 0) * 100, "%")}`,
@@ -530,7 +626,11 @@ function operatorSummary(result, route, summary) {
     return lines.join("\n");
   }
   const failedRecord = result[result.failed_tool?.toLowerCase()] || result.tspeed || {};
-  const reason = failedRecord.reason || failedRecord.payload?.reason || (result.questions || []).join("；") || "当前任务信息不完整。";
+  const missing = (result.missing_fields || []).map(field => MISSING_FIELD_LABELS[field] || field);
+  if (!result.request?.departure_at && !missing.includes("出发时间")) missing.push("出发时间");
+  const reason = missing.length && result.status !== "awaiting_choice" && result.status !== "infeasible"
+    ? `缺少${missing.join("、")}。`
+    : failedRecord.reason || failedRecord.payload?.reason || (result.questions || []).join("；") || "当前任务信息不完整。";
   const options = (result.adjustment_options || []).map((item, index) => `${index + 1}. ${item.label || item}`);
   return [`任务未生成航行方案。`, `原因：${reason}`, ...options].join("\n");
 }
@@ -560,12 +660,290 @@ function renderEvidence(result) {
   $("#evidence-panel").hidden = false;
 }
 
+function renderTaskReview(request) {
+  const values = [
+    ["航线", `${request.origin || "未识别"} → ${request.destination || "未识别"}`],
+    ["出发", formatEta(request.departure_at)],
+    ["限时", request.max_duration_h == null ? "未设置" : formatHours(request.max_duration_h)],
+    ["初始 SOC", request.soc_initial == null ? "未识别" : formatNumber(request.soc_initial * 100, "%")],
+    ["载况", request.load_state || "未识别"],
+    ["目标", request.optimization_goal === "min_time" ? "最短航时" : "最低总能耗"],
+  ];
+  $("#task-review").innerHTML = `<h3>本次计算采用的条件</h3><dl>${values.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>`;
+  $("#task-review").hidden = false;
+}
+
+function renderPlanComparison(result) {
+  const plans = result.plan_alternatives || [];
+  if (plans.length !== 2) {
+    $("#plan-comparison").hidden = true;
+    return;
+  }
+  const selected = result.request?.optimization_goal || "min_energy";
+  const same = plans[0].duration_h === plans[1].duration_h &&
+    plans[0].required_energy_kwh === plans[1].required_energy_kwh &&
+    JSON.stringify(plans[0].speeds_kmh) === JSON.stringify(plans[1].speeds_kmh);
+  $("#plan-comparison .comparison-note").textContent = same
+    ? "当前约束下，两种目标对应同一离散候选方案；切换目标仍会重新运行完整工具链。"
+    : "候选采用同一演示模型、航时、功率和 SOC 预算筛选；选用后会重新运行完整工具链。";
+  $("#comparison-options").innerHTML = plans.map(plan => {
+    const active = plan.goal === selected;
+    const title = plan.goal === "min_time" ? "最短航时" : "最低总能耗";
+    return `<article class="comparison-card${active ? " selected" : ""}">
+      <header><strong>${title}</strong><span>${active ? "当前目标" : "候选预览"}</span></header>
+      <dl><div><dt>计划耗时</dt><dd>${formatHours(plan.duration_h)}</dd></div>
+      <div><dt>预计总能耗</dt><dd>${formatNumber(plan.required_energy_kwh, " kWh")}</dd></div>
+      <div><dt>预计到港 SOC</dt><dd>${formatNumber(plan.soc_final == null ? null : plan.soc_final * 100, "%")}</dd></div></dl>
+      <p>航段航速：${(plan.speeds_kmh || []).map(speed => formatNumber(speed, " km/h")).join(" · ")}</p>
+      ${active ? "" : `<button type="button" data-plan-goal="${plan.goal}">按此目标完整重算</button>`}
+    </article>`;
+  }).join("");
+  $("#comparison-options").classList.toggle("same-plan", same);
+  $("#plan-comparison").hidden = false;
+}
+
+function historyEntries() {
+  try {
+    const items = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    return Array.isArray(items)
+      ? items.filter(item => item && typeof item.threadId === "string" && item.threadId)
+        .sort((a, b) => Date.parse(b.updatedAt || b.createdAt) - Date.parse(a.updatedAt || a.createdAt))
+      : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function historyDateKey(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "unknown";
+  const pad = part => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function historyDateLabel(key) {
+  if (key === "unknown") return "日期未知";
+  const today = historyDateKey(new Date());
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dateText = key.replaceAll("-", "/");
+  if (key === today) return `今天 · ${dateText}`;
+  if (key === historyDateKey(yesterday)) return `昨天 · ${dateText}`;
+  return dateText;
+}
+
+function historyTitle(result, taskText) {
+  const request = result.request || {};
+  if (request.origin && request.destination) return `${request.origin} → ${request.destination}`;
+  return taskText.replace(/\s+/g, " ").trim().slice(0, 36) || "未命名任务";
+}
+
+function renderHistory() {
+  const items = historyEntries();
+  $("#history-count").textContent = String(items.length);
+  if (!items.length) {
+    $("#history-list").innerHTML = '<p class="history-empty">还没有历史对话。完成一次计算后会自动保存。</p>';
+    return;
+  }
+  let lastDate = "";
+  $("#history-list").innerHTML = items.map(item => {
+    const date = historyDateKey(item.updatedAt || item.createdAt);
+    const heading = date === lastDate ? "" : `<div class="history-date">${escapeHtml(historyDateLabel(date))}</div>`;
+    lastDate = date;
+    const time = new Date(item.updatedAt || item.createdAt);
+    const timeText = Number.isNaN(time.getTime()) ? "--:--" : time.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
+    const statusText = { ok: "方案已生成", awaiting_choice: "等待确认", infeasible: "不可行", need_clarification: "需补充", failed: "失败" }[item.status] || "已记录";
+    const active = state.lastResult?.thread_id === item.threadId ? " active" : "";
+    return `${heading}<button class="history-entry${active}" type="button" data-history-id="${escapeHtml(item.threadId)}" title="${escapeHtml(item.title || "未命名任务")}"><strong>${escapeHtml(item.title || "未命名任务")}</strong><span><time>${escapeHtml(timeText)}</time><small>${escapeHtml(statusText)}</small></span></button>`;
+  }).join("");
+}
+
+function persistHistory(items) {
+  const limited = items.slice(0, 30);
+  for (let count = limited.length; count > 0; count -= 1) {
+    try {
+      const serialized = JSON.stringify(limited.slice(0, count));
+      if (serialized.length > HISTORY_MAX_CHARS) continue;
+      localStorage.setItem(HISTORY_KEY, serialized);
+      return true;
+    } catch (_error) {
+      // Keep the most recent records when browser storage is nearly full.
+    }
+  }
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify([{ ...limited[0], result: null }]));
+    return true;
+  } catch (_error) {
+    return false;
+  }
+}
+
+function rememberHistoryResult(result, taskText, { touch = true } = {}) {
+  if (!result?.thread_id) return;
+  const items = historyEntries();
+  const previous = items.find(item => item.threadId === result.thread_id);
+  const now = new Date().toISOString();
+  const text = String(taskText || previous?.taskText || "").slice(0, 4000);
+  const item = {
+    threadId: result.thread_id,
+    title: historyTitle(result, text),
+    taskText: text,
+    status: result.status,
+    createdAt: previous?.createdAt || now,
+    updatedAt: touch ? now : previous?.updatedAt || now,
+    result,
+  };
+  if (!persistHistory([item, ...items.filter(entry => entry.threadId !== item.threadId)])) {
+    $("#history-feedback").textContent = "浏览器存储空间不足，未能保存本次历史对话。";
+  }
+  renderHistory();
+}
+
+function importSavedPlansIntoHistory() {
+  const entries = historyEntries();
+  const known = new Set(entries.map(item => item.threadId));
+  const imported = savedPlans().filter(item => item.result?.thread_id && !known.has(item.threadId)).map(item => {
+    const parsedDate = new Date(item.createdAt);
+    const timestamp = Number.isNaN(parsedDate.getTime()) ? new Date().toISOString() : parsedDate.toISOString();
+    return {
+      threadId: item.threadId,
+      title: item.title || historyTitle(item.result, ""),
+      taskText: "",
+      status: item.result.status || "ok",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      result: item.result,
+    };
+  });
+  if (imported.length) persistHistory([...entries, ...imported]);
+}
+
+function showHistorySnapshot() {
+  state.resultStale = true;
+  $("#result-stale").hidden = false;
+  $("#result-stale").textContent = "服务器中的任务状态已不可用；当前显示浏览器保存的只读历史快照。可复制为新任务重新计算。";
+  document.querySelectorAll(".adjustment-option").forEach(button => { button.disabled = true; });
+  localStorage.removeItem(ACTIVE_THREAD_KEY);
+  localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
+  localStorage.removeItem(ACTIVE_REQUEST_KEY);
+  renderHistory();
+}
+
+async function openHistoryConversation(threadId) {
+  const item = historyEntries().find(entry => entry.threadId === threadId);
+  if (!item) return;
+  if (state.running) {
+    $("#history-feedback").textContent = "请等待当前计算结束后再打开历史对话。";
+    return;
+  }
+  const requestId = ++state.requestSequence;
+  const revision = state.inputRevision;
+  $("#history-feedback").textContent = "正在打开历史对话…";
+  let result;
+  let snapshot = false;
+  try {
+    const response = await fetch(`/api/runs/${encodeURIComponent(threadId)}`);
+    if (!response.ok) throw new Error("server_state_unavailable");
+    result = await response.json();
+  } catch (_error) {
+    if (!item.result) {
+      $("#history-feedback").textContent = "服务器记录已失效，且此浏览器没有可用快照。";
+      return;
+    }
+    result = item.result;
+    snapshot = true;
+  }
+  if (requestId !== state.requestSequence || revision !== state.inputRevision) return;
+  const requestChanged = !snapshot && item.result?.request &&
+    JSON.stringify(item.result.request) !== JSON.stringify(result.request);
+  $("#mission-input").value = item.taskText ||
+    (result.request?.origin && result.request?.destination
+      ? `从${result.request.origin}到${result.request.destination}` : "");
+  if ((!item.taskText || requestChanged) && requestCompleteForForm(result.request)) {
+    syncCorrectionToTask(result.request);
+  }
+  renderResult(result);
+  if (snapshot) showHistorySnapshot();
+  else rememberHistoryResult(result, $("#mission-input").value, { touch: false });
+  $("#history-feedback").textContent = snapshot ? "已打开浏览器保存的只读快照。" : "已打开历史对话。";
+  $("#decision-status").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function savedPlans() {
+  try {
+    const items = JSON.parse(localStorage.getItem(SAVED_PLANS_KEY) || "[]");
+    return Array.isArray(items) ? items.filter(item => item && typeof item.threadId === "string") : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function renderSavedPlans() {
+  const items = savedPlans();
+  $("#saved-count").textContent = String(items.length);
+  $("#saved-plan-list").innerHTML = items.length
+    ? items.map((item, index) => `<button type="button" data-saved-index="${index}"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.createdAt)}</small></button>`).join("")
+    : '<p class="saved-empty">还没有保存的方案。</p>';
+}
+
+function saveCurrentPlan() {
+  const result = state.lastResult;
+  if (!result?.thread_id || result.status !== "ok" || state.resultStale) {
+    $("#saved-feedback").textContent = "请先完成当前任务的计算。";
+    return;
+  }
+  const items = savedPlans().filter(item => item.threadId !== result.thread_id);
+  const request = result.request || {};
+  items.unshift({
+    threadId: result.thread_id,
+    result,
+    title: `${request.origin || "起点"} → ${request.destination || "终点"} · ${request.optimization_goal === "min_time" ? "最短航时" : "最低总能耗"}`,
+    createdAt: new Date().toLocaleString("zh-CN"),
+  });
+  try {
+    localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(items.slice(0, 20)));
+    $("#saved-feedback").textContent = "方案快照已保存到此浏览器，可从下方打开。";
+    renderSavedPlans();
+  } catch (_error) {
+    $("#saved-feedback").textContent = "浏览器存储不可用，未能保存。";
+  }
+}
+
+async function openSavedPlan(index) {
+  const item = savedPlans()[index];
+  if (!item || state.running) return;
+  if (item.result?.status === "ok") {
+    ++state.requestSequence;
+    syncCorrectionToTask(item.result.request);
+    renderResult(item.result);
+    $("#saved-open-feedback").textContent = "已打开保存时的仿真快照；复用请修改条件后重新计算。";
+    $("#decision-status").scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  const requestId = ++state.requestSequence;
+  const revision = state.inputRevision;
+  $("#saved-open-feedback").textContent = "正在读取已保存方案…";
+  try {
+    const response = await fetch(`/api/runs/${encodeURIComponent(item.threadId)}`);
+    const result = await response.json();
+    if (requestId !== state.requestSequence || revision !== state.inputRevision) return;
+    if (!response.ok) throw new Error(result.error || "方案已失效");
+    if (result.request) syncCorrectionToTask(result.request);
+    renderResult(result);
+    $("#saved-open-feedback").textContent = "已打开方案；输入框已同步为该航次。";
+    $("#decision-status").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    $("#saved-open-feedback").textContent = `无法打开：${error.message}`;
+  }
+}
+
 function markResultStale() {
   state.inputRevision += 1;
   if (state.running) {
     state.resultStale = true;
     $("#result-stale").hidden = false;
     $("#result-stale").textContent = "输入已修改；当前计算结果不会覆盖新任务，请重新发送。";
+    updateVesselView("idle", { message: "输入已修改，回放已停止" });
     return;
   }
   if (!state.lastResult) return;
@@ -574,6 +952,7 @@ function markResultStale() {
   $("#result-stale").textContent = state.lastResult.status === "awaiting_choice"
     ? "输入已修改；下方待确认选项仍属于上一次任务。请重新计算后再选择。"
     : "输入已修改；当前结果对应之前的任务，请重新计算以更新方案。";
+  updateVesselView("idle", { message: "输入已修改，回放已停止" });
   document.querySelectorAll(".adjustment-option[data-option-index]").forEach(button => { button.disabled = true; });
 }
 
@@ -591,10 +970,30 @@ function initializeTaskDefaults() {
   $("#departure-input").value = localDateTime();
   $("#start-select").value = "平顶山港";
   $("#end-select").value = "军李船闸";
+  renderQuickRoutePreview();
   writeQuickTask({ markChanged: false });
 }
 
+function primeActiveTaskFromStorage() {
+  if (!localStorage.getItem(ACTIVE_THREAD_KEY)) return;
+  try {
+    const request = JSON.parse(localStorage.getItem(ACTIVE_REQUEST_KEY) || "null");
+    if (requestCompleteForForm(request)) syncCorrectionToTask(request);
+    else if (request) syncPartialRequestToInputs(request);
+  } catch (_error) {
+    // An older saved task can still be restored from the server.
+  }
+  const text = localStorage.getItem(ACTIVE_TASK_TEXT_KEY);
+  if (text) $("#mission-input").value = text;
+  $("#mission-subtitle").textContent = "正在恢复上次任务状态…";
+}
+
 function renderResult(result) {
+  if (requestCompleteForForm(result.request)) {
+    syncCorrectionToTask(result.request, { rewriteDescription: false });
+  } else if (result.request) {
+    syncPartialRequestToInputs(result.request);
+  }
   state.lastResult = result;
   state.resultStale = false;
   $("#result-stale").hidden = true;
@@ -631,10 +1030,10 @@ function renderResult(result) {
 
   if (okay) {
     $("#metric-energy").textContent = formatNumber(summary.required_energy?.value, " kWh");
-    $("#metric-time").textContent = formatNumber(summary.total_duration?.value, " h", 2);
+    $("#metric-time").textContent = formatHours(summary.total_duration?.value);
     $("#metric-eta").textContent = formatEta(summary.eta?.value);
     $("#metric-soc").textContent = formatNumber((summary.soc_final?.value ?? 0) * 100, "%");
-    renderEnergyChart(segments);
+    renderEnergyChart(segments, summary);
     renderTable(segments);
     renderSafety(checks, warnings);
     updateVesselView("success", { segments, summary });
@@ -645,9 +1044,15 @@ function renderResult(result) {
       ? "历史时点仿真：出发时间已过。该结果用于软件演示，不代表历史实船记录或当前航行建议。"
       : "软件仿真结果：模型参数和约束采用演示口径，不代表实船安全或运营批准。";
     $("#result-scope-banner").hidden = false;
+    renderTaskReview(result.request || {});
+    renderPlanComparison(result);
+    $("#result-actions").hidden = false;
   } else {
     $("#evidence-panel").hidden = true;
     $("#result-scope-banner").hidden = true;
+    $("#task-review").hidden = true;
+    $("#plan-comparison").hidden = true;
+    $("#result-actions").hidden = true;
     renderEnergyChart([]);
     renderTable([]);
     renderSafety(checks, warnings);
@@ -657,15 +1062,24 @@ function renderResult(result) {
     });
   }
 
-  if (awaiting && result.thread_id) {
-    localStorage.setItem(ACTIVE_THREAD_KEY, result.thread_id);
-  } else if (result.thread_id === localStorage.getItem(ACTIVE_THREAD_KEY)) {
+  if (result.thread_id) {
+    try {
+      localStorage.setItem(ACTIVE_THREAD_KEY, result.thread_id);
+      localStorage.setItem(ACTIVE_TASK_TEXT_KEY, $("#mission-input").value);
+      localStorage.setItem(ACTIVE_REQUEST_KEY, JSON.stringify(result.request || {}));
+    } catch (_error) {
+      $("#history-feedback").textContent = "浏览器存储空间不足，刷新后可能无法恢复当前任务。";
+    }
+  } else {
     localStorage.removeItem(ACTIVE_THREAD_KEY);
+    localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
+    localStorage.removeItem(ACTIVE_REQUEST_KEY);
   }
 
   state.finalAnswer = operatorSummary(result, route, summary);
   $("#final-answer").textContent = state.finalAnswer;
   $("#final-response").hidden = !state.finalAnswer;
+  renderHistory();
   refreshIcons();
 }
 
@@ -840,6 +1254,10 @@ async function runInference(payloadOverride = null) {
     if (!message && !payloadOverride) $("#mission-input").focus();
     return;
   }
+  // A new submission supersedes any older decision awaiting confirmation.
+  localStorage.removeItem(ACTIVE_THREAD_KEY);
+  localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
+  localStorage.removeItem(ACTIVE_REQUEST_KEY);
   const requestId = ++state.requestSequence;
   const submittedRevision = state.inputRevision;
   const controller = typeof AbortController === "function"
@@ -850,7 +1268,7 @@ async function runInference(payloadOverride = null) {
   state.running = true;
   $("#run-button").disabled = true;
   $("#voice-button").disabled = true;
-  updateStatus("running", "推理中");
+  updateStatus("running", "计算中");
   updateVesselView("running", { message: "五工具链正在计算航行方案" });
   resetResult();
   try {
@@ -868,13 +1286,14 @@ async function runInference(payloadOverride = null) {
       return;
     }
     renderResult(result);
+    rememberHistoryResult(result, $("#mission-input").value);
   } catch (error) {
     if (!isCurrentRequest() || error.name === "AbortError") return;
     updateStatus("error", "计算失败");
     $("#mission-title").textContent = "任务执行失败";
     $("#mission-subtitle").textContent = error.message;
     $("#model-mode").textContent = "调用失败";
-    $("#reply-answer").textContent = "工具链或模型调用失败，请检查本地服务状态后重试。";
+    $("#reply-answer").textContent = "任务处理失败，请检查服务状态后重试。";
     $("#reply-panel").hidden = false;
     updateVesselView("failed", { message: "计算失败，回放已停止" });
   } finally {
@@ -891,6 +1310,36 @@ function quickTaskError(message, selector) {
   const error = new Error(message);
   error.selector = selector;
   throw error;
+}
+
+const QUICK_FIELD_IDS = ["start-select", "end-select", "time-input", "adv-soc", "adv-load", "departure-input", "optimization-goal"];
+let quickDialogSnapshot = null;
+
+function snapshotQuickFields() {
+  return Object.fromEntries(QUICK_FIELD_IDS.map(id => [id, $(`#${id}`).value]));
+}
+
+function closeQuickDialog(apply = false) {
+  if (!apply && quickDialogSnapshot) {
+    QUICK_FIELD_IDS.forEach(id => {
+      $(`#${id}`).value = quickDialogSnapshot.fields[id];
+    });
+    renderQuickRoutePreview();
+    state.quickDirty = quickDialogSnapshot.quickDirty;
+  }
+  quickDialogSnapshot = null;
+  $("#quick-error").textContent = "";
+  $("#quick-dialog").close();
+  $("#quick-open").focus();
+}
+
+function openQuickDialog() {
+  if (state.running) return;
+  quickDialogSnapshot = { fields: snapshotQuickFields(), quickDirty: state.quickDirty };
+  $("#quick-error").textContent = "";
+  renderQuickRoutePreview();
+  $("#quick-dialog").showModal();
+  $("#start-select").focus();
 }
 
 function writeQuickTask({ silent = false, markChanged = true } = {}) {
@@ -918,15 +1367,17 @@ function writeQuickTask({ silent = false, markChanged = true } = {}) {
     }
     const departure = departureValue.replace("T", " ");
     $("#time-input").value = hours;
-    $("#adv-time").value = hours;
-    $("#mission-input").value = `从${origin}到${destination}，${departure}出发，SOC${soc}%，${load}，${hours}小时内到达`;
+    const goalText = $("#optimization-goal").value === "min_time" ? "，优先最短航时" : "";
+    $("#mission-input").value = `从${origin}到${destination}，${departure}出发，SOC${soc}%，${load}，${hours}小时内到达${goalText}`;
     state.quickDirty = false;
+    $("#quick-error").textContent = "";
     if (markChanged) markResultStale();
     return true;
   } catch (error) {
     state.quickDirty = true;
     if (!silent) {
-      $("#mission-subtitle").textContent = error.message;
+      if ($("#quick-dialog").open) $("#quick-error").textContent = error.message;
+      else $("#mission-subtitle").textContent = error.message;
       $(error.selector)?.focus();
     }
     return false;
@@ -935,8 +1386,7 @@ function writeQuickTask({ silent = false, markChanged = true } = {}) {
 
 function markQuickInputChanged() {
   state.quickDirty = true;
-  writeQuickTask({ silent: true, markChanged: false });
-  markResultStale();
+  $("#quick-error").textContent = "";
 }
 
 function cancelActiveRequest() {
@@ -949,7 +1399,10 @@ function cancelActiveRequest() {
 
 async function loadHealth() {
   try {
-    const health = await (await fetch("/healthz")).json();
+    const response = await fetch("/healthz");
+    if (!response.ok) throw new Error("health unavailable");
+    const health = await response.json();
+    state.llmMode = health.llm_mode || "unknown";
     const enabled = health.llm_mode === "enabled";
     const speechEnabled = health.speech_mode === "iflytek_iat";
     const release = health.release || {};
@@ -963,15 +1416,23 @@ async function loadHealth() {
       `有效容量：${formatNumber(release.effective_capacity_kwh, " kWh")}`,
       `SOC 规划下限：${formatNumber(Number(release.soc_planning_min) * 100, "%")}`,
     ].join("；");
-    $("#model-label").textContent = enabled ? "DeepSeek API 已启用" : "DeepSeek 模板回退";
+    $("#model-label").textContent = enabled ? "DeepSeek 已配置，待调用验证" : "DeepSeek 未启用";
     $("#model-dot").className = enabled ? "status-dot" : "status-dot offline";
+    const availability = $("#model-availability");
+    availability.textContent = enabled
+      ? "大模型已配置。提交任务后会尝试调用，实际结果见本次任务的模型状态。"
+      : "大模型未启用：提交任务只运行五工具仿真，不会调用 DeepSeek API。";
+    availability.className = enabled ? "model-availability" : "model-availability warning";
     state.speechAvailable = speechEnabled;
     $("#voice-button").disabled = !speechEnabled;
     $("#voice-copy").textContent = speechEnabled ? "点击麦克风语音输入" : "语音服务待配置";
   } catch (_error) {
+    state.llmMode = "unknown";
     $("#release-meta").textContent = "正式网站 · 版本信息暂不可用";
     $("#model-label").textContent = "本地决策引擎未连接";
     $("#model-dot").className = "status-dot offline";
+    $("#model-availability").textContent = "无法确认大模型状态，请检查服务连接。";
+    $("#model-availability").className = "model-availability warning";
     state.speechAvailable = false;
     $("#voice-button").disabled = true;
     $("#voice-copy").textContent = "语音服务未连接";
@@ -981,24 +1442,48 @@ async function loadHealth() {
 async function restorePendingRun() {
   const threadId = localStorage.getItem(ACTIVE_THREAD_KEY);
   if (!threadId) return;
+  const revision = state.inputRevision;
+  const requestSequence = state.requestSequence;
   try {
     const response = await fetch(`/api/runs/${encodeURIComponent(threadId)}`);
     const result = await response.json();
+    if (localStorage.getItem(ACTIVE_THREAD_KEY) !== threadId ||
+        state.inputRevision !== revision || state.requestSequence !== requestSequence) return;
     if (!response.ok) {
       if (response.status === 400 || response.status === 404) {
+        const savedHistory = historyEntries().find(item => item.threadId === threadId);
+        if (savedHistory?.result) {
+          $("#mission-input").value = savedHistory.taskText || "";
+          if (!savedHistory.taskText && requestCompleteForForm(savedHistory.result.request)) {
+            syncCorrectionToTask(savedHistory.result.request);
+          }
+          renderResult(savedHistory.result);
+          showHistorySnapshot();
+          $("#history-feedback").textContent = "上次任务的服务器状态已失效，已恢复浏览器快照。";
+          return;
+        }
         localStorage.removeItem(ACTIVE_THREAD_KEY);
+        localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
+        localStorage.removeItem(ACTIVE_REQUEST_KEY);
+        initializeTaskDefaults();
         $("#mission-subtitle").textContent = "上次任务状态已失效，请重新发起任务。";
       } else {
         $("#mission-subtitle").textContent = "暂时无法恢复上次任务，恢复标识已保留；请稍后刷新重试。";
       }
       return;
     }
+    const storedText = localStorage.getItem(ACTIVE_TASK_TEXT_KEY);
+    let storedRequest = null;
+    try { storedRequest = JSON.parse(localStorage.getItem(ACTIVE_REQUEST_KEY) || "null"); } catch (_error) { /* Ignore an old invalid request cache. */ }
+    const requestChanged = storedRequest && JSON.stringify(storedRequest) !== JSON.stringify(result.request);
+    if (storedText && !requestChanged) $("#mission-input").value = storedText;
+    else if (requestCompleteForForm(result.request)) syncCorrectionToTask(result.request);
+    else $("#mission-input").value = result.request?.origin && result.request?.destination
+      ? `从${result.request.origin}到${result.request.destination}` : "";
+    renderResult(result);
+    rememberHistoryResult(result, $("#mission-input").value, { touch: false });
     if (result.status === "awaiting_choice") {
-      if (result.request) syncCorrectionToTask(result.request);
-      renderResult(result);
       $("#correction-feedback").textContent = "已恢复上次等待确认的任务。";
-    } else {
-      localStorage.removeItem(ACTIVE_THREAD_KEY);
     }
   } catch (_error) {
     $("#mission-subtitle").textContent = "网络暂时不可用，恢复标识已保留；请稍后刷新重试。";
@@ -1007,29 +1492,60 @@ async function restorePendingRun() {
 
 function bindControls() {
   $("#segment-table-scroll").addEventListener("keydown", handleTableScrollKeydown);
-  $("#route-select").addEventListener("change", () => { syncRouteNodes(); markQuickInputChanged(); });
+  $("#history-list").addEventListener("click", event => {
+    const button = event.target.closest("[data-history-id]");
+    if (button) openHistoryConversation(button.dataset.historyId);
+  });
+  $("#quick-open").addEventListener("click", openQuickDialog);
+  $("#quick-close").addEventListener("click", () => closeQuickDialog());
+  $("#quick-cancel").addEventListener("click", () => closeQuickDialog());
+  $("#quick-dialog").addEventListener("cancel", event => {
+    event.preventDefault();
+    closeQuickDialog();
+  });
   $("#mission-input").addEventListener("input", () => { state.quickDirty = false; markResultStale(); });
-  ["#start-select", "#end-select", "#departure-input", "#adv-soc", "#adv-load"].forEach(selector => {
+  ["#start-select", "#end-select", "#departure-input", "#adv-soc", "#adv-load", "#optimization-goal"].forEach(selector => {
     $(selector).addEventListener("input", markQuickInputChanged);
     $(selector).addEventListener("change", markQuickInputChanged);
   });
-  ["#correction-origin", "#correction-destination", "#correction-departure", "#correction-duration", "#correction-soc", "#correction-load"].forEach(selector => {
+  ["#start-select", "#end-select"].forEach(selector => {
+    $(selector).addEventListener("input", renderQuickRoutePreview);
+    $(selector).addEventListener("change", renderQuickRoutePreview);
+  });
+  ["#correction-origin", "#correction-destination", "#correction-departure", "#correction-duration", "#correction-soc", "#correction-load", "#correction-goal"].forEach(selector => {
     $(selector).addEventListener("input", markResultStale);
     $(selector).addEventListener("change", markResultStale);
   });
-  $("#time-input").addEventListener("input", () => { $("#adv-time").value = $("#time-input").value; markQuickInputChanged(); });
-  $("#adv-time").addEventListener("input", () => { $("#time-input").value = $("#adv-time").value; markQuickInputChanged(); });
+  $("#time-input").addEventListener("input", markQuickInputChanged);
   $("#time-minus").addEventListener("click", () => {
     $("#time-input").value = Math.max(0.5, Number($("#time-input").value || 6) - 0.5);
-    $("#adv-time").value = $("#time-input").value;
     markQuickInputChanged();
   });
   $("#time-plus").addEventListener("click", () => {
     $("#time-input").value = Math.min(72, Number($("#time-input").value || 6) + 0.5);
-    $("#adv-time").value = $("#time-input").value;
     markQuickInputChanged();
   });
-  $("#quick-fill").addEventListener("click", writeQuickTask);
+  $("#quick-fill").addEventListener("click", () => {
+    if (writeQuickTask()) closeQuickDialog(true);
+  });
+  $("#save-plan").addEventListener("click", saveCurrentPlan);
+  $("#copy-task").addEventListener("click", () => {
+    if (!state.lastResult?.request) return;
+    syncCorrectionToTask(state.lastResult.request);
+    markResultStale();
+    $("#mission-input").focus();
+  });
+  $("#comparison-options").addEventListener("click", event => {
+    const button = event.target.closest("[data-plan-goal]");
+    if (!button || state.running || state.resultStale || !state.lastResult?.request) return;
+    const payload = { ...state.lastResult.request, optimization_goal: button.dataset.planGoal };
+    syncCorrectionToTask(payload);
+    runInference(payload);
+  });
+  $("#saved-plan-list").addEventListener("click", event => {
+    const button = event.target.closest("[data-saved-index]");
+    if (button) openSavedPlan(Number(button.dataset.savedIndex));
+  });
   $("#run-button").addEventListener("click", () => runInference());
   attachSpeechInput();
   $("#mission-input").addEventListener("keydown", event => {
@@ -1049,23 +1565,25 @@ function bindControls() {
     state.quickDirty = false;
     state.lastResult = null;
     localStorage.removeItem(ACTIVE_THREAD_KEY);
+    localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
+    localStorage.removeItem(ACTIVE_REQUEST_KEY);
     resetResult();
     updateStatus("idle", "待命");
     $("#mission-title").textContent = "等待航行任务";
-    $("#mission-subtitle").textContent = "输入自然语言需求，或使用左侧快捷航线开始。";
+    $("#mission-subtitle").textContent = "输入自然语言需求，或打开左侧快捷输入。";
     updateVesselView("idle");
+    renderHistory();
   });
   document.querySelectorAll("[data-sample]").forEach(button => button.addEventListener("click", () => {
     const kind = button.dataset.sample;
-    $("#route-select").value = "forward";
-    syncRouteNodes();
     $("#start-select").value = "平顶山港";
     $("#end-select").value = "军李船闸";
+    renderQuickRoutePreview();
     $("#departure-input").value = localDateTime();
-    $("#adv-time").value = kind === "time" ? 1 : 6;
-    $("#time-input").value = $("#adv-time").value;
+    $("#time-input").value = kind === "time" ? 1 : 6;
     $("#adv-soc").value = kind === "soc" ? 31 : 85;
     $("#adv-load").value = "半载";
+    $("#optimization-goal").value = "min_energy";
     writeQuickTask();
   }));
   $("#adjustment-options").addEventListener("click", event => {
@@ -1082,9 +1600,13 @@ function bindControls() {
 window.addEventListener("DOMContentLoaded", async () => {
   tickClock();
   setInterval(tickClock, 1000);
-  syncRouteNodes();
+  initializeQuickRouteNodes();
   initializeTaskDefaults();
+  primeActiveTaskFromStorage();
   bindControls();
+  renderSavedPlans();
+  importSavedPlansIntoHistory();
+  renderHistory();
   refreshIcons();
   await loadHealth();
   await restorePendingRun();

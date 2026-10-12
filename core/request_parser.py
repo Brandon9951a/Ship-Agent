@@ -183,6 +183,7 @@ def parse_voyage_request(text: str, *, aliases: dict[str, str] | None = None) ->
         soc_initial=soc,
         load_state=load,
         draft_m=draft,
+        optimization_goal="min_time" if re.search(r"尽快到达|最快到达|最短航时|优先最短航时", text) else "min_energy",
     )
     if errors:
         return ParseResult(request, Status.INVALID_INPUT, questions=errors, warnings=time_warnings)

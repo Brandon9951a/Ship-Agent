@@ -150,6 +150,36 @@ def _preview(
     }
 
 
+def compare_feasible_plans(
+    segments: list[Segment],
+    candidates: list[EnergyResult],
+    vessel: VesselState,
+    request: VoyageRequest,
+    auxiliary_power_kw: float,
+) -> list[dict[str, Any]]:
+    """Preview the two goal choices from the same feasible finite grid as Tspeed."""
+    available = _available_energy(vessel)
+    if available is None:
+        return []
+    limit = _time_limit(request)
+    feasible = [
+        plan for plan in _candidate_plans(segments, candidates, vessel, auxiliary_power_kw)
+        if plan.required_energy_kwh <= available + 1e-9
+        and (limit is None or plan.duration_h <= limit + 1e-9)
+    ]
+    if not feasible:
+        return []
+    key_speeds = lambda plan: tuple(item.speed_kmh for item in plan.choices)
+    rankings = (
+        ("min_energy", lambda plan: (plan.required_energy_kwh, plan.duration_h, key_speeds(plan))),
+        ("min_time", lambda plan: (plan.duration_h, plan.required_energy_kwh, key_speeds(plan))),
+    )
+    return [
+        {"goal": goal, **_preview(min(feasible, key=rank), request, vessel, segments=segments)}
+        for goal, rank in rankings
+    ]
+
+
 def build_boundary_diagnostics(
     segments: list[Segment],
     candidates: list[EnergyResult],

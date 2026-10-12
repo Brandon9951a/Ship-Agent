@@ -171,6 +171,23 @@ def _result_from_state(state: dict[str, Any]) -> dict[str, Any]:
     if "plan" in state:
         result["plan"] = state["plan"]
         result["report"] = state["report"]
+        from core.intent_translator import compare_feasible_plans
+        from schemas.types import DataContext, EnergyResult, Segment, VoyageRequest
+
+        try:
+            data = DataContext.from_dict(result["tdata"]["payload"])
+            segments = [Segment.from_dict(item) for item in result["tseg"]["payload"]["segments"]]
+            candidates = [
+                EnergyResult.from_dict(item)
+                for item in result["tenergy"]["payload"]["candidate_results"]
+            ]
+            request = VoyageRequest.from_dict(result["request"])
+            result["plan_alternatives"] = compare_feasible_plans(
+                segments, candidates, data.vessel, request,
+                data.vessel.auxiliary_power_kw or 0.0,
+            )
+        except (KeyError, TypeError, ValueError):
+            result["plan_alternatives"] = []
     result["dashboard"] = render_dashboard(
         state.get("tool_results", []), report=state.get("report"),
         adjustment_options=state.get("adjustment_options", []),

@@ -30,10 +30,10 @@ def _operator_facing(text: str) -> bool:
     )
 
 
-def _qualitative_explanation(plan: VoyagePlan, client: LLMClient | None) -> tuple[str, str]:
+def _qualitative_explanation(plan: VoyagePlan, client: LLMClient | None) -> tuple[str, str, str]:
     fallback = _template_explanation(plan)
     if client is None:
-        return fallback, "template_fallback"
+        return fallback, "template_fallback", "not_attempted"
     needs_attention = bool(plan.management and plan.management.warnings)
     prompt = (
         f"航行方案已经生成，当前{'存在电量关注事项' if needs_attention else '没有额外电量提示'}。"
@@ -50,8 +50,8 @@ def _qualitative_explanation(plan: VoyagePlan, client: LLMClient | None) -> tupl
         max_tokens=128,
     )
     if result.status != "ok" or not result.text or not _operator_facing(result.text):
-        return fallback, "template_fallback"
-    return result.text.strip(), "llm_qualitative"
+        return fallback, "template_fallback", result.status
+    return result.text.strip(), "llm_qualitative", result.status
 
 
 def _management_advice(plan: VoyagePlan) -> list[str]:
@@ -121,12 +121,13 @@ def build_report(plan: VoyagePlan, client: LLMClient | None = None) -> dict[str,
             "model_id": energy.model_id,
             "model_approval_ref": energy.model_approval_ref,
         })
-    explanation, explanation_mode = _qualitative_explanation(plan, client)
+    explanation, explanation_mode, llm_call_status = _qualitative_explanation(plan, client)
     return {
         "status": "ok",
         "scope": "synthetic_demo",
         "explanation": explanation,
         "explanation_mode": explanation_mode,
+        "llm_call_status": llm_call_status,
         "segments": rows,
         "summary": {
             "total_distance": {

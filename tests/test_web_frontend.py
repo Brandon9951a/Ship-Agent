@@ -34,7 +34,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     for label in (
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
         "正式网站基线 · 正在读取版本",
-        "任务描述", "快捷输入", "修改后自动同步到任务描述", "工况补充", "航线与分段方案",
+        "任务描述", "快捷输入", "应用到任务描述", "工况补充", "航线与分段方案",
         "航段能耗与速度", "仿真航速方案", "约束检查（软件演示）", "能量管理建议",
         "航次仿真摘要", "工具调用过程", "选择已验证方案后恢复并重算",
         "模型规划线固定，非实船安全核验", "确认修改并重新计算",
@@ -49,6 +49,11 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     assert "@media" in css
     assert "resultStale" in js
     assert "localDateTime" in js
+    assert "renderTaskReview" in js
+    assert "renderPlanComparison" in js
+    assert "renderSavedPlans" in js
+    assert 'id="optimization-goal"' in html
+    assert 'id="saved-plans"' in html
     assert "需填写实测值" in js
     assert "vessel-ocean-background.jpg" in css
     assert BACKGROUND.is_file()
@@ -85,6 +90,24 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     for removed in ("Arduino", "/api/hardware", "/api/infer"):
         assert removed not in html
         assert removed not in js
+
+
+def test_plan_comparison_matches_full_recalculation():
+    task = "从平顶山港到军李船闸，2026-10-11 09:00出发，SOC85%，半载，6小时内到达"
+    with _client() as client:
+        energy = client.post("/api/run", json={"task_text": task}).json()
+        timed = client.post("/api/run", json={"task_text": task + "，优先最短航时"}).json()
+    assert energy["status"] == timed["status"] == "ok"
+    assert energy["request"]["optimization_goal"] == "min_energy"
+    assert timed["request"]["optimization_goal"] == "min_time"
+    previews = {item["goal"]: item for item in energy["plan_alternatives"]}
+    assert set(previews) == {"min_energy", "min_time"}
+    for result, goal in ((energy, "min_energy"), (timed, "min_time")):
+        summary = result["report"]["summary"]
+        assert abs(summary["total_duration"]["value"] - previews[goal]["duration_h"]) < 1e-8
+        assert abs(summary["required_energy"]["value"] - previews[goal]["required_energy_kwh"]) < 1e-8
+    assert previews["min_time"]["duration_h"] < previews["min_energy"]["duration_h"]
+    assert previews["min_time"]["required_energy_kwh"] > previews["min_energy"]["required_energy_kwh"]
 
 
 def test_index_health_static_and_security_headers():
