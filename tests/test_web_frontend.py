@@ -1,4 +1,7 @@
 import json
+import sqlite3
+import tempfile
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -8,6 +11,7 @@ from ui.web_server import (
     BACKGROUND, MAX_REQUEST_BYTES, ROOT, STYLESHEET,
     _load_llm, _open_browser_when_ready, create_app,
 )
+from ui.auth_store import AuthStore
 
 
 NORMAL_TEXT = (
@@ -16,13 +20,40 @@ NORMAL_TEXT = (
 )
 
 
-def _client(*, llm_mode="disabled"):
-    speech_manager = XfyunSpeechManager(config=XfyunASRConfig())
-    return TestClient(
+def _store(path=None):
+    return AuthStore(backend="sqlite", sqlite_path=path or Path(tempfile.mkdtemp()) / "auth.sqlite3")
+
+
+class AuthenticatedClient(TestClient):
+    def __enter__(self):
+        client = super().__enter__()
+        store = self.app.state.auth_store
+        store.ensure_schema()
+        try:
+            store.create_user("test-admin", "Test Admin", "admin", "test-password-admin")
+        except sqlite3.IntegrityError:
+            pass  # The checkpoint recreation test reuses this account.
+        response = super().post("/api/auth/login", headers={"Origin": "http://testserver"},
+                                json={"username": "test-admin", "password": "test-password-admin"})
+        assert response.status_code == 200
+        self.csrf = response.json()["csrf_token"]
+        return client
+
+    def post(self, url, **kwargs):
+        headers = {"Origin": "http://testserver", "X-CSRF-Token": self.csrf}
+        headers.update(kwargs.pop("headers", {}))
+        return super().post(url, headers=headers, **kwargs)
+
+
+def _client(*, llm_mode="disabled", speech_manager=None, llm_client=None):
+    speech_manager = speech_manager or XfyunSpeechManager(config=XfyunASRConfig())
+    return AuthenticatedClient(
         create_app(
             llm_mode=llm_mode,
+            llm_client=llm_client,
             speech_manager=speech_manager,
             checkpoint_backend="memory",
+            auth_store=_store(),
         )
     )
 
@@ -136,11 +167,10 @@ def test_index_health_static_and_security_headers():
         assert len(ship.content) > 1_000_000
         assert client.get("/assets/unknown.glb").status_code == 404
         health = client.get("/healthz").json()
-    assert health == {
+        admin_status = client.get("/api/admin/system-status").json()
+    assert health == {"status": "ok", "service": "ship-agent-web"}
+    assert admin_status == {
         "status": "ok",
-        "service": "ship-agent-web",
-        "scope": "synthetic_demo",
-        "real_ship_validation": False,
         "llm_mode": "enabled",
         "speech_mode": "unconfigured",
         "checkpoint_backend": "memory",
@@ -179,7 +209,7 @@ def test_voice_routes_bridge_audio_without_exposing_credentials():
             return "从平顶山港到军李船闸，六小时内到达"
 
     manager = FakeSpeechManager()
-    with TestClient(create_app(speech_manager=manager, checkpoint_backend="memory")) as client:
+    with _client(speech_manager=manager) as client:
         status = client.get("/api/voice/status")
         started = client.post("/api/voice/start")
         chunk = client.post(
@@ -207,7 +237,7 @@ def test_voice_routes_reject_missing_configuration_and_invalid_audio():
     class UnconfiguredSpeechManager:
         available = False
 
-    with TestClient(create_app(speech_manager=UnconfiguredSpeechManager(), checkpoint_backend="memory")) as client:
+    with _client(speech_manager=UnconfiguredSpeechManager()) as client:
         assert client.get("/api/voice/status").json()["available"] is False
         unavailable = client.post("/api/voice/start")
         malformed = client.post(
@@ -234,7 +264,7 @@ def test_web_request_really_uses_configured_llm_client():
             )
 
     llm = FakeClient()
-    with TestClient(create_app(llm_client=llm, llm_mode="enabled")) as client:
+    with _client(llm_client=llm, llm_mode="enabled") as client:
         result = client.post("/api/run", json={"task_text": NORMAL_TEXT}).json()
     assert result["task_understanding"]["mode"] == "llm_qualitative"
     assert result["report"]["explanation_mode"] == "llm_qualitative"
@@ -381,13 +411,14 @@ def test_resume_rejects_invalid_and_repeated_decisions():
 
 def test_sqlite_checkpoint_survives_app_recreation(tmp_path):
     database = tmp_path / "checkpoints.sqlite3"
-    first_app = create_app(checkpoint_backend="sqlite", checkpoint_sqlite_path=database)
-    with TestClient(first_app) as client:
+    store = _store(tmp_path / "auth.sqlite3")
+    first_app = create_app(checkpoint_backend="sqlite", checkpoint_sqlite_path=database, auth_store=store)
+    with AuthenticatedClient(first_app) as client:
         blocked = client.post(
             "/api/run", json={"task_text": NORMAL_TEXT.replace("6小时", "1小时")},
         ).json()
-    second_app = create_app(checkpoint_backend="sqlite", checkpoint_sqlite_path=database)
-    with TestClient(second_app) as client:
+    second_app = create_app(checkpoint_backend="sqlite", checkpoint_sqlite_path=database, auth_store=store)
+    with AuthenticatedClient(second_app) as client:
         restored = client.get(f"/api/runs/{blocked['thread_id']}")
         resumed = client.post("/api/resume", json={
             "thread_id": blocked["thread_id"],

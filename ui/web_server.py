@@ -7,6 +7,7 @@ import base64
 import binascii
 import json
 import os
+import hmac
 import socket
 import string
 import threading
@@ -15,10 +16,13 @@ import webbrowser
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
+from datetime import datetime, timezone
+from urllib.parse import urlsplit
+from uuid import uuid4
 
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.concurrency import run_in_threadpool
 
 from core.llm_layer import LLMClient, LLMConfig, LLMConfigError
@@ -28,6 +32,7 @@ from core.workflow_runtime import (
     WorkflowNotFoundError, open_workflow_runtime, validate_thread_id,
 )
 from ui.app import _result_from_state
+from ui.auth_store import AuthStore, COOKIE_NAME
 
 
 ROOT = Path(__file__).resolve().parent / "frontend"
@@ -88,6 +93,60 @@ def _workflow_error(status_code: int, code: str) -> JSONResponse:
     )
 
 
+AUTH_MESSAGES = {
+    "invalid_auth_request": "请检查登录输入", "invalid_credentials": "账号或密码错误",
+    "auth_required": "请登录后继续", "forbidden": "无权限或请求已失效",
+    "too_many_attempts": "尝试次数过多，请稍后再试",
+    "auth_unavailable": "认证服务暂不可用",
+}
+
+
+def _auth_error(status_code: int, code: str) -> JSONResponse:
+    return JSONResponse(status_code=status_code, content={
+        "status": "failed", "error": code, "message": AUTH_MESSAGES[code],
+    })
+
+
+def _session_body(session: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "user": {key: session[key] for key in ("id", "username", "display_name", "role")},
+        "csrf_token": session["csrf_token"],
+        "session_expires_at": datetime.fromtimestamp(
+            session["expires_at"], timezone.utc,
+        ).isoformat().replace("+00:00", "Z"),
+    }
+
+
+def _request_origin(request: Request) -> tuple[str, bool]:
+    configured = os.getenv("SHIP_PUBLIC_ORIGIN", "").rstrip("/")
+    if configured:
+        return configured, configured.startswith("https://")
+    host = request.headers.get("host", "")
+    hostname = urlsplit(f"http://{host}").hostname
+    local = hostname in ("127.0.0.1", "localhost", "::1", "testserver")
+    scheme = request.url.scheme if local else "https"
+    return f"{scheme}://{host}", scheme == "https"
+
+
+def _public_result(result: dict[str, Any], role: str) -> dict[str, Any]:
+    if role == "admin":
+        return result
+    # Keep numerical model provenance and simulation limits. Remove only
+    # service-model diagnostics, including fields nested in report/understanding.
+    private_keys = {"llm_call_status", "explanation_mode", "provider",
+                    "requested_model", "response_model", "raw_error", "error_detail"}
+    def clean(value):
+        if isinstance(value, dict):
+            return {key: clean(item) for key, item in value.items() if key not in private_keys}
+        if isinstance(value, list):
+            return [clean(item) for item in value]
+        return value
+    public = clean(result)
+    if isinstance(public.get("task_understanding"), dict):
+        public["task_understanding"].pop("mode", None)
+    return public
+
+
 def create_app(
     *,
     llm_client: LLMClient | None = None,
@@ -96,9 +155,15 @@ def create_app(
     checkpoint_backend: str | None = None,
     checkpoint_database_url: str | None = None,
     checkpoint_sqlite_path: str | Path | None = None,
+    auth_store: AuthStore | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI):
+        try:
+            await run_in_threadpool(application.state.auth_store.ensure_schema)
+        except Exception:
+            # The health endpoint remains available; protected APIs return 503.
+            pass
         async with open_workflow_runtime(
             llm_client=llm_client,
             backend=checkpoint_backend,
@@ -118,10 +183,42 @@ def create_app(
     app.state.llm_client = llm_client
     app.state.llm_mode = llm_mode
     app.state.speech_manager = speech_manager or XfyunSpeechManager()
+    auth_backend = os.getenv("SHIP_AUTH_BACKEND") or (
+        "postgres" if (checkpoint_backend or os.getenv("SHIP_CHECKPOINT_BACKEND")) == "postgres" else "sqlite"
+    )
+    app.state.auth_store = auth_store or AuthStore(backend=auth_backend,
+        database_url=checkpoint_database_url,
+        sqlite_path=os.getenv("SHIP_AUTH_SQLITE_PATH"))
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
-        response = await call_next(request)
+        path = request.url.path
+        is_api = path.startswith("/api/")
+        is_write = request.method not in ("GET", "HEAD", "OPTIONS")
+        response = None
+        if is_api and is_write:
+            origin = request.headers.get("origin")
+            parsed = urlsplit(origin or "")
+            expected, _secure = _request_origin(request)
+            if not origin or f"{parsed.scheme}://{parsed.netloc}" != expected or parsed.path:
+                response = _auth_error(403, "forbidden")
+        protected = is_api and path not in ("/api/auth/login",)
+        if response is None and protected:
+            try:
+                request.state.session = await run_in_threadpool(
+                    app.state.auth_store.get_session, request.cookies.get(COOKIE_NAME),
+                )
+            except Exception:
+                response = _auth_error(503, "auth_unavailable")
+            else:
+                if request.state.session is None and path != "/api/auth/logout":
+                    response = _auth_error(401, "auth_required")
+                elif is_write and request.state.session is not None:
+                    csrf = request.headers.get("x-csrf-token", "")
+                    if not hmac.compare_digest(csrf, request.state.session["csrf_token"]):
+                        response = _auth_error(403, "forbidden")
+        if response is None:
+            response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "no-referrer"
@@ -148,11 +245,14 @@ def create_app(
 
     @app.get("/healthz", include_in_schema=False)
     async def health() -> dict[str, Any]:
+        return {"status": "ok", "service": "ship-agent-web"}
+
+    @app.get("/api/admin/system-status", include_in_schema=False)
+    async def admin_status(request: Request):
+        if request.state.session["role"] != "admin":
+            return _auth_error(403, "forbidden")
         return {
             "status": "ok",
-            "service": "ship-agent-web",
-            "scope": "synthetic_demo",
-            "real_ship_validation": False,
             "release": RELEASE_METADATA,
             "llm_mode": app.state.llm_mode,
             "checkpoint_backend": app.state.workflow_runtime.checkpoint_backend,
@@ -162,6 +262,57 @@ def create_app(
             ),
         }
 
+    @app.post("/api/auth/login", include_in_schema=False)
+    async def login(request: Request):
+        body = await request.body()
+        if not body or len(body) > 4096:
+            return _auth_error(400, "invalid_auth_request")
+        try:
+            payload = json.loads(body)
+            username, password = payload["username"], payload["password"]
+            if (not isinstance(payload, dict) or not isinstance(username, str) or
+                not isinstance(password, str) or not 1 <= len(username) <= 64 or
+                not username.isascii() or not 1 <= len(password) <= 1024):
+                raise ValueError
+        except (ValueError, TypeError, KeyError, UnicodeDecodeError):
+            return _auth_error(400, "invalid_auth_request")
+        key = f"{request.client.host if request.client else 'unknown'}:{username.lower()}"
+        try:
+            await run_in_threadpool(app.state.auth_store.revoke_session,
+                                    request.cookies.get(COOKIE_NAME))
+            user, throttled = await run_in_threadpool(
+                app.state.auth_store.authenticate, username, password, key,
+            )
+            if throttled:
+                return _auth_error(429, "too_many_attempts")
+            if not user:
+                return _auth_error(401, "invalid_credentials")
+            token, csrf, expires = await run_in_threadpool(
+                app.state.auth_store.create_session, user["id"], request.cookies.get(COOKIE_NAME),
+            )
+        except Exception:
+            return _auth_error(503, "auth_unavailable")
+        response = JSONResponse(content=_session_body({**user, "csrf_token": csrf, "expires_at": expires}))
+        _origin, secure = _request_origin(request)
+        response.set_cookie(COOKIE_NAME, token, httponly=True, samesite="lax", path="/",
+                            secure=secure, max_age=24 * 60 * 60)
+        return response
+
+    @app.get("/api/auth/me", include_in_schema=False)
+    async def me(request: Request):
+        return _session_body(request.state.session)
+
+    @app.post("/api/auth/logout", include_in_schema=False)
+    async def logout(request: Request):
+        try:
+            await run_in_threadpool(app.state.auth_store.revoke_session,
+                                    request.cookies.get(COOKIE_NAME))
+        except Exception:
+            return _auth_error(503, "auth_unavailable")
+        response = Response(status_code=204)
+        response.delete_cookie(COOKIE_NAME, path="/")
+        return response
+
     @app.get("/api/voice/status", include_in_schema=False)
     async def voice_status() -> dict[str, Any]:
         return {
@@ -170,7 +321,7 @@ def create_app(
         }
 
     @app.post("/api/voice/start", include_in_schema=False)
-    async def voice_start():
+    async def voice_start(request: Request):
         if not app.state.speech_manager.available:
             return JSONResponse(
                 status_code=503,
@@ -182,15 +333,20 @@ def create_app(
         try:
             session_id = await run_in_threadpool(app.state.speech_manager.start)
         except SpeechServiceError as exc:
-            return JSONResponse(
-                status_code=503,
-                content={"status": "unavailable", "error": str(exc)},
-            )
+            return JSONResponse(status_code=503, content={
+                "status": "unavailable", "error": str(exc),
+            })
         except Exception:
-            return JSONResponse(
-                status_code=502,
-                content={"status": "failed", "error": "语音服务连接失败"},
-            )
+            return JSONResponse(status_code=502, content={
+                "status": "failed", "error": "语音服务连接失败",
+            })
+        try:
+            await run_in_threadpool(app.state.auth_store.bind_voice, session_id,
+                                    request.state.session["id"])
+        except Exception:
+            if hasattr(app.state.speech_manager, "cancel"):
+                await run_in_threadpool(app.state.speech_manager.cancel, session_id)
+            return _auth_error(503, "auth_unavailable")
         return {"session_id": session_id, "text": ""}
 
     @app.post("/api/voice/chunk", include_in_schema=False)
@@ -209,6 +365,13 @@ def create_app(
                 or any(character not in string.hexdigits for character in session_id)
             ):
                 raise ValueError
+            try:
+                owned = await run_in_threadpool(app.state.auth_store.owns_voice,
+                                                session_id, request.state.session["id"])
+            except Exception:
+                return _auth_error(503, "auth_unavailable")
+            if not owned:
+                return _workflow_error(404, "workflow_not_found")
             pcm = base64.b64decode(encoded_audio, validate=True)
             if not pcm or len(pcm) > MAX_VOICE_CHUNK_BYTES:
                 raise ValueError
@@ -244,9 +407,17 @@ def create_app(
                 or any(character not in string.hexdigits for character in session_id)
             ):
                 raise ValueError
+            try:
+                owned = await run_in_threadpool(app.state.auth_store.owns_voice,
+                                                session_id, request.state.session["id"])
+            except Exception:
+                return _auth_error(503, "auth_unavailable")
+            if not owned:
+                return _workflow_error(404, "workflow_not_found")
             text = await run_in_threadpool(
                 app.state.speech_manager.finish, session_id,
             )
+            await run_in_threadpool(app.state.auth_store.remove_voice, session_id)
         except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
             return _error(400, "invalid_voice_request")
         except SpeechServiceError as exc:
@@ -281,11 +452,19 @@ def create_app(
             return _error(400, "invalid_json")
         if not isinstance(payload, dict):
             return _error(400, "request_must_be_object")
+        # Bind before invoking the graph so a created checkpoint is never
+        # observable without an owner record, including interrupted runs.
+        thread_id = str(uuid4())
+        try:
+            await run_in_threadpool(app.state.auth_store.bind_workflow,
+                                    thread_id, request.state.session["id"])
+        except Exception:
+            return _auth_error(503, "auth_unavailable")
         try:
             if "task_text" in payload:
-                state = await app.state.workflow_runtime.start_text(payload["task_text"])
+                state = await app.state.workflow_runtime.start_text(payload["task_text"], thread_id=thread_id)
             else:
-                state = await app.state.workflow_runtime.start_structured(payload)
+                state = await app.state.workflow_runtime.start_structured(payload, thread_id=thread_id)
             result = _result_from_state(state)
         except (TypeError, ValueError, KeyError):
             return _error(400, "invalid_request")
@@ -294,7 +473,7 @@ def create_app(
                 status_code=500,
                 content={"status": "failed", "error": "workflow_failed"},
             )
-        return JSONResponse(content=result)
+        return JSONResponse(content=_public_result(result, request.state.session["role"]))
 
     @app.post("/api/resume", include_in_schema=False)
     async def resume_api(request: Request):
@@ -321,6 +500,13 @@ def create_app(
         except (UnicodeDecodeError, json.JSONDecodeError, ValueError):
             return _workflow_error(400, "invalid_resume_request")
         try:
+            owned = await run_in_threadpool(app.state.auth_store.owns_workflow,
+                                            thread_id, request.state.session["id"])
+        except Exception:
+            return _auth_error(503, "auth_unavailable")
+        if not owned:
+            return _workflow_error(404, "workflow_not_found")
+        try:
             state = await app.state.workflow_runtime.resume(
                 thread_id, decision_id, option_id,
             )
@@ -332,21 +518,28 @@ def create_app(
             return _workflow_error(409, "invalid_adjustment_option")
         except Exception:
             return _workflow_error(500, "workflow_failed")
-        return JSONResponse(content=_result_from_state(state))
+        return JSONResponse(content=_public_result(_result_from_state(state), request.state.session["role"]))
 
     @app.get("/api/runs/{thread_id}", include_in_schema=False)
-    async def get_run_api(thread_id: str):
+    async def get_run_api(thread_id: str, request: Request):
         try:
             thread_id = validate_thread_id(thread_id)
         except ValueError:
             return _workflow_error(400, "invalid_resume_request")
+        try:
+            owned = await run_in_threadpool(app.state.auth_store.owns_workflow,
+                                            thread_id, request.state.session["id"])
+        except Exception:
+            return _auth_error(503, "auth_unavailable")
+        if not owned:
+            return _workflow_error(404, "workflow_not_found")
         try:
             state = await app.state.workflow_runtime.get_state(thread_id)
         except WorkflowNotFoundError:
             return _workflow_error(404, "workflow_not_found")
         except Exception:
             return _workflow_error(500, "workflow_failed")
-        return JSONResponse(content=_result_from_state(state))
+        return JSONResponse(content=_public_result(_result_from_state(state), request.state.session["role"]))
 
     return app
 

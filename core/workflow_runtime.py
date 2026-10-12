@@ -83,19 +83,19 @@ class WorkflowRuntime:
             "replan_limit_reached": False,
         }
 
-    async def start_text(self, task_text: str) -> AgentState:
+    async def start_text(self, task_text: str, *, thread_id: str | None = None) -> AgentState:
         if not isinstance(task_text, str) or not task_text.strip():
             raise ValueError("task_text must be non-empty text")
-        thread_id = str(uuid4())
+        thread_id = validate_thread_id(thread_id) if thread_id else str(uuid4())
         initial = self._initial_state(thread_id)
         initial["user_input"] = task_text.strip()
         result = await self.graph.ainvoke(initial, self._config(thread_id))
         return _without_runtime_markers(result)
 
-    async def start_structured(self, payload: dict[str, Any]) -> AgentState:
+    async def start_structured(self, payload: dict[str, Any], *, thread_id: str | None = None) -> AgentState:
         if not isinstance(payload, dict):
             raise ValueError("payload must be an object")
-        thread_id = str(uuid4())
+        thread_id = validate_thread_id(thread_id) if thread_id else str(uuid4())
         initial = self._initial_state(thread_id)
         initial["request"] = payload
         result = await self.graph.ainvoke(initial, self._config(thread_id))
