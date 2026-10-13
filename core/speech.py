@@ -324,6 +324,12 @@ class XfyunSpeechManager:
             managed.session.close()
             raise
 
+    def cancel(self, session_id: str) -> None:
+        with self._lock:
+            managed = self._sessions.pop(session_id, None)
+        if managed is not None:
+            managed.session.close()
+
     def close_all(self) -> None:
         with self._lock:
             sessions = [item.session for item in self._sessions.values()]

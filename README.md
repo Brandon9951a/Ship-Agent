@@ -6,7 +6,7 @@
 
 ## 正式网站基线
 
-当前正式网站基线为 `ship-agent-render-release`。版本与参数标识记录在 `configs/release_profile.json`，页面和 `/healthz` 会显示同一份标识。当前采用 `synthetic_demo_user_override_2026-09-23` 参数档案；具体容量、SOC 规划下限及来源仍以 `configs/demo_policy.yaml` 和 `configs/limits.yaml` 为准。其他工作区中的 `Ship-Agent` 目录保留为原型基线，不应与本目录结果混用或直接比较。
+当前正式网站基线为 `ship-agent-render-release`。版本与参数标识记录在 `configs/release_profile.json`，管理员可通过 `/api/admin/system-status` 查看；`/healthz` 只返回最小健康字段。当前采用 `synthetic_demo_user_override_2026-09-23` 参数档案；具体容量、SOC 规划下限及来源仍以 `configs/demo_policy.yaml` 和 `configs/limits.yaml` 为准。其他工作区中的 `Ship-Agent` 目录保留为原型基线，不应与本目录结果混用或直接比较。
 
 ## 核心流程
 
@@ -97,6 +97,19 @@ Windows 可直接双击 `start_local_demo.cmd`，也可以手动启动：
 
 ## Web API
 
+### 账户与会话
+
+网站使用服务端会话。部署方先在服务器环境中交互式创建账号（密码从终端提示读取，不写入命令历史）：
+
+```powershell
+python -m ui.auth_store create-user --username crew-demo --display-name 值班员 --role user
+python -m ui.auth_store create-user --username admin-demo --display-name 管理员 --role admin
+```
+
+这两个用户名仅供本地联调；创建时分别输入自定的非真实密码。云端设置 `SHIP_AUTH_BACKEND=postgres`，默认与 checkpoint 共用 `SHIP_CHECKPOINT_DATABASE_URL`；本地默认使用 `var/auth.sqlite3`。部署在 HTTPS 域名时设置 `SHIP_PUBLIC_ORIGIN=https://你的域名`。会话有效期 24 小时，登出立即失效。登录、当前用户和登出接口见 [接口约定](docs/接口/登录与角色权限接口约定.md)。
+
+所有受保护的写入请求须携带同源 `Origin` 和登录响应中的 `X-CSRF-Token`；令牌只保存在页面内存，刷新后通过 `GET /api/auth/me` 重新取得。普通用户响应中移除 `task_understanding.mode`、`llm_call_status`、`report.explanation_mode` 及内部服务模型诊断字段；科学模型标识、参数来源和仿真边界仍保留。管理员可从 `GET /api/admin/system-status` 获取诊断信息。
+
 ### 新建任务
 
 ```http
@@ -141,7 +154,7 @@ GET /api/runs/{thread_id}
 GET /healthz
 ```
 
-健康结果包含模型模式、checkpoint 后端、checkpoint 就绪状态和语音服务状态。
+健康结果仅包含 `status` 和 `service`；模型模式、checkpoint 状态及语音服务状态由管理员接口提供。
 
 ## 测试与复现
 
@@ -182,9 +195,7 @@ XFYUN_API_SECRET
 ```json
 {
   "status": "ok",
-  "checkpoint_backend": "postgres",
-  "checkpoint_ready": true,
-  "speech_mode": "iflytek_iat"
+  "service": "ship-agent-web"
 }
 ```
 
