@@ -20,6 +20,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { position: relative; margin: 0; min-width: 320px; background: var(--canvas); }
 body::before { content: ""; position: fixed; z-index: -2; inset: 0; background: url("vessel-ocean-background.jpg") center / cover no-repeat; }
 body::after { content: ""; position: fixed; z-index: -1; inset: 0; background: rgba(224, 239, 250, .84); }
@@ -272,6 +273,45 @@ textarea:focus, select:focus, input:focus { border-color: var(--blue); box-shado
 .quick-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .quick-dialog-actions .primary-button { width: auto; min-width: 185px; height: 38px; margin: 0; padding: 0 14px; }
 .quick-cancel { min-width: 70px; padding: 0 14px; color: #435563; background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+.login-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(145deg, rgba(235, 245, 252, .94), rgba(245, 248, 250, .98)); }
+.login-card { width: min(430px, 100%); padding: 34px 36px 27px; background: rgba(255,255,255,.97); border: 1px solid #d7e2eb; border-radius: 14px; box-shadow: 0 20px 64px rgba(24, 58, 84, .13); }
+.login-brand-mark { width: 48px; height: 48px; display: grid; place-items: center; margin-bottom: 22px; color: #1769d4; background: #e8f1ff; border: 1px solid #d3e4fa; border-radius: 12px; }
+.login-brand-mark svg { width: 27px; height: 27px; }
+.login-card h1 { margin: 7px 0 9px; font-size: 23px; line-height: 1.35; }
+.login-intro, .login-footnote { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.login-intro { margin: 0 0 23px; }
+.login-card form label { display: block; margin: 14px 0 6px; color: #3c5264; font-size: 12px; font-weight: 700; }
+.login-card form input { width: 100%; height: 43px; padding: 0 12px; color: var(--ink); background: #fbfdff; border: 1px solid #cbd8e2; border-radius: 6px; font: inherit; }
+.login-card form input:focus { outline: 0; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(23,105,212,.12); }
+.login-submit { width: 100%; height: 44px; margin-top: 9px; color: #fff; background: var(--blue); border: 1px solid var(--blue); border-radius: 6px; font-size: 14px; font-weight: 750; }
+.login-submit:hover { background: #1158b5; }
+.login-feedback { min-height: 19px; margin: 10px 0 3px; color: var(--red); font-size: 12px; }
+.login-footnote { margin: 20px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 10px; }
+.session-identity { display: flex; align-items: center; gap: 8px; }
+.session-name { max-width: 140px; overflow: hidden; color: #354d61; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.role-badge { display: inline-flex; align-items: center; padding: 4px 8px; color: #52697b; background: #eef3f6; border: 1px solid #e0e8ee; border-radius: 999px; font-size: 10px; font-weight: 750; white-space: nowrap; }
+.role-badge.admin { color: #6944a3; background: #f2ecfb; border-color: #e1d4f4; }
+.logout-button { padding: 6px 9px; color: #526475; background: #fff; border: 1px solid var(--line); border-radius: 5px; font-size: 11px; }
+.logout-button:hover { color: var(--red); border-color: #e9b7bb; background: #fff8f8; }
+.admin-diagnostics { display: grid; grid-template-columns: auto 1fr; gap: 14px 22px; align-items: start; margin-top: 15px; padding: 15px 18px; background: #fbf9ff; border: 1px solid #ded3ef; border-radius: 8px; }
+.admin-diagnostics header { display: flex; align-items: center; gap: 12px; min-width: 185px; }
+.admin-diagnostics h2 { margin: 3px 0 0; font-size: 14px; }
+.admin-diagnostics dl { display: grid; grid-template-columns: repeat(4, minmax(100px, 1fr)); gap: 10px 15px; margin: 0; }
+.admin-diagnostics dl div { min-width: 0; }
+.admin-diagnostics dt { color: var(--muted); font-size: 10px; }
+.admin-diagnostics dd { margin: 3px 0 0; color: #3f3159; font-size: 11px; font-weight: 700; overflow-wrap: anywhere; }
+.admin-diagnostics > p { grid-column: 2; margin: 0; color: #76688c; font-size: 10px; }
+@media (max-width: 780px) {
+  .login-card { padding: 27px 22px 21px; }
+  .topbar-meta { position: static; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 12px; }
+  .session-identity { gap: 5px; }
+  .session-name { max-width: 88px; }
+  .admin-diagnostics { grid-template-columns: 1fr; }
+  .admin-diagnostics header { justify-content: space-between; }
+  .admin-diagnostics dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-diagnostics > p { grid-column: 1; }
+}
 
 @media (min-width: 781px) {
   .bottom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
