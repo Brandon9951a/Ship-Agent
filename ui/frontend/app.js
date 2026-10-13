@@ -365,6 +365,9 @@ function expireSession(message = authMessage("auth_required")) {
   state.llmMode = "unknown";
   showLoginScreen(message);
   state.authTransitioning = false;
+  // A fresh document also removes rendered voyage details and in-memory UI state.
+  // Hiding the workspace alone leaves the previous account's result in the DOM.
+  window.location?.reload?.();
 }
 
 function acceptSession(session) {

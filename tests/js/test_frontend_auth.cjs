@@ -17,6 +17,7 @@ const getNode = selector => {
 };
 const storage = new Map();
 let requestSeen = null;
+let reloadCount = 0;
 const context = vm.createContext({
   console, Intl, Date, Number, String, Math, JSON, Set, Map, Promise,
   AbortController, encodeURIComponent,
@@ -25,7 +26,7 @@ const context = vm.createContext({
     dispatchEvent() {}, addEventListener() {}, activeElement: null,
     createElement: () => ({ relList: { supports: () => true } }),
   },
-  window: { addEventListener() {} },
+  window: { addEventListener() {}, location: { reload() { reloadCount += 1; } } },
   storage,
   localStorage: {
     getItem: key => storage.has(key) ? storage.get(key) : null,
@@ -110,6 +111,7 @@ async function run() {
   if (expired.user !== null || expired.loginHidden || !expired.appHidden || !expired.rolePanelHidden) {
     throw new Error("expired session did not clear authenticated workspace");
   }
+  if (reloadCount !== 1) throw new Error("expired session kept the prior account's rendered workspace");
   if (storage.has("ship-agent.user.admin-b.active-thread")) throw new Error("logout/session expiry kept active task cache");
 
   context.fetch = async (path, options) => {
