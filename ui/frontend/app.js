@@ -6,7 +6,8 @@ const state = {
   trace: [], finalAnswer: "", running: false, lastResult: null,
   voice: null, recording: false, speechAvailable: false, resultStale: false,
   inputRevision: 0, quickDirty: false, requestSequence: 0, activeRequest: null,
-  llmMode: "unknown",
+  llmMode: "unknown", authUser: null, csrfToken: "", sessionExpiresAt: null,
+  workspaceInitialized: false, authTransitioning: false, clockTimer: null,
 };
 
 const OPTION_LABELS = {
@@ -28,6 +29,17 @@ const ACTIVE_REQUEST_KEY = "ship-agent.active-request";
 const SAVED_PLANS_KEY = "ship-agent.saved-plans";
 const HISTORY_KEY = "ship-agent.conversation-history";
 const HISTORY_MAX_CHARS = 1500000;
+const USER_STORAGE_KEYS = [
+  ACTIVE_THREAD_KEY, ACTIVE_TASK_TEXT_KEY, ACTIVE_REQUEST_KEY, SAVED_PLANS_KEY, HISTORY_KEY,
+];
+const AUTH_ERROR_MESSAGES = {
+  invalid_auth_request: "请检查用户名和密码格式。",
+  invalid_credentials: "账号或密码错误。",
+  auth_required: "登录状态已失效，请重新登录。",
+  forbidden: "无权限或请求已失效，请刷新后重试。",
+  too_many_attempts: "尝试次数过多，请稍后再试。",
+  auth_unavailable: "认证服务暂不可用，请稍后重试。",
+};
 const $ = selector => document.querySelector(selector);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
@@ -262,6 +274,249 @@ function planSegments(result) {
   }));
 }
 
+function scopedStorageKey(key, userId = state.authUser?.id) {
+  if (!userId) return null;
+  const suffix = String(key).replace(/^ship-agent\./, "");
+  return `ship-agent.user.${encodeURIComponent(userId)}.${suffix}`;
+}
+
+function userStorageGet(key) {
+  const scopedKey = scopedStorageKey(key);
+  if (!scopedKey) return null;
+  try { return localStorage.getItem(scopedKey); } catch (_error) { return null; }
+}
+
+function userStorageSet(key, value) {
+  const scopedKey = scopedStorageKey(key);
+  if (!scopedKey) return false;
+  try { localStorage.setItem(scopedKey, value); return true; } catch (_error) { return false; }
+}
+
+function userStorageRemove(key) {
+  const scopedKey = scopedStorageKey(key);
+  if (!scopedKey) return;
+  try { localStorage.removeItem(scopedKey); } catch (_error) { /* Storage may be unavailable. */ }
+}
+
+function clearUserStorage(userId) {
+  for (const key of USER_STORAGE_KEYS) {
+    const scopedKey = scopedStorageKey(key, userId);
+    if (scopedKey) {
+      try { localStorage.removeItem(scopedKey); } catch (_error) { /* Storage may be unavailable. */ }
+    }
+  }
+}
+
+function clearLegacyStorage() {
+  for (const key of USER_STORAGE_KEYS) {
+    try { localStorage.removeItem(key); } catch (_error) { /* Ignore old unscoped snapshots. */ }
+  }
+}
+
+function authMessage(error, fallback = "请求失败，请重试。") {
+  return AUTH_ERROR_MESSAGES[error] || fallback;
+}
+
+async function apiFetch(path, options = {}) {
+  const method = String(options.method || "GET").toUpperCase();
+  const headers = { ...(options.headers || {}) };
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method) && path !== "/api/auth/login" && state.csrfToken) {
+    headers["X-CSRF-Token"] = state.csrfToken;
+  }
+  const response = await fetch(path, {
+    ...options,
+    headers,
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+  if (response.status === 401 && path !== "/api/auth/me" && path !== "/api/auth/login") {
+    let body = {};
+    try { body = await response.clone().json(); } catch (_error) { /* Keep generic auth handling. */ }
+    if (body.error === "auth_required") expireSession(body.message || authMessage(body.error));
+  }
+  return response;
+}
+
+function showLoginScreen(message = "") {
+  $("#app-shell").hidden = true;
+  $("#login-screen").hidden = false;
+  $("#session-identity").hidden = true;
+  $("#admin-diagnostics").hidden = true;
+  $("#admin-diagnostics").textContent = "";
+  $("#login-feedback").textContent = message;
+  $("#login-submit").disabled = false;
+  $("#login-submit").textContent = "登录";
+  refreshIcons();
+}
+
+function expireSession(message = authMessage("auth_required")) {
+  if (state.authTransitioning) return;
+  state.authTransitioning = true;
+  const userId = state.authUser?.id;
+  if (userId) clearUserStorage(userId);
+  clearLegacyStorage();
+  state.activeRequest?.controller.abort();
+  state.activeRequest = null;
+  state.running = false;
+  state.lastResult = null;
+  state.authUser = null;
+  state.csrfToken = "";
+  state.sessionExpiresAt = null;
+  state.llmMode = "unknown";
+  showLoginScreen(message);
+  state.authTransitioning = false;
+}
+
+function acceptSession(session) {
+  const user = session?.user;
+  if (!user || typeof user.id !== "string" || !user.id ||
+      !["user", "admin"].includes(user.role) ||
+      typeof session.csrf_token !== "string" || !session.csrf_token) {
+    throw new Error("登录服务返回了无效会话信息。");
+  }
+  if (state.authUser?.id && state.authUser.id !== user.id) clearUserStorage(state.authUser.id);
+  clearLegacyStorage();
+  state.authUser = {
+    id: user.id,
+    username: user.username,
+    display_name: user.display_name || user.username,
+    role: user.role,
+  };
+  state.csrfToken = session.csrf_token;
+  state.sessionExpiresAt = session.session_expires_at || null;
+  $("#login-screen").hidden = true;
+  $("#app-shell").hidden = false;
+  $("#session-identity").hidden = false;
+  $("#session-name").textContent = state.authUser.display_name;
+  $("#session-role").textContent = user.role === "admin" ? "管理员" : "普通用户";
+  $("#session-role").className = `role-badge ${user.role}`;
+  $("#admin-diagnostics").hidden = true;
+  $("#admin-diagnostics").textContent = "";
+  refreshIcons();
+}
+
+async function loginWithPassword(event) {
+  event?.preventDefault();
+  if (state.authTransitioning) return;
+  const username = $("#login-username").value.trim();
+  const password = $("#login-password").value;
+  if (!username || !password) {
+    $("#login-feedback").textContent = "请输入用户名和密码。";
+    return;
+  }
+  state.authTransitioning = true;
+  $("#login-submit").disabled = true;
+  $("#login-submit").textContent = "正在验证…";
+  $("#login-feedback").textContent = "";
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      cache: "no-store",
+      body: JSON.stringify({ username, password }),
+    });
+    const body = response.status === 204 ? {} : await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(authMessage(body.error, body.message || "登录失败，请重试。"));
+    acceptSession(body);
+    $("#login-password").value = "";
+    state.authTransitioning = false;
+    await initializeAuthenticatedWorkspace();
+  } catch (error) {
+    $("#login-feedback").textContent = error.message || authMessage("auth_unavailable");
+    $("#login-submit").disabled = false;
+    $("#login-submit").textContent = "登录";
+    state.authTransitioning = false;
+  }
+}
+
+async function logoutCurrentUser() {
+  const button = $("#logout-button");
+  button.disabled = true;
+  try {
+    const response = await apiFetch("/api/auth/logout", { method: "POST" });
+    if (!response.ok && response.status !== 204) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(authMessage(body.error, "退出登录失败，请重试。"));
+    }
+    expireSession("已退出登录。请使用账号重新登录。");
+  } catch (error) {
+    if (state.authUser) {
+      $("#mission-subtitle").textContent = error.message || "退出登录失败，请重试。";
+      button.disabled = false;
+    }
+  }
+}
+
+function bindAuthControls() {
+  $("#login-form").addEventListener("submit", loginWithPassword);
+  $("#logout-button").addEventListener("click", logoutCurrentUser);
+}
+
+async function restoreLoginSession() {
+  try {
+    const response = await fetch("/api/auth/me", {
+      credentials: "same-origin", cache: "no-store",
+    });
+    const body = response.status === 204 ? {} : await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = body.error === "auth_required"
+        ? "请登录后继续。"
+        : authMessage(body.error, "登录服务暂不可用，请稍后重试。");
+      showLoginScreen(response.status === 401 ? "" : message);
+      return false;
+    }
+    acceptSession(body);
+    await initializeAuthenticatedWorkspace();
+    return true;
+  } catch (_error) {
+    showLoginScreen("无法连接登录服务，请检查网络后重试。");
+    return false;
+  }
+}
+
+function renderAdminDiagnostics(payload) {
+  if (state.authUser?.role !== "admin") return;
+  const release = payload.release || {};
+  const rows = [
+    ["发布版本", release.app_version || "未知"],
+    ["基线", release.baseline_id || "未知"],
+    ["参数档案", release.parameter_profile || "未知"],
+    ["参数批准日期", release.parameter_approved_at || "未知"],
+    ["模型服务配置", payload.llm_mode || "未知"],
+    ["检查点存储", payload.checkpoint_backend || "未知"],
+    ["检查点状态", payload.checkpoint_ready ? "可用" : "未就绪"],
+    ["语音服务", payload.speech_mode || "未知"],
+  ];
+  $("#admin-diagnostics").innerHTML = `<header><div><span class="surface-kicker">ADMINISTRATOR</span><h2>管理员服务诊断</h2></div><span class="role-badge admin">仅管理员可见</span></header><dl>${rows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl><p>服务配置只说明功能是否配置；单次模型调用结果以具体任务记录为准。</p>`;
+  $("#admin-diagnostics").hidden = false;
+}
+
+async function loadAdminDiagnostics() {
+  if (state.authUser?.role !== "admin") {
+    $("#admin-diagnostics").hidden = true;
+    $("#admin-diagnostics").textContent = "";
+    return;
+  }
+  try {
+    const response = await apiFetch("/api/admin/system-status");
+    const body = await response.json().catch(() => ({}));
+    if (response.status === 403) {
+      $("#admin-diagnostics").hidden = true;
+      $("#admin-diagnostics").textContent = "";
+      $("#mission-subtitle").textContent = authMessage(body.error, "当前账号无权读取管理员诊断信息。");
+      return;
+    }
+    if (!response.ok) throw new Error(authMessage(body.error, "管理员诊断信息暂不可用。"));
+    renderAdminDiagnostics(body);
+  } catch (_error) {
+    if (state.authUser?.role === "admin") {
+      $("#admin-diagnostics").innerHTML = "<header><div><span class=\"surface-kicker\">ADMINISTRATOR</span><h2>管理员服务诊断</h2></div></header><p>诊断信息暂不可用，航次功能仍可继续使用。</p>";
+      $("#admin-diagnostics").hidden = false;
+    }
+  }
+}
+
 function updateVesselView(status, { segments = [], summary = {}, message = "" } = {}) {
   const detail = { status, segments, summary, message };
   window.ship3dPendingUpdate = detail;
@@ -414,7 +669,9 @@ function renderModel(result) {
     : (result.status === "infeasible" || result.status === "awaiting_choice")
       ? "当前输入条件下未生成仿真航速方案；下方展示系统内备选计算结果。"
       : "请补充或修正任务信息后重新计算。";
-  $("#model-mode").textContent = llmUsed ? "AI 提示已更新" : "系统提示";
+  $("#model-mode").textContent = state.authUser?.role === "admin"
+    ? (llmUsed ? "本任务实际调用模型" : "本任务使用工具/模板结果")
+    : "工具计算结果";
   $("#reply-answer").textContent = explanation;
   $("#reply-panel").hidden = false;
 }
@@ -480,7 +737,7 @@ async function applyAdjustmentOption(index) {
     ? "正在保存船员决定并结束本次任务。"
     : "正在从已保存的 LangGraph 状态恢复并重新执行五工具链。";
   try {
-    const response = await fetch("/api/resume", {
+    const response = await apiFetch("/api/resume", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -590,11 +847,7 @@ function resetResult() {
   state.trace = [];
   state.finalAnswer = "";
   $("#mission-title").textContent = "正在准备决策任务";
-  $("#mission-subtitle").textContent = state.llmMode === "enabled"
-    ? "五工具链正在计算，系统将尝试调用大模型；实际调用状态见本次结果。"
-    : state.llmMode === "unknown"
-      ? "五工具链正在计算；模型状态尚未确认，实际调用状态见本次结果。"
-      : "五工具链正在计算；大模型未启用，本次不会调用 DeepSeek API。";
+  $("#mission-subtitle").textContent = "五工具链正在计算；结果状态和计算依据将在本次任务中显示。";
   ["#metric-energy", "#metric-time", "#metric-eta", "#metric-soc"].forEach(id => { $(id).textContent = "--"; });
   $("#route-chip").textContent = "推理中";
   renderRoute([]);
@@ -704,7 +957,7 @@ function renderPlanComparison(result) {
 
 function historyEntries() {
   try {
-    const items = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    const items = JSON.parse(userStorageGet(HISTORY_KEY) || "[]");
     return Array.isArray(items)
       ? items.filter(item => item && typeof item.threadId === "string" && item.threadId)
         .sort((a, b) => Date.parse(b.updatedAt || b.createdAt) - Date.parse(a.updatedAt || a.createdAt))
@@ -764,15 +1017,13 @@ function persistHistory(items) {
     try {
       const serialized = JSON.stringify(limited.slice(0, count));
       if (serialized.length > HISTORY_MAX_CHARS) continue;
-      localStorage.setItem(HISTORY_KEY, serialized);
-      return true;
+      return userStorageSet(HISTORY_KEY, serialized);
     } catch (_error) {
       // Keep the most recent records when browser storage is nearly full.
     }
   }
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify([{ ...limited[0], result: null }]));
-    return true;
+    return userStorageSet(HISTORY_KEY, JSON.stringify([{ ...limited[0], result: null }]));
   } catch (_error) {
     return false;
   }
@@ -823,9 +1074,9 @@ function showHistorySnapshot() {
   $("#result-stale").hidden = false;
   $("#result-stale").textContent = "服务器中的任务状态已不可用；当前显示浏览器保存的只读历史快照。可复制为新任务重新计算。";
   document.querySelectorAll(".adjustment-option").forEach(button => { button.disabled = true; });
-  localStorage.removeItem(ACTIVE_THREAD_KEY);
-  localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
-  localStorage.removeItem(ACTIVE_REQUEST_KEY);
+  userStorageRemove(ACTIVE_THREAD_KEY);
+  userStorageRemove(ACTIVE_TASK_TEXT_KEY);
+  userStorageRemove(ACTIVE_REQUEST_KEY);
   renderHistory();
 }
 
@@ -842,7 +1093,7 @@ async function openHistoryConversation(threadId) {
   let result;
   let snapshot = false;
   try {
-    const response = await fetch(`/api/runs/${encodeURIComponent(threadId)}`);
+    const response = await apiFetch(`/api/runs/${encodeURIComponent(threadId)}`);
     if (!response.ok) throw new Error("server_state_unavailable");
     result = await response.json();
   } catch (_error) {
@@ -871,7 +1122,7 @@ async function openHistoryConversation(threadId) {
 
 function savedPlans() {
   try {
-    const items = JSON.parse(localStorage.getItem(SAVED_PLANS_KEY) || "[]");
+    const items = JSON.parse(userStorageGet(SAVED_PLANS_KEY) || "[]");
     return Array.isArray(items) ? items.filter(item => item && typeof item.threadId === "string") : [];
   } catch (_error) {
     return [];
@@ -901,7 +1152,7 @@ function saveCurrentPlan() {
     createdAt: new Date().toLocaleString("zh-CN"),
   });
   try {
-    localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(items.slice(0, 20)));
+    userStorageSet(SAVED_PLANS_KEY, JSON.stringify(items.slice(0, 20)));
     $("#saved-feedback").textContent = "方案快照已保存到此浏览器，可从下方打开。";
     renderSavedPlans();
   } catch (_error) {
@@ -924,7 +1175,7 @@ async function openSavedPlan(index) {
   const revision = state.inputRevision;
   $("#saved-open-feedback").textContent = "正在读取已保存方案…";
   try {
-    const response = await fetch(`/api/runs/${encodeURIComponent(item.threadId)}`);
+    const response = await apiFetch(`/api/runs/${encodeURIComponent(item.threadId)}`);
     const result = await response.json();
     if (requestId !== state.requestSequence || revision !== state.inputRevision) return;
     if (!response.ok) throw new Error(result.error || "方案已失效");
@@ -975,15 +1226,15 @@ function initializeTaskDefaults() {
 }
 
 function primeActiveTaskFromStorage() {
-  if (!localStorage.getItem(ACTIVE_THREAD_KEY)) return;
+  if (!userStorageGet(ACTIVE_THREAD_KEY)) return;
   try {
-    const request = JSON.parse(localStorage.getItem(ACTIVE_REQUEST_KEY) || "null");
+    const request = JSON.parse(userStorageGet(ACTIVE_REQUEST_KEY) || "null");
     if (requestCompleteForForm(request)) syncCorrectionToTask(request);
     else if (request) syncPartialRequestToInputs(request);
   } catch (_error) {
     // An older saved task can still be restored from the server.
   }
-  const text = localStorage.getItem(ACTIVE_TASK_TEXT_KEY);
+  const text = userStorageGet(ACTIVE_TASK_TEXT_KEY);
   if (text) $("#mission-input").value = text;
   $("#mission-subtitle").textContent = "正在恢复上次任务状态…";
 }
@@ -1064,16 +1315,16 @@ function renderResult(result) {
 
   if (result.thread_id) {
     try {
-      localStorage.setItem(ACTIVE_THREAD_KEY, result.thread_id);
-      localStorage.setItem(ACTIVE_TASK_TEXT_KEY, $("#mission-input").value);
-      localStorage.setItem(ACTIVE_REQUEST_KEY, JSON.stringify(result.request || {}));
+      userStorageSet(ACTIVE_THREAD_KEY, result.thread_id);
+      userStorageSet(ACTIVE_TASK_TEXT_KEY, $("#mission-input").value);
+      userStorageSet(ACTIVE_REQUEST_KEY, JSON.stringify(result.request || {}));
     } catch (_error) {
       $("#history-feedback").textContent = "浏览器存储空间不足，刷新后可能无法恢复当前任务。";
     }
   } else {
-    localStorage.removeItem(ACTIVE_THREAD_KEY);
-    localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
-    localStorage.removeItem(ACTIVE_REQUEST_KEY);
+    userStorageRemove(ACTIVE_THREAD_KEY);
+    userStorageRemove(ACTIVE_TASK_TEXT_KEY);
+    userStorageRemove(ACTIVE_REQUEST_KEY);
   }
 
   state.finalAnswer = operatorSummary(result, route, summary);
@@ -1106,7 +1357,7 @@ function pcm16Base64(input, sourceRate) {
 }
 
 async function voiceRequest(path, payload = {}) {
-  const response = await fetch(path, {
+  const response = await apiFetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -1255,9 +1506,9 @@ async function runInference(payloadOverride = null) {
     return;
   }
   // A new submission supersedes any older decision awaiting confirmation.
-  localStorage.removeItem(ACTIVE_THREAD_KEY);
-  localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
-  localStorage.removeItem(ACTIVE_REQUEST_KEY);
+  userStorageRemove(ACTIVE_THREAD_KEY);
+  userStorageRemove(ACTIVE_TASK_TEXT_KEY);
+  userStorageRemove(ACTIVE_REQUEST_KEY);
   const requestId = ++state.requestSequence;
   const submittedRevision = state.inputRevision;
   const controller = typeof AbortController === "function"
@@ -1272,7 +1523,7 @@ async function runInference(payloadOverride = null) {
   updateVesselView("running", { message: "五工具链正在计算航行方案" });
   resetResult();
   try {
-    const response = await fetch("/api/run", {
+    const response = await apiFetch("/api/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payloadOverride || { task_text: message }),
@@ -1399,55 +1650,80 @@ function cancelActiveRequest() {
 
 async function loadHealth() {
   try {
-    const response = await fetch("/healthz");
+    const response = await apiFetch("/healthz");
     if (!response.ok) throw new Error("health unavailable");
     const health = await response.json();
-    state.llmMode = health.llm_mode || "unknown";
-    const enabled = health.llm_mode === "enabled";
-    const speechEnabled = health.speech_mode === "iflytek_iat";
-    const release = health.release || {};
-    const version = release.app_version ? `v${release.app_version}` : "版本未知";
-    const profile = release.parameter_profile || "参数档案未知";
-    const parameterDate = release.parameter_approved_at || "日期未知";
-    $("#release-meta").textContent = `正式网站 · ${version} · 参数 ${parameterDate}`;
-    $("#release-meta").title = [
-      `基线：${release.baseline_id || "未知"}`,
-      `参数档案：${profile}`,
-      `有效容量：${formatNumber(release.effective_capacity_kwh, " kWh")}`,
-      `SOC 规划下限：${formatNumber(Number(release.soc_planning_min) * 100, "%")}`,
-    ].join("；");
-    $("#model-label").textContent = enabled ? "DeepSeek 已配置，待调用验证" : "DeepSeek 未启用";
-    $("#model-dot").className = enabled ? "status-dot" : "status-dot offline";
-    const availability = $("#model-availability");
-    availability.textContent = enabled
-      ? "大模型已配置。提交任务后会尝试调用，实际结果见本次任务的模型状态。"
-      : "大模型未启用：提交任务只运行五工具仿真，不会调用 DeepSeek API。";
-    availability.className = enabled ? "model-availability" : "model-availability warning";
-    state.speechAvailable = speechEnabled;
-    $("#voice-button").disabled = !speechEnabled;
-    $("#voice-copy").textContent = speechEnabled ? "点击麦克风语音输入" : "语音服务待配置";
+    $("#service-label").textContent = health.status === "ok" ? "航次规划服务在线" : "航次规划服务异常";
+    $("#service-dot").className = health.status === "ok" ? "status-dot" : "status-dot offline";
+    $("#model-availability").textContent = "提交后显示本次工具执行状态、计算依据和结果限制。";
+    await loadVoiceStatus();
   } catch (_error) {
-    state.llmMode = "unknown";
-    $("#release-meta").textContent = "正式网站 · 版本信息暂不可用";
-    $("#model-label").textContent = "本地决策引擎未连接";
-    $("#model-dot").className = "status-dot offline";
-    $("#model-availability").textContent = "无法确认大模型状态，请检查服务连接。";
+    $("#service-label").textContent = "航次规划服务暂不可用";
+    $("#service-dot").className = "status-dot offline";
+    $("#model-availability").textContent = "无法连接规划服务，请稍后重试。";
     $("#model-availability").className = "model-availability warning";
     state.speechAvailable = false;
     $("#voice-button").disabled = true;
-    $("#voice-copy").textContent = "语音服务未连接";
+    $("#voice-copy").textContent = "语音服务暂不可用";
   }
 }
 
+async function loadVoiceStatus() {
+  try {
+    const response = await apiFetch("/api/voice/status");
+    const status = response.ok ? await response.json() : {};
+    state.speechAvailable = status.available === true;
+    $("#voice-button").disabled = !state.speechAvailable;
+    $("#voice-copy").textContent = state.speechAvailable ? "点击麦克风语音输入" : "语音服务待配置";
+  } catch (_error) {
+    state.speechAvailable = false;
+    $("#voice-button").disabled = true;
+    $("#voice-copy").textContent = "语音服务暂不可用";
+  }
+}
+
+async function initializeAuthenticatedWorkspace() {
+  if (!state.authUser) return;
+  if (!state.clockTimer) {
+    tickClock();
+    state.clockTimer = setInterval(tickClock, 1000);
+  }
+  initializeQuickRouteNodes();
+  initializeTaskDefaults();
+  primeActiveTaskFromStorage();
+  if (!state.workspaceInitialized) {
+    bindControls();
+    state.workspaceInitialized = true;
+  }
+  renderSavedPlans();
+  importSavedPlansIntoHistory();
+  renderHistory();
+  refreshIcons();
+  await loadHealth();
+  if (state.authUser?.role === "admin") await loadAdminDiagnostics();
+  else {
+    $("#admin-diagnostics").hidden = true;
+    $("#admin-diagnostics").textContent = "";
+  }
+  if (state.authUser) await restorePendingRun();
+  window.setTimeout(() => {
+    const modelLoader = $("#vessel-loading");
+    if (!window.Ship3DReady && modelLoader && !modelLoader.hidden) {
+      modelLoader.classList.add("error");
+      modelLoader.lastChild.textContent = "三维组件未能加载，请检查网络后刷新页面";
+    }
+  }, 15000);
+}
+
 async function restorePendingRun() {
-  const threadId = localStorage.getItem(ACTIVE_THREAD_KEY);
+  const threadId = userStorageGet(ACTIVE_THREAD_KEY);
   if (!threadId) return;
   const revision = state.inputRevision;
   const requestSequence = state.requestSequence;
   try {
-    const response = await fetch(`/api/runs/${encodeURIComponent(threadId)}`);
+    const response = await apiFetch(`/api/runs/${encodeURIComponent(threadId)}`);
     const result = await response.json();
-    if (localStorage.getItem(ACTIVE_THREAD_KEY) !== threadId ||
+    if (userStorageGet(ACTIVE_THREAD_KEY) !== threadId ||
         state.inputRevision !== revision || state.requestSequence !== requestSequence) return;
     if (!response.ok) {
       if (response.status === 400 || response.status === 404) {
@@ -1462,9 +1738,9 @@ async function restorePendingRun() {
           $("#history-feedback").textContent = "上次任务的服务器状态已失效，已恢复浏览器快照。";
           return;
         }
-        localStorage.removeItem(ACTIVE_THREAD_KEY);
-        localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
-        localStorage.removeItem(ACTIVE_REQUEST_KEY);
+        userStorageRemove(ACTIVE_THREAD_KEY);
+        userStorageRemove(ACTIVE_TASK_TEXT_KEY);
+        userStorageRemove(ACTIVE_REQUEST_KEY);
         initializeTaskDefaults();
         $("#mission-subtitle").textContent = "上次任务状态已失效，请重新发起任务。";
       } else {
@@ -1472,9 +1748,9 @@ async function restorePendingRun() {
       }
       return;
     }
-    const storedText = localStorage.getItem(ACTIVE_TASK_TEXT_KEY);
+    const storedText = userStorageGet(ACTIVE_TASK_TEXT_KEY);
     let storedRequest = null;
-    try { storedRequest = JSON.parse(localStorage.getItem(ACTIVE_REQUEST_KEY) || "null"); } catch (_error) { /* Ignore an old invalid request cache. */ }
+    try { storedRequest = JSON.parse(userStorageGet(ACTIVE_REQUEST_KEY) || "null"); } catch (_error) { /* Ignore an old invalid request cache. */ }
     const requestChanged = storedRequest && JSON.stringify(storedRequest) !== JSON.stringify(result.request);
     if (storedText && !requestChanged) $("#mission-input").value = storedText;
     else if (requestCompleteForForm(result.request)) syncCorrectionToTask(result.request);
@@ -1564,9 +1840,9 @@ function bindControls() {
     state.inputRevision += 1;
     state.quickDirty = false;
     state.lastResult = null;
-    localStorage.removeItem(ACTIVE_THREAD_KEY);
-    localStorage.removeItem(ACTIVE_TASK_TEXT_KEY);
-    localStorage.removeItem(ACTIVE_REQUEST_KEY);
+    userStorageRemove(ACTIVE_THREAD_KEY);
+    userStorageRemove(ACTIVE_TASK_TEXT_KEY);
+    userStorageRemove(ACTIVE_REQUEST_KEY);
     resetResult();
     updateStatus("idle", "待命");
     $("#mission-title").textContent = "等待航行任务";
@@ -1598,25 +1874,9 @@ function bindControls() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-  tickClock();
-  setInterval(tickClock, 1000);
-  initializeQuickRouteNodes();
-  initializeTaskDefaults();
-  primeActiveTaskFromStorage();
-  bindControls();
-  renderSavedPlans();
-  importSavedPlansIntoHistory();
-  renderHistory();
+  bindAuthControls();
   refreshIcons();
-  await loadHealth();
-  await restorePendingRun();
-  window.setTimeout(() => {
-    const modelLoader = $("#vessel-loading");
-    if (!window.Ship3DReady && modelLoader && !modelLoader.hidden) {
-      modelLoader.classList.add("error");
-      modelLoader.lastChild.textContent = "三维组件未能加载，请检查网络后刷新页面";
-    }
-  }, 15000);
+  await restoreLoginSession();
 });
 
 window.addEventListener("beforeunload", () => {

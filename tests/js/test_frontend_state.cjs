@@ -113,18 +113,20 @@ async function run() {
     throw new Error("cancelled request changed the current task");
   }
 
-  storage.set("ship-agent.active-thread", "temporary-thread");
+  vm.runInContext('state.authUser = { id: "test-user", role: "user" };', context);
+  const activeThreadKey = "ship-agent.user.test-user.active-thread";
+  storage.set(activeThreadKey, "temporary-thread");
   context.fetch = async () => { throw new Error("temporary network failure"); };
   await vm.runInContext("restorePendingRun()", context);
-  if (!storage.has("ship-agent.active-thread")) throw new Error("network error removed recovery id");
+  if (!storage.has(activeThreadKey)) throw new Error("network error removed recovery id");
 
   context.fetch = async () => ({ ok: false, status: 500, json: async () => ({ error: "workflow_failed" }) });
   await vm.runInContext("restorePendingRun()", context);
-  if (!storage.has("ship-agent.active-thread")) throw new Error("server error removed recovery id");
+  if (!storage.has(activeThreadKey)) throw new Error("server error removed recovery id");
 
   context.fetch = async () => ({ ok: false, status: 404, json: async () => ({ error: "workflow_not_found" }) });
   await vm.runInContext("restorePendingRun()", context);
-  if (storage.has("ship-agent.active-thread")) throw new Error("confirmed missing task kept recovery id");
+  if (storage.has(activeThreadKey)) throw new Error("confirmed missing task kept recovery id");
 }
 
 run().then(() => process.stdout.write("ok\n"));

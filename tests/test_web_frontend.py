@@ -64,7 +64,7 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     js = (ROOT / "app.js").read_text(encoding="utf-8")
     for label in (
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
-        "正式网站基线 · 正在读取版本",
+        "登录船舶能效决策系统", "系统不开放自助注册", "管理员服务诊断",
         "任务描述", "快捷输入", "应用到任务描述", "工况补充", "航线与分段方案",
         "航段能耗与速度", "仿真航速方案", "约束检查（软件演示）", "能量管理建议",
         "航次仿真摘要", "工具调用过程", "选择已验证方案后恢复并重算",
@@ -92,7 +92,9 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     assert "if (result.request) syncCorrectionToTask(result.request);" in js
     assert 'setAttribute("aria-hidden", "true")' in js
     for marker in (
-        "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text", "AI 提示已更新",
+        "/api/auth/login", "/api/auth/me", "/api/auth/logout",
+        "/api/admin/system-status", "X-CSRF-Token", "ship-agent.user.",
+        "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text",
         "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
         "applyAdjustmentOption", "readCorrectionPayload", "payloadOverride",
         "ACTIVE_THREAD_KEY", "restorePendingRun", "decision_id", "option_id",
@@ -112,6 +114,9 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     assert '<script type="importmap">' in html
     assert "cdn.jsdelivr.net/npm/three" not in html
     assert "const understandingMode = result.task_understanding?.mode" in js
+    assert '"普通用户"' in js and '"管理员"' in js
+    assert 'if (state.authUser?.role !== "admin") return;' in js
+    assert 'credentials: "same-origin"' in js
     assert "数据来源" not in html
     for internal_copy in (
         "sourceLabel", "result.dashboard", "当前工具计算结束 SOC",
