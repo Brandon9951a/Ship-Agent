@@ -11,21 +11,45 @@
     <link rel="stylesheet" href="/static/interaction.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <main class="login-screen" id="login-screen" aria-labelledby="login-title">
+      <section class="login-card">
+        <div class="login-brand-mark" aria-hidden="true"><i data-lucide="ship"></i></div>
+        <p class="eyebrow">SHIP AGENT · SECURE WORKSPACE</p>
+        <h1 id="login-title">登录船舶能效决策系统</h1>
+        <p class="login-intro">使用部署方分配的账号登录。账号由管理员创建，系统不开放自助注册。</p>
+        <form id="login-form" novalidate>
+          <label for="login-username">用户名</label>
+          <input id="login-username" name="username" type="text" autocomplete="username" maxlength="64" required />
+          <label for="login-password">密码</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" maxlength="1024" required />
+          <p class="login-feedback" id="login-feedback" role="alert" aria-live="polite"></p>
+          <button class="login-submit" id="login-submit" type="submit">登录</button>
+        </form>
+        <p class="login-footnote">登录状态由服务端校验。请勿在公共设备保存密码。</p>
+      </section>
+    </main>
+
+    <div class="app-shell" id="app-shell" hidden>
       <header class="topbar">
         <div class="brand-lockup">
           <div class="brand-mark" aria-hidden="true"><i data-lucide="ship"></i><span></span></div>
           <div>
-            <p class="eyebrow">YUJIAOTOU 001 · AGENT · DEEPSEEK</p>
+          <p class="eyebrow">YUJIAOTOU 001 · VOYAGE DECISION SYSTEM</p>
             <h1>智行合一 · 船舶航速优化与能效管理智能决策系统</h1>
-            <p class="release-meta" id="release-meta">正式网站基线 · 正在读取版本</p>
           </div>
         </div>
         <div class="topbar-meta">
-          <span class="connection"><span class="status-dot" id="model-dot"></span><span id="model-label">正在检查决策引擎</span></span>
+          <span class="connection"><span class="status-dot" id="service-dot"></span><span id="service-label">正在检查规划服务</span></span>
+          <div class="session-identity" id="session-identity" hidden>
+            <span class="session-name" id="session-name"></span>
+            <span class="role-badge" id="session-role"></span>
+            <button class="logout-button" id="logout-button" type="button">退出登录</button>
+          </div>
           <span class="clock" id="clock">--:--</span>
         </div>
       </header>
+
+      <section class="admin-diagnostics" id="admin-diagnostics" hidden aria-label="管理员服务诊断"></section>
 
       <main class="workspace">
         <aside class="mission-panel" aria-label="任务输入" tabindex="0">
@@ -49,7 +73,7 @@
           </div>
 
           <button class="run-button" id="run-button" type="button"><i data-lucide="send"></i><span>计算仿真方案</span></button>
-          <p class="model-availability" id="model-availability" role="status">正在确认大模型调用状态…</p>
+          <p class="model-availability" id="model-availability" role="status">本系统使用五工具计算；本次结果会显示状态、依据与限制。</p>
 
           <button class="quick-open" id="quick-open" type="button" aria-haspopup="dialog" aria-controls="quick-dialog">
             <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
