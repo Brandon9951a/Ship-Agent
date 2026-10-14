@@ -62,6 +62,10 @@ def test_inference_contract_determinism_no_future_power_leakage():
     assert evaluate([dict(plan[0],speed_kmh=21)],None,history,"test",bundle=bundle)["status"] == "outside_training_domain"
     assert evaluate(plan*3,None,history,"test",bundle=bundle)["status"] == "long_horizon_unvalidated"
     assert batch_evaluate([plan,plan],[None,None],[history,history],"test",bundle=bundle) == [a,a]
+    assert evaluate(plan,None,history,"test",bundle=bundle,usage="planning")["status"] == "model_unapproved"
+    assert all(result["status"] == "model_unapproved" for result in
+               batch_evaluate([plan,plan],[None,None],[history,history],"test",
+                              bundle=bundle,usage="planning"))
 
 
 def test_excel_extension_requires_sourced_environment():

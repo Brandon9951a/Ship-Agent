@@ -216,8 +216,10 @@ def load_model(directory, *, version=None):
     return ModelBundle(model, scaler, manifest)
 
 
-def evaluate(speed_plan, environment_scenario, history, model_version, *, bundle):
-    """Plan entries: segment_id, speed_kmh, dt_seconds, optional time. Right-end integration."""
+def evaluate(speed_plan, environment_scenario, history, model_version, *, bundle, usage="research"):
+    """Experimental five-step forecast. Planning use requires an approved manifest."""
+    if usage not in ("research", "planning"):
+        return {"status": "invalid_usage"}
     if model_version != bundle.manifest["version"]:
         return {"status": "invalid_model_version"}
     if not history or len(history) < HISTORY or any("motor_power_kw" not in p for p in history[-HISTORY:]):
@@ -236,6 +238,9 @@ def evaluate(speed_plan, environment_scenario, history, model_version, *, bundle
                       any(any(f not in p for f in FEATURES[2:]) or not p.get("source")
                           for p in environment_scenario)):
         return {"status": "missing_environment"}
+    if usage == "planning" and not (bundle.manifest.get("planner_approved") and
+                                     bundle.manifest.get("approval_ref")):
+        return {"status": "model_unapproved", "model_version": model_version}
     if len(speed_plan) > HORIZON:
         return {"status": "long_horizon_unvalidated"}
     bounds = bundle.manifest["speed_range_kmh"]
@@ -301,13 +306,15 @@ def evaluate(speed_plan, environment_scenario, history, model_version, *, bundle
         entry["waiting_seconds"] += p["waiting_seconds"]
         entry["motor_energy_kwh"] += energy
         entry["peak_motor_power_kw"] = max(entry["peak_motor_power_kw"],float(power))
-    return {"status":"experimental", "measurement_boundary":"propulsion_motor_observation",
+    return {"status":"experimental" if usage == "research" else "planning_prediction",
+            "measurement_boundary":"propulsion_motor_observation",
             "battery_energy_kwh":None,"waiting_energy_kwh":None,"auxiliary_energy_kwh":None,
             "integration_rule":"right_endpoint", "model_version":model_version,
             "steps":steps,"segments":list(segments.values())}
 
 
-def batch_evaluate(plans, environment_scenarios, histories, model_version, *, bundle):
+def batch_evaluate(plans, environment_scenarios, histories, model_version, *, bundle, usage="research"):
     if not (len(plans) == len(environment_scenarios) == len(histories)):
         raise ValueError("Batch lengths differ")
-    return [evaluate(p,e,h,model_version,bundle=bundle) for p,e,h in zip(plans,environment_scenarios,histories)]
+    return [evaluate(p,e,h,model_version,bundle=bundle,usage=usage)
+            for p,e,h in zip(plans,environment_scenarios,histories)]
