@@ -1,0 +1,20 @@
+{
+  "selected_candidate_id": "c-0c6ec3d2f079",
+  "selected_demand_ref": "demand-c-0c6ec3d2f079",
+  "battery_config_hash": "cfg-hash-1",
+  "failure_scope": "soc_path_dependent",
+  "violated_rule": "soc_min",
+  "first_failure_interval": [
+    3000.0,
+    3300.0
+  ],
+  "demand_kw": 310.0,
+  "deliverable_kw": 420.0,
+  "soc_1": 0.19,
+  "soc_2": 0.41,
+  "limit_source_ref": null,
+  "diagnostic_certainty": "path_dependent",
+  "suggested_search_action": "reject_candidate",
+  "detail": null,
+  "schema_version": "research-tools/2.0-draft"
+}
