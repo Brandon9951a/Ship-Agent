@@ -1,0 +1,140 @@
+{
+  "split": {
+    "history": 12,
+    "horizon": 5,
+    "purge_points": 17,
+    "extension": false,
+    "source_holdout": true,
+    "blocks": [
+      {
+        "source": "data.xlsx",
+        "split": "train",
+        "start": 0,
+        "end": 9805,
+        "first_time": 0.0,
+        "last_time": 49020.0
+      },
+      {
+        "source": "data.xlsx",
+        "split": "val",
+        "start": 9822,
+        "end": 12257,
+        "first_time": 49110.0,
+        "last_time": 61280.0
+      },
+      {
+        "source": "log4p-10-29(1).csv",
+        "split": "train",
+        "start": 0,
+        "end": 4546,
+        "first_time": 1761726702.277295,
+        "last_time": 1761752103.087826
+      },
+      {
+        "source": "log4p-10-29(1).csv",
+        "split": "val",
+        "start": 4563,
+        "end": 5683,
+        "first_time": 1761752193.087366,
+        "last_time": 1761758493.064975
+      },
+      {
+        "source": "log4p-10-31(1).csv",
+        "split": "test",
+        "start": 0,
+        "end": 10986,
+        "first_time": 1761898266.82275,
+        "last_time": 1761955196.380825
+      }
+    ],
+    "sample_counts": {
+      "train": 7595,
+      "val": 2340,
+      "test": 2816
+    },
+    "sample_counts_by_source": {
+      "train": {
+        "data.xlsx": 4793,
+        "log4p-10-29(1).csv": 2802,
+        "log4p-10-31(1).csv": 0
+      },
+      "val": {
+        "data.xlsx": 1809,
+        "log4p-10-29(1).csv": 531,
+        "log4p-10-31(1).csv": 0
+      },
+      "test": {
+        "data.xlsx": 0,
+        "log4p-10-29(1).csv": 0,
+        "log4p-10-31(1).csv": 2816
+      }
+    },
+    "rejected_windows": {
+      "nonmoving_negative_or_outlier": 11933,
+      "timing_discontinuity": 4128
+    }
+  },
+  "speed_range_kmh": [
+    0.0018520000157877803,
+    11.656488418579102
+  ],
+  "future_features": 2,
+  "extension": false,
+  "source_holdout": true,
+  "hidden": 32,
+  "seed": 20261014,
+  "training": {
+    "epochs_run": 25,
+    "best_epoch": 22,
+    "validation_scaled_mae": [
+      0.31693412363529205,
+      0.16826347510019937,
+      0.13757898285984993,
+      0.10037720079223315,
+      0.08065203949809074,
+      0.07488762897749741,
+      0.07293927731613319,
+      0.07435490936040878,
+      0.07238381480177243,
+      0.07294957712292671,
+      0.07111577627559502,
+      0.07186717043320338,
+      0.07145961622397105,
+      0.07120726692179839,
+      0.07073251778880756,
+      0.07207616232335567,
+      0.06920851084093253,
+      0.06906291594107945,
+      0.07165299976865451,
+      0.0691678033520778,
+      0.07214601834615071,
+      0.06834140047430992,
+      0.06880751810967922,
+      0.0707312822341919,
+      0.0689206210275491
+    ],
+    "early_stop_patience": 5
+  },
+  "cubic_coefficients": [
+    19.994678497314453,
+    0.06546837836503983
+  ],
+  "version": "common_source",
+  "source_sha256": {
+    "data.xlsx": "a62c5fde4796aa8e18322661ed19fe1fa3be473e1cc130d0a8c5b90d2206f5b7",
+    "log4p-10-29(1).csv": "d1123094ee22ebb8098d3920fa0d45f803dd8b374f257d2032ff837d0e23b1f7",
+    "log4p-10-31(1).csv": "2cf012d1ddb2c73acc957598cf40a126ffc60e8cb5f87197d1e99dcdca813fb5"
+  },
+  "dependency_versions": {
+    "python": "3.13.3",
+    "numpy": "2.5.4",
+    "torch": "2.14.1+cpu"
+  },
+  "label": "propulsion_motor_observed_kw",
+  "status": "experimental_unapproved",
+  "step_seconds": 5,
+  "horizon": 5,
+  "csv_units": "provisional per LSTM task book; field dictionary unconfirmed",
+  "integration": "right_endpoint_kW_seconds_over_3600",
+  "planner_approved": false
+}
