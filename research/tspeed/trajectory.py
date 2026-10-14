@@ -335,16 +335,14 @@ def speed_ceiling(segment: SegmentConstraint, grid: TimeGridSpec) -> float:
 
 def segment_handoff_floor(segment: SegmentConstraint, next_segment: SegmentConstraint | None,
                           grid: TimeGridSpec) -> float:
-    """本段与下一段之间的交接速度下限 = 两侧减速目标下限的较大者。
+    """本段减速目标下限 = 本段限速下限与固定航速取较严者。
 
-    交接速度既要满足本段（不得低于本段的限速下限/固定航速），也要满足下一段
-    （不得低于下一段限速下限）。取较大者即可同时满足两侧，且不会展开出低于
-    任一段限速下限的"通过速度"。
+    注意：**不**把下一段的限速下限并入本段出口。段的限速下限约束的是该段内的
+    运行速度；进入下一段后由下一段自己的入段斜坡把速度抬到其下限之上。
+    若把下一段下限前置到本段出口，会把"前段按低速通过、后段再加速"这种
+    合法方案误判为不可行。
     """
-    floor = fixed_speed_floor(segment, grid)
-    if next_segment is not None:
-        floor = max(floor, fixed_speed_floor(next_segment, grid))
-    return floor
+    return fixed_speed_floor(segment, grid)
 
 
 def plan_segment_phases(segment: SegmentConstraint, *, cruise_speed_kmh: float,
@@ -537,8 +535,9 @@ def expand_trajectory(speed_vector, *, request, time_grid: TimeGridSpec | None =
             else:
                 exit_speed = fixed_speed_floor(segment, grid)
         elif next_segment.optimizable:
-            # 出口速度 = 下一段目标航速（不得越过本段限速上限），再抬到交接下限。
-            exit_speed = min(max(targets[next_segment.segment_id], handoff_floor),
+            # 出口速度 = 下一段目标航速（不得越过本段限速上限）。
+            # 下一段的限速下限由下一段自己的入段斜坡负责，不前置到本段出口。
+            exit_speed = min(targets[next_segment.segment_id],
                              speed_ceiling(segment, grid))
         else:
             exit_speed = next_segment.fixed_speed_kmh or 0.0

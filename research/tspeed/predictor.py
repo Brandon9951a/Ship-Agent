@@ -51,10 +51,16 @@ class EvaluationGrid:
 
 @dataclass(frozen=True)
 class PredictionOutcome:
-    """一个候选的预测结果与诊断；失败候选保留自己的诊断，不用均值补齐。"""
+    """一个候选的预测结果与诊断；失败候选保留自己的诊断，不用均值补齐。
+
+    ``motor_energy_kwh`` 由后端直接给出，因此搜索期可以在保留汇总与诊断的同时
+    释放 ``power_points``（逐时工件），避免 DE 多代评估把内存吃满。
+    """
 
     candidate_id: str
     outcome_code: str
+    motor_energy_kwh: float | None = None
+    peak_power_kw: float | None = None
     power_points: tuple[PowerPoint, ...] = ()
     segment_summaries: tuple[SegmentSummary, ...] = ()
     total_summary: SegmentSummary | None = None
@@ -70,13 +76,10 @@ class PredictionOutcome:
         return self.outcome_code == OutcomeCode.OK.value
 
     @property
-    def motor_energy_kwh(self) -> float | None:
-        if not self.ok or self.total_summary is None:
-            return None
-        return self.total_summary.predicted_motor_energy_kwh
-
-    @property
     def peak_motor_power_kw(self) -> float | None:
+        """优先使用后端直接给出的峰值；否则从逐时工件求最大值。"""
+        if self.peak_power_kw is not None:
+            return self.peak_power_kw
         values = [point.predicted_motor_power_kw for point in self.power_points
                   if point.predicted_motor_power_kw is not None]
         return max(values) if values else None
@@ -84,6 +87,18 @@ class PredictionOutcome:
     @property
     def extrapolated_fraction(self) -> float | None:
         return self.coverage.extrapolated_fraction if self.coverage else None
+
+    def without_power_points(self) -> "PredictionOutcome":
+        """释放逐时工件、保留决策所需信息（用于搜索期长期驻留的候选）。"""
+        return PredictionOutcome(
+            candidate_id=self.candidate_id, outcome_code=self.outcome_code,
+            motor_energy_kwh=self.motor_energy_kwh,
+            peak_power_kw=self.peak_motor_power_kw, power_points=(),
+            segment_summaries=self.segment_summaries,
+            total_summary=self.total_summary, coverage=self.coverage,
+            model_version=self.model_version, cache_hit=self.cache_hit,
+            diagnostics=self.diagnostics, artifact_ref=self.artifact_ref,
+            runtime_ms=self.runtime_ms)
 
     def to_envelope(self) -> EnergyResultEnvelope:
         """转换为 v2 逐候选结果工件（核验与落盘路径使用）。"""
@@ -154,7 +169,8 @@ class AnalyticPowerPredictor:
     def __init__(self, *, coefficient: float, exponent: float = 3.0,
                  idle_power_kw: float = 0.0, model_version: str = ANALYTIC_MODEL_VERSION,
                  integration_rule: str = DEFAULT_INTEGRATION_RULE,
-                 environment_factor: float = 1.0) -> None:
+                 environment_factor: float = 1.0,
+                 max_cache_entries: int = 512) -> None:
         if coefficient <= 0:
             raise ValueError("coefficient 必须为正")
         if exponent <= 0:
@@ -163,14 +179,31 @@ class AnalyticPowerPredictor:
             raise ValueError("idle_power_kw 不得为负")
         if environment_factor <= 0:
             raise ValueError("environment_factor 必须为正")
+        if max_cache_entries < 1:
+            raise ValueError("max_cache_entries 必须为正整数")
         self._coefficient = float(coefficient)
         self._exponent = float(exponent)
         self._idle = float(idle_power_kw)
         self._model_version = model_version
         self._integration_rule = integration_rule
         self._environment_factor = float(environment_factor)
+        # 有界缓存：DE 会评估数千个候选，逐时工件不能无界驻留内存。
         self._cache: dict[str, PredictionOutcome] = {}
+        self._cache_order: list[str] = []
+        self._max_cache_entries = int(max_cache_entries)
         self._last_key_context: str | None = None
+
+    def _remember(self, key: str, outcome: PredictionOutcome) -> None:
+        if key not in self._cache:
+            self._cache_order.append(key)
+        self._cache[key] = outcome
+        while len(self._cache_order) > self._max_cache_entries:
+            oldest = self._cache_order.pop(0)
+            self._cache.pop(oldest, None)
+
+    @property
+    def cache_size(self) -> int:
+        return len(self._cache)
 
     @property
     def model_version(self) -> str:
@@ -242,7 +275,8 @@ class AnalyticPowerPredictor:
 
     # --- 轻量剖面路径：搜索期使用，避免实例化上万个 v2 对象 --------------------
     def predict_profile(self, profile: "TrajectoryProfile", *,
-                        candidate_id: str, grid: EvaluationGrid) -> PredictionOutcome:
+                        candidate_id: str, grid: EvaluationGrid,
+                        keep_power_points: bool = True) -> PredictionOutcome:
         key = stable_hash({
             "context": self._last_key_context,
             "kind": "profile",
@@ -255,6 +289,8 @@ class AnalyticPowerPredictor:
         if cached is not None:
             return PredictionOutcome(
                 candidate_id=candidate_id, outcome_code=cached.outcome_code,
+                motor_energy_kwh=cached.motor_energy_kwh,
+                peak_power_kw=cached.peak_power_kw,
                 power_points=cached.power_points,
                 segment_summaries=cached.segment_summaries,
                 total_summary=cached.total_summary, coverage=cached.coverage,
@@ -265,8 +301,10 @@ class AnalyticPowerPredictor:
         power_points: list[PowerPoint] = []
         diagnostics: list[Diagnostic] = []
         unpredicted_duration = 0.0
+        unpredicted_intervals = 0
         predicted_duration = 0.0
         interval_energy = 0.0
+        peak_power: float | None = None
         complete = True
         for index, (segment_id, phase, start, duration, speed) in enumerate(zip(
                 profile.segment_ids, profile.phases, profile.starts,
@@ -283,6 +321,7 @@ class AnalyticPowerPredictor:
                 flags = ("unpredicted",)
                 complete = False
                 unpredicted_duration += duration
+                unpredicted_intervals += 1
                 diagnostics.append(Diagnostic(
                     stage="predict", code="speed_unknown",
                     time_interval_s=(start, start + duration),
@@ -296,34 +335,38 @@ class AnalyticPowerPredictor:
             if energy is not None:
                 interval_energy += energy
                 predicted_duration += duration
-            power_points.append(PowerPoint(
-                segment_id=segment_id, phase=phase, start_offset_s=start,
-                duration_s=duration, planned_speed_kmh=speed,
-                predicted_motor_power_kw=power, motor_energy_kwh=energy,
-                applicability_flag=flag, quality_flags=flags,
-                target_speed_kmh=target, interval_kind=kind))
+            if power is not None and (peak_power is None or power > peak_power):
+                peak_power = power
+            if keep_power_points:
+                power_points.append(PowerPoint(
+                    segment_id=segment_id, phase=phase, start_offset_s=start,
+                    duration_s=duration, planned_speed_kmh=speed,
+                    predicted_motor_power_kw=power, motor_energy_kwh=energy,
+                    applicability_flag=flag, quality_flags=flags,
+                    target_speed_kmh=target, interval_kind=kind))
         total_seconds = sum(profile.durations)
         coverage = EnergyCoverage(
             interval_count=profile.interval_count,
-            predicted_count=sum(1 for point in power_points
-                                if point.predicted_motor_power_kw is not None),
+            predicted_count=(len(power_points) if keep_power_points
+                             else profile.interval_count - unpredicted_intervals),
             valid_fraction=predicted_duration / total_seconds if total_seconds else 0.0,
             extrapolated_fraction=0.0,
             unpredicted_fraction=(unpredicted_duration / total_seconds
                                   if total_seconds else 0.0),
             covered_seconds=predicted_duration, total_seconds=total_seconds)
-        summaries = self._summaries_from_points(power_points, grid)
+        summaries = (self._summaries_from_points(power_points, grid)
+                     if keep_power_points
+                     else self._summaries_from_profile(profile, grid))
         total_summary = SegmentSummary(
             scope_id="voyage", phase=None,
-            moving_duration_s=sum(point.duration_s for point in power_points
-                                  if point.phase == Phase.SAILING.value),
-            waiting_duration_s=sum(point.duration_s for point in power_points
-                                   if point.phase != Phase.SAILING.value),
+            moving_duration_s=sum(duration for phase, duration in
+                                  zip(profile.phases, profile.durations)
+                                  if phase == Phase.SAILING.value),
+            waiting_duration_s=sum(duration for phase, duration in
+                                   zip(profile.phases, profile.durations)
+                                   if phase != Phase.SAILING.value),
             predicted_motor_energy_kwh=(interval_energy if complete else None),
-            peak_motor_power_kw=max((point.predicted_motor_power_kw
-                                     for point in power_points
-                                     if point.predicted_motor_power_kw is not None),
-                                    default=None),
+            peak_motor_power_kw=peak_power,
             covered_seconds=predicted_duration, total_seconds=total_seconds,
             coverage_fraction=(predicted_duration / total_seconds
                                if total_seconds else 0.0),
@@ -333,13 +376,64 @@ class AnalyticPowerPredictor:
             candidate_id=candidate_id,
             outcome_code=(OutcomeCode.OK.value if complete
                           else OutcomeCode.NEEDS_INPUT.value),
-            power_points=tuple(power_points), segment_summaries=summaries,
+            motor_energy_kwh=(interval_energy if complete else None),
+            peak_power_kw=peak_power,
+            power_points=(tuple(power_points) if keep_power_points else ()),
+            segment_summaries=summaries,
             total_summary=total_summary, coverage=coverage,
             model_version=self._model_version, cache_hit=False,
             diagnostics=tuple(diagnostics),
             runtime_ms=(time.perf_counter() - started) * 1000.0)
-        self._cache[key] = outcome
+        self._remember(key, outcome)
         return outcome
+
+    def _summaries_from_profile(self, profile: "TrajectoryProfile",
+                                grid: EvaluationGrid) -> tuple[SegmentSummary, ...]:
+        """不保留逐时工件时的逐航段汇总；单位能量按该段平均功率复算。"""
+        order: list[str] = []
+        buckets: dict[str, list[int]] = {}
+        for index, segment_id in enumerate(profile.segment_ids):
+            bucket = buckets.get(segment_id)
+            if bucket is None:
+                bucket = []
+                buckets[segment_id] = bucket
+                order.append(segment_id)
+            bucket.append(index)
+        summaries: list[SegmentSummary] = []
+        for segment_id in order:
+            total_seconds = 0.0
+            covered = 0.0
+            moving = 0.0
+            waiting = 0.0
+            peak: float | None = None
+            energy = 0.0
+            complete = True
+            for index in buckets[segment_id]:
+                duration = profile.durations[index]
+                total_seconds += duration
+                if profile.phases[index] == Phase.SAILING.value:
+                    moving += duration
+                else:
+                    waiting += duration
+                speed = profile.speeds[index]
+                if profile.phases[index] == Phase.SAILING.value and speed is None:
+                    complete = False
+                    continue
+                power = 0.0 if profile.phases[index] != Phase.SAILING.value \
+                    else self.power_kw(speed)
+                covered += duration
+                if peak is None or power > peak:
+                    peak = power
+                energy += power * duration / 3600.0
+            summaries.append(SegmentSummary(
+                scope_id=segment_id, phase=None,
+                moving_duration_s=moving, waiting_duration_s=waiting,
+                predicted_motor_energy_kwh=(energy if complete else None),
+                peak_motor_power_kw=peak,
+                covered_seconds=covered, total_seconds=total_seconds,
+                coverage_fraction=(covered / total_seconds) if total_seconds else 0.0,
+                distance_km=grid.distance_km_by_segment.get(segment_id)))
+        return tuple(summaries)
 
     def _summaries_from_points(self, points: Sequence[PowerPoint],
                                grid: EvaluationGrid) -> tuple[SegmentSummary, ...]:

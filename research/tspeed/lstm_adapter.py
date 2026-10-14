@@ -161,6 +161,8 @@ class LSTMEnergyAdapter:
 
         return PredictionOutcome(
             candidate_id=envelope.candidate_id, outcome_code=envelope.outcome_code,
+            motor_energy_kwh=envelope.motor_energy_kwh,
+            peak_power_kw=envelope.peak_motor_power_kw,
             power_points=envelope.power_points,
             segment_summaries=envelope.segment_summaries,
             total_summary=envelope.total_summary, coverage=envelope.coverage,

@@ -32,7 +32,6 @@ from research.tspeed.trajectory import (
     Violation,
     expand_trajectory,
     fixed_speed_floor,
-    segment_handoff_floor,
 )
 
 VERIFICATION_TOLERANCE_KM = 1e-6
@@ -106,12 +105,12 @@ def verify_candidate(candidate: CandidateTrajectory, *,
                    else grid.max_speed_kmh)
         next_segment = (request.segments[index + 1]
                         if index + 1 < len(request.segments) else None)
-        # 交接速度下限：两侧减速目标下限取较大者（与展开器同一规则）。
-        # 巡航区间必须达到本段限速下限；过渡斜坡在 [全局下限, 本段上限] 内即可。
-        handoff_floor = segment_handoff_floor(segment, next_segment, grid)
+        # 巡航区间必须达到本段限速下限；入段斜坡允许从上一段更低/更高的出口速度
+        # 起步（段内加速或减速到目标航速），这是物理过程而非违规。
+        del next_segment
         cruise_floor = fixed_speed_floor(segment, grid)
         limits_by_segment[segment.segment_id] = (
-            max(grid.min_speed_kmh, min(low, handoff_floor)), high,
+            max(grid.min_speed_kmh, low), high,
             segment.fixed_speed_kmh, cruise_floor)
     observed_max = 0.0
     for fact in expanded.segment_facts:
