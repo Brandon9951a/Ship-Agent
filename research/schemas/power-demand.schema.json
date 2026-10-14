@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ship-agent/research/schemas/power-demand.schema.json",
+  "title": "PowerDemandSeries",
+  "description": "共同需求构建器输出的唯一母线需求工件（联调接口 v2 第 5 节）。Tenergy 只预测主推进电机侧功率；电机侧→母线侧的换算与辅助负载合并只在本工件生成时执行一次。母线侧无依据时 demand_bus_kw 必须为 null，bus_side_available=false。",
+  "type": "object",
+  "required": ["series_id", "points", "conversion_model_ref", "conversion_config_hash",
+               "bus_side_available", "schema_version"],
+  "properties": {
+    "schema_version": { "type": "string", "minLength": 1 },
+    "series_id": { "type": "string", "minLength": 1 },
+    "conversion_model_ref": {
+      "type": "string", "minLength": 1,
+      "description": "采用的转换版本标识；无依据时用显式标注的 none.<builder_id>"
+    },
+    "conversion_config_hash": { "type": "string", "minLength": 1 },
+    "auxiliary_model_ref": { "type": ["string", "null"] },
+    "input_energy_ref": { "type": ["string", "null"] },
+    "bus_side_available": {
+      "type": "boolean",
+      "description": "true 时每个区间的 demand_bus_kw 都不得为 null"
+    },
+    "source_refs": { "type": "array", "items": { "type": "object" } },
+    "diagnostics": { "type": "array", "items": { "type": "object" } },
+    "quality_flags": { "type": "array", "items": { "type": "string" } },
+    "artifact_ref": { "type": ["object", "null"] },
+    "note": { "type": ["string", "null"] },
+    "points": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["phase", "start_offset_s", "duration_s", "motor_power_kw",
+                     "propulsion_bus_kw", "auxiliary_bus_kw", "demand_bus_kw"],
+        "properties": {
+          "phase": { "enum": ["sailing", "waiting", "berthing", "charging"] },
+          "start_offset_s": { "type": "number", "minimum": 0 },
+          "duration_s": { "type": "number", "exclusiveMinimum": 0 },
+          "motor_power_kw": { "type": ["number", "null"], "minimum": 0 },
+          "propulsion_bus_kw": { "type": ["number", "null"], "minimum": 0 },
+          "auxiliary_bus_kw": { "type": ["number", "null"], "minimum": 0 },
+          "demand_bus_kw": {
+            "type": ["number", "null"], "minimum": 0,
+            "description": "= propulsion_bus_kw + auxiliary_bus_kw；无转换依据时为 null"
+          },
+          "conversion_model_ref": { "type": ["string", "null"] },
+          "segment_id": { "type": ["string", "null"] },
+          "planned_speed_kmh": { "type": ["number", "null"], "minimum": 0 },
+          "quality_flags": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

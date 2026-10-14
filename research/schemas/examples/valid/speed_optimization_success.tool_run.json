@@ -1,0 +1,458 @@
+{
+  "schema_version": "research-tools/2.0-draft",
+  "tool_name": "Tspeed",
+  "call_id": "sample-success",
+  "execution_status": "completed",
+  "outcome_code": "ok",
+  "parent_call_id": null,
+  "input_hash": "d87f725f934dad8cd357c1c227ba075d3b46be55b02fc9b81bd09b506abef8b8",
+  "request_revision": 1,
+  "snapshot_id": "snapshot.d1-fixture",
+  "scenario_id": "scenario.de-acceptance",
+  "started_at": "2026-10-14T10:33:43+00:00",
+  "finished_at": "2026-10-14T10:33:46+00:00",
+  "payload_ref": null,
+  "diagnostics": [
+    {
+      "stage": "verify",
+      "code": "resampling_difference",
+      "detail": "优化阶段规划网格与核验精度的能量差",
+      "time_interval_s": null,
+      "segment_id": null,
+      "field_ref": "total_energy_kwh",
+      "observed": -3.4224569844809594e-09,
+      "limit": null,
+      "unit": "kWh",
+      "source_refs": [],
+      "retryable": false
+    },
+    {
+      "stage": "demand_build",
+      "code": "conversion_is_named_assumption",
+      "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+      "time_interval_s": null,
+      "segment_id": null,
+      "field_ref": "conversion_model_ref",
+      "observed": null,
+      "limit": null,
+      "unit": null,
+      "source_refs": [
+        {
+          "source_id": "assumption.A-auxiliary",
+          "kind": "assumption",
+          "locator": "research/tests/fixtures.py",
+          "confirmed": false,
+          "note": null,
+          "mode": "simulation"
+        }
+      ],
+      "retryable": false
+    }
+  ],
+  "model_or_algorithm_version": "tspeed-de-rand-1-bin/1.0+contract-research-tools/2.0-draft",
+  "config_hash": "d309207874847ea7d432d7ef44186dcf8293a6e1e770ad9712181b296e10edfd",
+  "runtime_ms": null,
+  "payload": {
+    "search_status": "candidate_found",
+    "selected_candidate_id": "c-4dca56eb6b1d",
+    "selected_trajectory_ref": "trajectory-c-4dca56eb6b1d",
+    "selected_energy_ref": null,
+    "selected_demand_ref": "demand-c-4dca56eb6b1d-verify",
+    "segment_summary": [
+      {
+        "segment_id": "S01",
+        "distance_km": 1.8,
+        "sailing_duration_s": 1079.8839195720102,
+        "waiting_duration_s": 0.0,
+        "total_duration_s": 1079.8839195720102,
+        "cruise_speed_kmh": 6.0,
+        "entry_speed_kmh": 7.0,
+        "exit_speed_kmh": 6.046916664142904,
+        "motor_energy_kwh": 3.5648642824929873,
+        "demand_bus_energy_kwh": 12.79144147426282,
+        "distance_residual_km": 2.220446049250313e-16
+      },
+      {
+        "segment_id": "S02",
+        "distance_km": 6.4,
+        "sailing_duration_s": 3810.2052792489662,
+        "waiting_duration_s": 0.0,
+        "total_duration_s": 3810.2052792489662,
+        "cruise_speed_kmh": 6.046916664142904,
+        "entry_speed_kmh": 6.046916664142904,
+        "exit_speed_kmh": 6.128766236493114,
+        "motor_energy_kwh": 12.870957803426027,
+        "demand_bus_energy_kwh": 45.44421896202779,
+        "distance_residual_km": 0.0
+      },
+      {
+        "segment_id": "S03",
+        "distance_km": 8.1,
+        "sailing_duration_s": 4757.892598476836,
+        "waiting_duration_s": 0.0,
+        "total_duration_s": 4757.892598476836,
+        "cruise_speed_kmh": 6.128766236493114,
+        "entry_speed_kmh": 6.128766236493114,
+        "exit_speed_kmh": 6.0,
+        "motor_energy_kwh": 16.73375801378198,
+        "demand_bus_energy_kwh": 57.450975215053056,
+        "distance_residual_km": 0.0
+      },
+      {
+        "segment_id": "S04",
+        "distance_km": 5.2,
+        "sailing_duration_s": 3353.1305463340227,
+        "waiting_duration_s": 0.0,
+        "total_duration_s": 3353.1305463340227,
+        "cruise_speed_kmh": 5.582876911036937,
+        "entry_speed_kmh": 6.0,
+        "exit_speed_kmh": 4.0,
+        "motor_energy_kwh": 8.91410936913538,
+        "demand_bus_energy_kwh": 37.425849626388526,
+        "distance_residual_km": 0.0
+      },
+      {
+        "segment_id": "S05",
+        "distance_km": 0.9,
+        "sailing_duration_s": 810.0,
+        "waiting_duration_s": 0.0,
+        "total_duration_s": 810.0,
+        "cruise_speed_kmh": 4.0,
+        "entry_speed_kmh": 4.0,
+        "exit_speed_kmh": 4.0,
+        "motor_energy_kwh": 0.792000000000003,
+        "demand_bus_energy_kwh": 7.59255319148935,
+        "distance_residual_km": 0.0
+      }
+    ],
+    "total_duration_s": 13811.112344126865,
+    "arrival_at": "2026-09-25T12:50:11.112344+08:00",
+    "objective_terms": {
+      "energy_kwh": 42.87568946541303,
+      "penalty": 0.15234725407045582,
+      "lambda_value": 10.0,
+      "total": 44.39916200611759,
+      "energy_scope": "bus",
+      "penalty_definition": "J = E_motor_kwh + lambda * mean_i((v_i - v_{i+1})^2) * scale",
+      "penalty_scale_note": "scale=1.0；lambda 与 scale 为研究参数，须由敏感性实验冻结；论文复现实验使用 lambda=10、scale=1.0"
+    },
+    "constraint_checks": [
+      {
+        "name": "speed",
+        "passed": true,
+        "actual": 6.5,
+        "limit": 13.0,
+        "unit": "km/h",
+        "reason": "逐区间航速在限速范围内",
+        "segment_id": null,
+        "time_interval_s": null,
+        "source_ref": null,
+        "tolerance": null
+      },
+      {
+        "name": "acceleration",
+        "passed": true,
+        "actual": 0.2,
+        "limit": 0.2,
+        "unit": "m/s^2",
+        "reason": "逐区间平均加速度未越过采用上限",
+        "segment_id": null,
+        "time_interval_s": null,
+        "source_ref": null,
+        "tolerance": null
+      },
+      {
+        "name": "trajectory_continuity",
+        "passed": true,
+        "actual": null,
+        "limit": null,
+        "unit": null,
+        "reason": "时间轴无重叠与未解释间隙",
+        "segment_id": null,
+        "time_interval_s": null,
+        "source_ref": null,
+        "tolerance": null
+      },
+      {
+        "name": "distance",
+        "passed": true,
+        "actual": 22.4,
+        "limit": 22.4,
+        "unit": "km",
+        "reason": "积分残差 0.000000000 km",
+        "segment_id": null,
+        "time_interval_s": null,
+        "source_ref": null,
+        "tolerance": 1e-06
+      },
+      {
+        "name": "time",
+        "passed": true,
+        "actual": 13811.112344126865,
+        "limit": 86400.0,
+        "unit": "s",
+        "reason": "总历时（含等待）与剩余期限比较",
+        "segment_id": null,
+        "time_interval_s": null,
+        "source_ref": null,
+        "tolerance": 1e-06
+      },
+      {
+        "name": "energy_integration",
+        "passed": true,
+        "actual": null,
+        "limit": null,
+        "unit": null,
+        "reason": "逐时能量与 P·Δt/3600 一致",
+        "segment_id": null,
+        "time_interval_s": null,
+        "source_ref": null,
+        "tolerance": null
+      },
+      {
+        "name": "energy_conservation",
+        "passed": true,
+        "actual": -1.764988155628089e-11,
+        "limit": 1e-09,
+        "unit": "kWh",
+        "reason": "母线侧能量守恒检查通过（需求 = 推进 + 辅助）",
+        "segment_id": null,
+        "time_interval_s": null,
+        "source_ref": null,
+        "tolerance": null
+      }
+    ],
+    "search_trace_ref": "trace-a1e783ad59710cc1",
+    "seed": 101,
+    "population": 14,
+    "generations": 8,
+    "evaluations": 126,
+    "runtime_ms": 3101.5841999997065,
+    "schema_version": "research-tools/2.0-draft/speed-optimization",
+    "selected_trajectory": [
+      {
+        "segment_id": "S01",
+        "phase": "sailing",
+        "start_offset_s": 0.0,
+        "duration_s": 1.388888889,
+        "planned_speed_kmh": 6.5,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 6.0,
+        "interval_kind": "decel"
+      },
+      {
+        "segment_id": "S01",
+        "phase": "sailing",
+        "start_offset_s": 1.388888889,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 6.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 6.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S01",
+        "phase": "sailing",
+        "start_offset_s": 6.388888889,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 6.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 6.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S01",
+        "phase": "sailing",
+        "start_offset_s": 11.388888889,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 6.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 6.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S01",
+        "phase": "sailing",
+        "start_offset_s": 16.388888889,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 6.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 6.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S01",
+        "phase": "sailing",
+        "start_offset_s": 21.388888889,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 6.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 6.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S05",
+        "phase": "sailing",
+        "start_offset_s": 13781.112343632,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 4.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 4.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S05",
+        "phase": "sailing",
+        "start_offset_s": 13786.112343632,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 4.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 4.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S05",
+        "phase": "sailing",
+        "start_offset_s": 13791.112343632,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 4.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 4.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S05",
+        "phase": "sailing",
+        "start_offset_s": 13796.112343632,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 4.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 4.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S05",
+        "phase": "sailing",
+        "start_offset_s": 13801.112343632,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 4.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 4.0,
+        "interval_kind": "cruise"
+      },
+      {
+        "segment_id": "S05",
+        "phase": "sailing",
+        "start_offset_s": 13806.112343632,
+        "duration_s": 5.0,
+        "planned_speed_kmh": 4.0,
+        "environment_ref": null,
+        "source_ref": null,
+        "target_speed_kmh": 4.0,
+        "interval_kind": "cruise"
+      }
+    ],
+    "selected_trajectory_omitted_rows": 2758,
+    "selected_trajectory_sample_note": "样例裁剪：只保留首尾各若干条；完整时序见运行产出的工件，不得用省略明细的总计数冒充完整过程",
+    "selected_speed_vector": [
+      6.046916664142904,
+      6.128766236493114,
+      5.582876911036937
+    ],
+    "selected_candidate_ids_by_segment": null,
+    "total_energy_kwh": 42.87568946541303,
+    "total_distance_km": 22.4,
+    "search_trace": {
+      "trace_id": "trace-a1e783ad59710cc1",
+      "seed": 101,
+      "population": 14,
+      "generations_requested": 8,
+      "generations_run": 8,
+      "evaluations": 126,
+      "best_objective_by_generation": [
+        54.66019116252149,
+        47.50852839207808,
+        46.04625025158749,
+        46.04625025158749,
+        46.04625025158749,
+        44.87198989679796,
+        44.487082481464974,
+        44.39916200954005
+      ],
+      "feasible_fraction_by_generation": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "violation_counts": {},
+      "restarts": 0,
+      "cache_hits": 8,
+      "diagnostic_candidates": [],
+      "artifact_ref": null,
+      "note": "DE 为启发式算法，不做全局最优保证；修复规则=bounce_back，变体=DE/rand/1/bin"
+    },
+    "demand_config_hash": "6259716f3f10ba29519b8ed4f82bf45c336bf1a85c07e792cd514fd25f7d31b7",
+    "bus_side_available": true,
+    "prior_feedback_ref": null,
+    "rerun_count": 0,
+    "diagnostics": [
+      {
+        "stage": "verify",
+        "code": "resampling_difference",
+        "detail": "优化阶段规划网格与核验精度的能量差",
+        "time_interval_s": null,
+        "segment_id": null,
+        "field_ref": "total_energy_kwh",
+        "observed": -3.4224569844809594e-09,
+        "limit": null,
+        "unit": "kWh",
+        "source_refs": [],
+        "retryable": false
+      },
+      {
+        "stage": "demand_build",
+        "code": "conversion_is_named_assumption",
+        "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+        "time_interval_s": null,
+        "segment_id": null,
+        "field_ref": "conversion_model_ref",
+        "observed": null,
+        "limit": null,
+        "unit": null,
+        "source_refs": [
+          {
+            "source_id": "assumption.A-auxiliary",
+            "kind": "assumption",
+            "locator": "research/tests/fixtures.py",
+            "confirmed": false,
+            "note": null,
+            "mode": "simulation"
+          }
+        ],
+        "retryable": false
+      }
+    ],
+    "assumptions": [
+      "S09 船闸等待 900s 为研究情景取值",
+      "功率曲线为验收用解析函数",
+      "母线侧效率与辅助负载为具名研究假设"
+    ],
+    "note": "联调样例"
+  }
+}
