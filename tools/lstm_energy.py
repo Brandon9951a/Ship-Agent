@@ -216,6 +216,20 @@ def load_model(directory, *, version=None):
     return ModelBundle(model, scaler, manifest)
 
 
+def write_inference_domain(directory, train_samples):
+    """Save descriptive training ranges tied to the exact frozen model files."""
+    directory = Path(directory)
+    future = np.concatenate([s["future"] for s in train_samples])
+    history = np.concatenate([s["history"] for s in train_samples])
+    domain = {"version":"v5-training-domain/1","scope":"Observed training ranges only; not a planner approval",
+              "model_files_sha256":{name:hashlib.sha256((directory/name).read_bytes()).hexdigest()
+                                    for name in ("weights.pt","scaler.json","manifest.json")},
+              "future_feature_ranges":{FEATURES[i]:[float(future[:,i].min()),float(future[:,i].max())]
+                                       for i in range(future.shape[-1])},
+              "history_power_range_kw":[float(history[:,-1].min()),float(history[:,-1].max())]}
+    (directory/"inference_domain.json").write_text(json.dumps(domain,indent=2,allow_nan=False)+"\n",encoding="utf-8")
+
+
 def evaluate(speed_plan, environment_scenario, history, model_version, *, bundle, usage="research"):
     """Experimental five-step forecast. Planning use requires an approved manifest."""
     if usage not in ("research", "planning"):
@@ -238,7 +252,7 @@ def evaluate(speed_plan, environment_scenario, history, model_version, *, bundle
                       any(any(f not in p for f in FEATURES[2:]) or not p.get("source")
                           for p in environment_scenario)):
         return {"status": "missing_environment"}
-    if usage == "planning" and not (bundle.manifest.get("planner_approved") and
+    if usage == "planning" and not (bundle.manifest.get("planner_approved") is True and
                                      bundle.manifest.get("approval_ref")):
         return {"status": "model_unapproved", "model_version": model_version}
     if len(speed_plan) > HORIZON:

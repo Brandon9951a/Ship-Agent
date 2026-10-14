@@ -63,6 +63,8 @@ def test_inference_contract_determinism_no_future_power_leakage():
     assert evaluate(plan*3,None,history,"test",bundle=bundle)["status"] == "long_horizon_unvalidated"
     assert batch_evaluate([plan,plan],[None,None],[history,history],"test",bundle=bundle) == [a,a]
     assert evaluate(plan,None,history,"test",bundle=bundle,usage="planning")["status"] == "model_unapproved"
+    bundle.manifest.update(planner_approved="false",approval_ref="not-a-real-approval")
+    assert evaluate(plan,None,history,"test",bundle=bundle,usage="planning")["status"] == "model_unapproved"
     assert all(result["status"] == "model_unapproved" for result in
                batch_evaluate([plan,plan],[None,None],[history,history],"test",
                               bundle=bundle,usage="planning"))

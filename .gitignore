@@ -17,4 +17,5 @@ build/
 # Local data and generated artifacts
 /data/raw/
 /artifacts/
+/profile_output/
 /var/

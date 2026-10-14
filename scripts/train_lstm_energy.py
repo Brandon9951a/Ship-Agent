@@ -17,7 +17,7 @@ from torch import nn
 
 from tools.lstm_energy import (DATA, EXPECTED_SHA256, HORIZON, STEP_SECONDS, FEATURES,
                                ConditionalLSTM, ModelBundle, arrays, batch_evaluate,
-                               build_samples, fit_scalers, load_sources)
+                               build_samples, fit_scalers, load_sources, write_inference_domain)
 
 
 def predict(model, items, scaler, *, batch_size=1024):
@@ -233,6 +233,8 @@ def main(argv=None):
         for name,obj in (("manifest.json",info),("scaler.json",scale)):
             (directory/name).write_text(json.dumps(obj,ensure_ascii=False,indent=2,allow_nan=False)+"\n",
                                         encoding="utf-8")
+        training_samples = build_samples(sources,extension=info["extension"],source_holdout=info["source_holdout"])[0]["train"]
+        write_inference_domain(directory,training_samples)
     (args.output_dir/"acceptance.json").write_text(
         json.dumps(report,ensure_ascii=False,indent=2,allow_nan=False)+"\n",encoding="utf-8")
     print(json.dumps({"output":str(args.output_dir),"prediction_gate_passed":accepted,

@@ -1,0 +1,101 @@
+{
+  "torch": "2.14.1+cpu",
+  "python": "3.13.3",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "cpu": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel",
+  "cpu_logical_cores": 20,
+  "torch_threads": 4,
+  "gpu_inventory": "NVIDIA GeForce RTX 4060 Laptop GPU, 8188 MiB",
+  "cuda_available_in_torch": false,
+  "gpu_benchmark": null,
+  "gpu_not_measured_reason": "Installed torch build is CPU-only",
+  "model_bundle_load_seconds_excluding_torch_import": 0.01700979999441188,
+  "baseline_process_memory": {
+    "working_set_bytes": 205004800,
+    "peak_working_set_bytes": 205004800
+  },
+  "cases": [
+    {
+      "candidate_count": 50,
+      "interval_count": 148,
+      "candidate_duration_s": [
+        5,
+        15,
+        25
+      ],
+      "prediction_backend": "CPU sequential candidate inference",
+      "end_to_end_seconds": [
+        1.503463400003966,
+        0.17451890000666026,
+        0.18011980000301264
+      ],
+      "median_seconds": 0.18011980000301264,
+      "python_traced_peak_bytes": 207073,
+      "process_memory": {
+        "working_set_bytes": 211652608,
+        "peak_working_set_bytes": 211652608
+      },
+      "identical_result_hash_across_repeats": true
+    },
+    {
+      "candidate_count": 500,
+      "interval_count": 1498,
+      "candidate_duration_s": [
+        5,
+        15,
+        25
+      ],
+      "prediction_backend": "CPU sequential candidate inference",
+      "end_to_end_seconds": [
+        3.6705710000096587,
+        1.9147825999971246,
+        1.684960400001728
+      ],
+      "median_seconds": 1.9147825999971246,
+      "python_traced_peak_bytes": 1884531,
+      "process_memory": {
+        "working_set_bytes": 216989696,
+        "peak_working_set_bytes": 216989696
+      },
+      "identical_result_hash_across_repeats": true
+    },
+    {
+      "candidate_count": 5000,
+      "interval_count": 14998,
+      "candidate_duration_s": [
+        5,
+        15,
+        25
+      ],
+      "prediction_backend": "CPU sequential candidate inference",
+      "end_to_end_seconds": [
+        16.708935799993924,
+        16.490003500002786,
+        16.14026479999302
+      ],
+      "median_seconds": 16.490003500002786,
+      "python_traced_peak_bytes": 18789669,
+      "process_memory": {
+        "working_set_bytes": 239165440,
+        "peak_working_set_bytes": 265662464
+      },
+      "identical_result_hash_across_repeats": true
+    }
+  ],
+  "reload_identical_result_hash": true,
+  "unsupported_horizon_case": {
+    "candidate_count": 50,
+    "duration_s": 1800,
+    "intervals_per_candidate": 360,
+    "seconds": 0.408260700001847,
+    "outcome": "model_out_of_domain",
+    "predicted_intervals": 0
+  },
+  "timing_scope": "Validation, inference, integration, serialization, hash verification and local artifact I/O; warm repeats, no tracemalloc",
+  "memory_scope": "tracemalloc: separate-run Python allocations only; process peak working set includes native torch and earlier cases, not per-call delta",
+  "limitations": [
+    "Synthetic candidate workload, not complete-route DE or approved planner timing",
+    "Long-horizon rejection cost is not prediction throughput; no rolling bypass",
+    "No cross-tool integration or global parameter decisions"
+  ]
+}

@@ -1,0 +1,242 @@
+{
+  "tool_run": {
+    "schema_version": "research-tools/2.0-draft",
+    "tool_name": "Tenergy",
+    "task_id": "synthetic-tenergy-fixture",
+    "call_id": "energy-call-1",
+    "parent_call_id": "speed-call-1",
+    "input_hash": "c66fe37868e595d2bccf2533a4154d121f2f4600ad2f4df492c69fcdc3d0c578",
+    "request_revision": 0,
+    "snapshot_id": "synthetic-snapshot-1",
+    "scenario_id": "synthetic-no-environment",
+    "started_at": "2026-10-14T13:33:58.511539+00:00",
+    "finished_at": "2026-10-14T13:33:58.637136+00:00",
+    "execution_status": "completed",
+    "outcome_code": "ok",
+    "payload_ref": {
+      "artifact_id": "1562420dc03533b8bd5dafe54f08026186af19b830c2233efe802e9a1242303b",
+      "sha256": "1562420dc03533b8bd5dafe54f08026186af19b830c2233efe802e9a1242303b",
+      "row_count": 5,
+      "schema_version": "research-tools/2.0-draft"
+    },
+    "diagnostics": [],
+    "model_or_algorithm_version": "tenergy-lstm-v5",
+    "config_hash": "d203697d3a8965572324566153f1e8555bbe6b8baf8b8ee804f3f710babf7da4"
+  },
+  "result": {
+    "candidates": [
+      {
+        "auxiliary_energy_kwh": null,
+        "battery_energy_kwh": null,
+        "candidate_id": "short",
+        "coverage_ratio": 1.0,
+        "covered_motor_energy_kwh": 0.08352456986904144,
+        "diagnostics": [],
+        "motor_energy_kwh": 0.08352456986904144,
+        "outcome_code": "ok",
+        "peak_motor_power_kw": 60.13768768310547,
+        "power_series_ref": {
+          "artifact_id": "49520deb60f8b5a84fa0e4a6bdca23b29e1cf3aa6e99b0b33a8947a19cc21779",
+          "row_count": 1,
+          "schema_version": "research-tools/2.0-draft",
+          "sha256": "49520deb60f8b5a84fa0e4a6bdca23b29e1cf3aa6e99b0b33a8947a19cc21779"
+        },
+        "segment_summary": [
+          {
+            "coverage_ratio": 1.0,
+            "covered_duration_s": 5.0,
+            "covered_motor_energy_kwh": 0.08352456986904144,
+            "duration_s": 5.0,
+            "motor_energy_kwh": 0.08352456986904144,
+            "moving_s": 5.0,
+            "segment_id": "S1",
+            "waiting_s": 0.0
+          }
+        ],
+        "selectable_for_planning": false,
+        "waiting_energy_kwh": null
+      },
+      {
+        "auxiliary_energy_kwh": null,
+        "battery_energy_kwh": null,
+        "candidate_id": "longer",
+        "coverage_ratio": 1.0,
+        "covered_motor_energy_kwh": 0.41978689283132553,
+        "diagnostics": [],
+        "motor_energy_kwh": 0.41978689283132553,
+        "outcome_code": "ok",
+        "peak_motor_power_kw": 60.708641052246094,
+        "power_series_ref": {
+          "artifact_id": "12f8bd8f82645aaae9d8a452624f652c581896890b73f5f4192f0c4229bc4bda",
+          "row_count": 5,
+          "schema_version": "research-tools/2.0-draft",
+          "sha256": "12f8bd8f82645aaae9d8a452624f652c581896890b73f5f4192f0c4229bc4bda"
+        },
+        "segment_summary": [
+          {
+            "coverage_ratio": 1.0,
+            "covered_duration_s": 10.0,
+            "covered_motor_energy_kwh": 0.16815456002950668,
+            "duration_s": 10.0,
+            "motor_energy_kwh": 0.16815456002950668,
+            "moving_s": 10.0,
+            "segment_id": "S1",
+            "waiting_s": 0.0
+          },
+          {
+            "coverage_ratio": 1.0,
+            "covered_duration_s": 15.0,
+            "covered_motor_energy_kwh": 0.25163233280181885,
+            "duration_s": 15.0,
+            "motor_energy_kwh": 0.25163233280181885,
+            "moving_s": 15.0,
+            "segment_id": "S2",
+            "waiting_s": 0.0
+          }
+        ],
+        "selectable_for_planning": false,
+        "waiting_energy_kwh": null
+      },
+      {
+        "auxiliary_energy_kwh": null,
+        "battery_energy_kwh": null,
+        "candidate_id": "out-of-domain",
+        "coverage_ratio": 0.0,
+        "covered_motor_energy_kwh": 0.0,
+        "diagnostics": [
+          {
+            "code": "feature_out_of_training_range",
+            "detail": "",
+            "field_ref": "speed_kmh",
+            "limit": [
+              0.0018520000157877803,
+              11.656488418579102
+            ],
+            "observed": 40.0,
+            "retryable": false,
+            "source_refs": [],
+            "stage": "Tenergy",
+            "time_interval_or_segment_id": "S1",
+            "unit": null
+          }
+        ],
+        "motor_energy_kwh": null,
+        "outcome_code": "model_out_of_domain",
+        "peak_motor_power_kw": null,
+        "power_series_ref": null,
+        "segment_summary": [],
+        "selectable_for_planning": false,
+        "waiting_energy_kwh": null
+      },
+      {
+        "auxiliary_energy_kwh": null,
+        "battery_energy_kwh": null,
+        "candidate_id": "with-wait",
+        "coverage_ratio": 0.25,
+        "covered_motor_energy_kwh": 0.16678594052791595,
+        "diagnostics": [
+          {
+            "code": "waiting_load_unknown",
+            "detail": "Post-wait moving history is also unvalidated",
+            "field_ref": null,
+            "limit": null,
+            "observed": null,
+            "retryable": false,
+            "source_refs": [],
+            "stage": "Tenergy",
+            "time_interval_or_segment_id": null,
+            "unit": null
+          }
+        ],
+        "motor_energy_kwh": null,
+        "outcome_code": "needs_input",
+        "peak_motor_power_kw": 60.13768768310547,
+        "power_series_ref": {
+          "artifact_id": "10919a1ac7743ea94fdb30a0bc94d54214fed6a894837829726ed695f8383a36",
+          "row_count": 3,
+          "schema_version": "research-tools/2.0-draft",
+          "sha256": "10919a1ac7743ea94fdb30a0bc94d54214fed6a894837829726ed695f8383a36"
+        },
+        "segment_summary": [
+          {
+            "coverage_ratio": 1.0,
+            "covered_duration_s": 10.0,
+            "covered_motor_energy_kwh": 0.16678594052791595,
+            "duration_s": 10.0,
+            "motor_energy_kwh": 0.16678594052791595,
+            "moving_s": 10.0,
+            "segment_id": "S1",
+            "waiting_s": 0.0
+          },
+          {
+            "coverage_ratio": 0.0,
+            "covered_duration_s": 0.0,
+            "covered_motor_energy_kwh": 0.0,
+            "duration_s": 30.0,
+            "motor_energy_kwh": null,
+            "moving_s": 0.0,
+            "segment_id": "lock-wait",
+            "waiting_s": 30.0
+          }
+        ],
+        "selectable_for_planning": false,
+        "waiting_energy_kwh": null
+      },
+      {
+        "auxiliary_energy_kwh": null,
+        "battery_energy_kwh": null,
+        "candidate_id": "long-horizon",
+        "coverage_ratio": 0.0,
+        "covered_motor_energy_kwh": 0.0,
+        "diagnostics": [
+          {
+            "code": "forecast_horizon_unvalidated",
+            "detail": "",
+            "field_ref": null,
+            "limit": 5,
+            "observed": 6,
+            "retryable": false,
+            "source_refs": [],
+            "stage": "Tenergy",
+            "time_interval_or_segment_id": null,
+            "unit": null
+          }
+        ],
+        "motor_energy_kwh": null,
+        "outcome_code": "model_out_of_domain",
+        "peak_motor_power_kw": null,
+        "power_series_ref": null,
+        "segment_summary": [],
+        "selectable_for_planning": false,
+        "waiting_energy_kwh": null
+      }
+    ],
+    "input_request_ref": {
+      "artifact_id": "f2208a781b688e1fd76f75db5b3ac83283612e37e1097f02b0ef20145877538b",
+      "row_count": 5,
+      "schema_version": "research-tools/2.0-draft",
+      "sha256": "f2208a781b688e1fd76f75db5b3ac83283612e37e1097f02b0ef20145877538b"
+    },
+    "model_identity": {
+      "file_sha256": {
+        "inference_domain.json": "b81c68673d724b8d088dd8c02cfa4127fa53fb6a8db7853d3af2c8c64ef3d71b",
+        "manifest.json": "a48af96e2bfc31ae603a1fc28d442dccd9b4e1fba031f3150c30eaec3c7ec9d1",
+        "scaler.json": "6ed163e4cee5d8e142507ef8548069e62fd7d50a8a2921d16a7dcc328e6d9578",
+        "weights.pt": "52f5f553f3201c11aa624315d06bcb8c2c46f4b7f2722d0b9371f975b2f24eab"
+      },
+      "model_version": "tenergy-lstm-v5",
+      "preprocessing_version": "tenergy-clean-v1",
+      "source_sha256": {
+        "data.xlsx": "a62c5fde4796aa8e18322661ed19fe1fa3be473e1cc130d0a8c5b90d2206f5b7",
+        "log4p-10-29(1).csv": "d1123094ee22ebb8098d3920fa0d45f803dd8b374f257d2032ff837d0e23b1f7",
+        "log4p-10-31(1).csv": "2cf012d1ddb2c73acc957598cf40a126ffc60e8cb5f87197d1e99dcdca813fb5"
+      }
+    },
+    "request_revision": 0,
+    "scenario_id": "synthetic-no-environment",
+    "schema_version": "research-tools/2.0-draft",
+    "snapshot_id": "synthetic-snapshot-1",
+    "task_id": "synthetic-tenergy-fixture",
+    "usage": "research_only"
+  }
+}

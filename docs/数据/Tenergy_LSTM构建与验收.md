@@ -39,3 +39,5 @@
 ## 推理与交接
 
 共同模型加载后五步预测、右端积分和逐航段汇总可重复。缺历史、未知等待时间、速度越训练域、环境扩展缺字段或来源，以及超过五步时返回明确状态；电池侧、等待和辅助电耗均保持未知。实验调用默认 `usage="research"`，显示 `experimental`；显式 `usage="planning"` 时，本版未批准清单返回 `model_unapproved`。该开关仅是实验 API 的防误用门槛，尚不是 [五工具联调接口 v2](../接口/五工具联调接口_v2.md) 的 `ToolRun` 实现。100 个五步候选方案的本机 CPU 批量调用耗时与环境版本记录在 `acceptance.json`，仅为本机参考。[LSTM 接口迁移核查](../接口/Tenergy_LSTM接口升级提案.md) 列出与 Tspeed、Tmanagement 对齐的字段和待确认事项；现有 `EnergyResult`、优化流程及 SOC 判断未改变。
+
+后续个人完善已另交付 `tools/tenergy_v2.py` 的 `EnergyBatchRequest`/`ToolRun` 草案入口、逐候选工件与诊断，并扩展为 50/500/5,000 候选的性能测量。完整证据和未决事项见[个人完善验收报告](Tenergy_个人完善验收.md)。这项接口交付没有改变上述冻结模型的负面结论或 `planner_approved=false`。

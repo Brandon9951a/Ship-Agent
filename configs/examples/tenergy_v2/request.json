@@ -1,0 +1,183 @@
+{
+  "schema_version": "research-tools/2.0-draft",
+  "task_id": "synthetic-tenergy-fixture",
+  "request_revision": 0,
+  "snapshot_id": "synthetic-snapshot-1",
+  "scenario_id": "synthetic-no-environment",
+  "call_id": "energy-call-1",
+  "parent_call_id": "speed-call-1",
+  "planning_origin_at": null,
+  "usage": "research",
+  "model_version": "tenergy-lstm-v5",
+  "integration_rule": "right_endpoint",
+  "history_ref": {
+    "artifact_id": "b5bd07c7190a1be6e94095b82539b80ae23df5c56bf723dd5ed2eb2d2b89648d",
+    "sha256": "b5bd07c7190a1be6e94095b82539b80ae23df5c56bf723dd5ed2eb2d2b89648d",
+    "row_count": 12,
+    "schema_version": "research-tools/2.0-draft"
+  },
+  "environment_scenario_ref": null,
+  "candidates": [
+    {
+      "candidate_id": "short",
+      "trajectory": [
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 0,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        }
+      ]
+    },
+    {
+      "candidate_id": "longer",
+      "trajectory": [
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 0,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.1,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 5,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.1,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S2",
+          "phase": "moving",
+          "start_offset_s": 10,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.1,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S2",
+          "phase": "moving",
+          "start_offset_s": 15,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.1,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S2",
+          "phase": "moving",
+          "start_offset_s": 20,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.1,
+          "environment_ref": null
+        }
+      ]
+    },
+    {
+      "candidate_id": "out-of-domain",
+      "trajectory": [
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 0,
+          "duration_s": 5,
+          "planned_speed_kmh": 40.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 5,
+          "duration_s": 5,
+          "planned_speed_kmh": 40.0,
+          "environment_ref": null
+        }
+      ]
+    },
+    {
+      "candidate_id": "with-wait",
+      "trajectory": [
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 0,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 5,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "lock-wait",
+          "phase": "waiting",
+          "start_offset_s": 10,
+          "duration_s": 30,
+          "planned_speed_kmh": 0.0,
+          "environment_ref": null
+        }
+      ]
+    },
+    {
+      "candidate_id": "long-horizon",
+      "trajectory": [
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 0,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S1",
+          "phase": "moving",
+          "start_offset_s": 5,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S2",
+          "phase": "moving",
+          "start_offset_s": 10,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S2",
+          "phase": "moving",
+          "start_offset_s": 15,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S2",
+          "phase": "moving",
+          "start_offset_s": 20,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        },
+        {
+          "segment_id": "S2",
+          "phase": "moving",
+          "start_offset_s": 25,
+          "duration_s": 5,
+          "planned_speed_kmh": 10.0,
+          "environment_ref": null
+        }
+      ]
+    }
+  ]
+}
