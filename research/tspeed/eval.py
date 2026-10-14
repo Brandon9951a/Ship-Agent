@@ -139,10 +139,12 @@ def evaluate_candidate(speed_vector, *, context: DEEvaluationContext,
     for violation in expanded.violations:
         violations.setdefault(violation.code, violation.detail)
 
-    # 搜索期走轻量剖面：轨迹由速度向量确定性生成，核验阶段才实例化完整 v2 工件。
+    # 搜索期走轻量剖面，且不保留逐时工件：轨迹由速度向量确定性生成，
+    # 核验阶段才实例化完整 v2 工件并重算。
     profile = TrajectoryProfile.from_expansion(expanded)
     outcome = context.predictor.predict_profile(profile, candidate_id=candidate_id,
-                                                grid=context.grid)
+                                                grid=context.grid,
+                                                keep_power_points=False)
     context.batches += 1
     context.predictions += 1
     if not outcome.ok:
