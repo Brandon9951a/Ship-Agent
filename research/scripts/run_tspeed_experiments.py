@@ -389,24 +389,69 @@ def experiment_baseline(request) -> dict:
             "runtime_ms": result.runtime_ms,
             "evaluations": result.evaluations,
         }
+    # 对照必须同口径，否则会得出误导性数字。分两块，各自内部严格同口径：
+    # (a) 能量口径：同一电池/电机能量 kWh 对 kWh，与 λ 无关；
+    # (b) 目标口径：把"双方各自的最优解"放到**同一个 λ** 下评估后比较，
+    #     这样差异只能来自解本身，而不是来自两边用了不同的 λ。
+    # 早期版本拿 DE 的 λ=0 目标（不含惩罚）去比基线的 λ=10 目标，不对等。
     comparison = None
     if runs["de_min_energy"]["feasible"]:
         candidates = [(key, item) for key, item in baselines.items()
                       if item["feasible"] and item["objective"] is not None]
         if candidates:
             best_key, best = min(candidates, key=lambda pair: pair[1]["objective"])
-            improvement = ((best["objective"] - runs["de_min_energy"]["objective"])
-                           / best["objective"])
+            energy_improvement = None
+            if best["energy_kwh"] and runs["de_min_energy"]["energy_kwh"]:
+                energy_improvement = (
+                    (best["energy_kwh"] - runs["de_min_energy"]["energy_kwh"])
+                    / best["energy_kwh"])
+
+            # 同一 λ 下重算双方最优解的目标值
+            shared_lambda = 10.0  # 与 de_with_penalty_10 同一取值
+            shared_request = dataclasses.replace(request,
+                                                 speed_penalty_lambda=shared_lambda)
+            shared_context = DEEvaluationContext(
+                request=shared_request, spec=spec,
+                environment_ref=spec.environment_ref,
+                history_ref=spec.history_ref, config_hash="fair-comparison")
+            de_solution = evaluate_candidate(
+                tuple(runs["de_min_energy"]["speed_vector"]),
+                context=shared_context)
+            rule_solution = evaluate_candidate(
+                tuple(best["speed_vector"]), context=shared_context)
+            objective_improvement = None
+            if de_solution.objective_value is not None \
+                    and rule_solution.objective_value is not None:
+                objective_improvement = (
+                    (rule_solution.objective_value - de_solution.objective_value)
+                    / rule_solution.objective_value)
             comparison = {
-                "de_objective": runs["de_min_energy"]["objective"],
-                "de_energy_kwh": runs["de_min_energy"]["energy_kwh"],
+                "energy_scope_comparison": {
+                    "de_energy_kwh": runs["de_min_energy"]["energy_kwh"],
+                    "best_rule_energy_kwh": best["energy_kwh"],
+                    "relative_energy_difference": energy_improvement,
+                    "meaning": "同一电机侧/母线能量口径下的能量差（与 λ 无关）",
+                },
+                "objective_scope_comparison": {
+                    "shared_lambda": shared_lambda,
+                    "de_solution_objective_at_shared_lambda":
+                        de_solution.objective_value,
+                    "de_solution_energy_at_shared_lambda": de_solution.energy_kwh,
+                    "de_solution_penalty_at_shared_lambda": de_solution.penalty,
+                    "rule_solution_objective_at_shared_lambda":
+                        rule_solution.objective_value,
+                    "rule_solution_energy_at_shared_lambda": rule_solution.energy_kwh,
+                    "rule_solution_penalty_at_shared_lambda": rule_solution.penalty,
+                    "relative_objective_difference": objective_improvement,
+                    "meaning": ("把双方各自的最优解放到同一 λ 下评估后比较；"
+                                "差异可能完全来自平滑惩罚项，不等于节能"),
+                },
                 "best_rule_baseline": best_key,
-                "best_rule_baseline_objective": best["objective"],
-                "best_rule_baseline_energy_kwh": best["energy_kwh"],
-                "relative_objective_improvement": improvement,
-                "note": ("节能率只在双方均可行且采用同一能量口径时计算；"
-                         "此处为验收用解析模型的模型内差异，不是实船节能率。"
-                         "λ>0 的运行因含平滑惩罚，能耗会高于纯最小能耗解"),
+                "de_speed_vector": runs["de_min_energy"]["speed_vector"],
+                "best_rule_speed_vector": best["speed_vector"],
+                "note": ("两处差异都只描述当前验收用解析模型的模型内比较，"
+                         "不是实船节能率。实际采用哪个 λ 由项目负责人裁决，"
+                         "本工具不预设"),
             }
     return {"baselines": baselines, "de_runs": runs, "comparison": comparison}
 

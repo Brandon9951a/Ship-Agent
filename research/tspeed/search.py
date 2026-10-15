@@ -26,7 +26,7 @@ from research.tspeed.eval import (
     EnergyModelSpec,
     evaluate_candidate,
 )
-from research.tspeed.trajectory import speed_ceiling
+from research.tspeed.trajectory import fixed_speed_floor, speed_ceiling
 
 ALGORITHM_VERSION = "tspeed-de-rand-1-bin/1.0"
 
@@ -125,15 +125,27 @@ class DESearchResult:
 def effective_bounds(request: SpeedOptimizationRequest) -> list[tuple[float, float]]:
     """决策变量的**有效**边界（按航段顺序，只含可优化航段）。
 
-    边界速度必须同时满足相邻两段的限速：A 段出口速度 = B 段目标航速，因此
-    B 的目标航速不得超过 A 的限速上限；同理 B 的目标航速也从 A 的出口进入，
-    所以不得高于 A 的限速上限。取各段自身范围与相邻段上限的交集，
-    使搜索域与"物理可行域"一致，避免大量候选注定不可行。
+    链式口径修正后（下一段入口 = 上一段的**实际**出口速度，含限速下限夹取），
+    本段目标航速只需满足本段限速：前段限速更窄时，船舶以实际出口速度进入
+    本段后再加/减速到目标航速，这是物理过程而非违规。因此边界取本段自身
+    限速与全局范围的交集，不再用相邻段上限收缩搜索域（旧的求交会把
+    "前段低速通过、本段再加速"的合法方案排除在搜索域外）。
+
+    预检真正的衔接冲突：上一段的减速下限（限速下限与固定航速取严）高于
+    本段限速上限时，任何决策都会让本段入口越界，属于输入约束冲突，显式报错。
     """
     segments = list(request.segments)
     grid = request.time_grid
+    for prev, current in zip(segments, segments[1:]):
+        floor_prev = fixed_speed_floor(prev, grid)
+        high_current = speed_ceiling(current, grid)
+        if floor_prev > high_current + 1e-9:
+            raise ValueError(
+                f"{prev.segment_id}→{current.segment_id}: 前段减速目标下限 "
+                f"{floor_prev} km/h 高于后段限速上限 {high_current} km/h，"
+                "任何航速决策都无法满足衔接（约束冲突，须由上游解决）")
     bounds: list[tuple[float, float]] = []
-    for index, segment in enumerate(segments):
+    for segment in segments:
         if not segment.optimizable:
             continue
         low = grid.min_speed_kmh
@@ -142,16 +154,11 @@ def effective_bounds(request: SpeedOptimizationRequest) -> list[tuple[float, flo
             low = max(low, segment.min_speed_kmh)
         if segment.max_speed_kmh is not None:
             high = min(high, segment.max_speed_kmh)
-        # 相邻航段的上限同样约束本段的目标航速（衔接速度不得越界）
-        for neighbour in (segments[index - 1] if index > 0 else None,
-                          segments[index + 1] if index + 1 < len(segments) else None):
-            if neighbour is None:
-                continue
-            high = min(high, speed_ceiling(neighbour, grid))
         if low > high:
             raise ValueError(
-                f"{segment.segment_id}: 与相邻航段限速无兼容区间 "
-                f"（可用范围 [{low}, {high}]），无法生成可行航速")
+                f"{segment.segment_id}: 航段限速 [{segment.min_speed_kmh}, "
+                f"{segment.max_speed_kmh}] 与全局范围 [{grid.min_speed_kmh}, "
+                f"{grid.max_speed_kmh}] 无交集，无法生成可行航速")
         bounds.append((low, high))
     if not bounds:
         raise ValueError("没有可优化航段：全部航速固定，DE 无需搜索")
@@ -180,12 +187,26 @@ def _repair(value: float, low: float, high: float, rule: str) -> float:
 
 def _init_population(rng: random.Random, lows: list[float], highs: list[float],
                      size: int) -> list[list[float]]:
-    """在合法边界内初始化种群；端点各出现一次，并保证个体互不相同。"""
-    population = [[rng.uniform(low, high) for low, high in zip(lows, highs)]
-                  for _ in range(size)]
-    for axis, (low, high) in enumerate(zip(lows, highs)):
-        population[axis % size][axis] = low
-        population[(axis + 1) % size][axis] = high
+    """在合法边界内初始化种群。
+
+    显式包含两个角点个体：**全取下限**与**全取上限**。限速下限一侧在能量目标下
+    往往是强解；若种群只随机撒点、每个个体仅注入单维端点，这个角点可能完全不在
+    搜索起点上（实测过：DE 因此收敛到比"各段最低速"基线差约 18% 的解）。
+    其余个体均匀随机，并保证互不相同。
+    """
+    population: list[list[float]] = [list(lows)]
+    corner_count = 1
+    if size > 1:
+        population.append(list(highs))
+        corner_count = 2
+    while len(population) < size:
+        population.append([rng.uniform(low, high) for low, high in zip(lows, highs)])
+    # 单维端点覆盖：让每一维的上下限都被探索到；只改非角点个体，
+    # 否则会把上面的角点覆盖掉（全上限个体正是被这一步改坏的）。
+    if size > corner_count:
+        for axis, (low, high) in enumerate(zip(lows, highs)):
+            population[corner_count + axis % (size - corner_count)][axis] = low
+            population[corner_count + (axis + 1) % (size - corner_count)][axis] = high
     deduped: list[list[float]] = []
     seen: set[tuple[float, ...]] = set()
     for candidate in population:

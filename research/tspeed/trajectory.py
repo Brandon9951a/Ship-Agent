@@ -126,13 +126,19 @@ class SegmentFact:
 
 @dataclass(frozen=True)
 class ExpandedTrajectory:
-    """展开结果：可提交 Tenergy 的区间、事实值与违规列表。"""
+    """展开结果：可提交 Tenergy 的区间、事实值与违规列表。
+
+    ``boundary_transitions`` 记录首段的边界速度过渡（当前速度是请求的边界条件，
+    不是决策变量）：当前速度高于首段限速上限或低于下限时，入段斜坡从真实当前
+    速度起步向限速区间过渡，不计违规，但必须在这里显式记录并接受独立复核。
+    """
 
     speed_vector: tuple[float, ...]
     optimizable_segment_ids: tuple[str, ...]
     segment_facts: tuple[SegmentFact, ...]
     violations: tuple[Violation, ...]
     prediction_step_s: float
+    boundary_transitions: tuple[Violation, ...] = ()
 
     @property
     def intervals(self) -> tuple[SampledInterval, ...]:
@@ -271,6 +277,49 @@ class ExpandedTrajectory:
             expected = fact.end_offset_s
         return issues
 
+    def audit_speed_continuity(self, *, expected_entry_speed_kmh: float | None = None
+                               ) -> list[Violation]:
+        """复核速度在相位之间与航段之间连续（不允许瞬时跳变）。
+
+        出口速度一律取**实际**（限速下限夹取后的）值：若上一段的减速斜坡被
+        本段限速下限截住，下一段必须从被截住的速度起步，否则轨迹在段间出现
+        速度跳变，不是可执行方案。首段入口必须等于请求的当前速度（边界条件）。
+        """
+        issues: list[Violation] = []
+        previous_exit: float | None = None
+        previous_segment: str | None = None
+        for index, fact in enumerate(self.segment_facts):
+            if not fact.phases:
+                if fact.requested_distance_km > fact.distance_tolerance_km:
+                    issues.append(Violation(
+                        code="empty_expansion", segment_id=fact.segment_id,
+                        detail="航段未展开出任何相位但距离为正",
+                        observed=0.0, limit=fact.requested_distance_km, unit="km"))
+                continue
+            entry = fact.phases[0].entry_speed_kmh
+            if index == 0 and expected_entry_speed_kmh is not None:
+                if abs(entry - expected_entry_speed_kmh) > 1e-6:
+                    issues.append(Violation(
+                        code="entry_speed_changed", segment_id=fact.segment_id,
+                        detail="首段入口速度被改动：当前速度是边界条件，不得夹取",
+                        observed=entry, limit=expected_entry_speed_kmh, unit="km/h"))
+            if previous_exit is not None and abs(entry - previous_exit) > 1e-6:
+                issues.append(Violation(
+                    code="speed_discontinuity", segment_id=fact.segment_id,
+                    detail=(f"段间速度跳变：{previous_segment} 实际出口 "
+                            f"{previous_exit:.6f}，{fact.segment_id} 入口 {entry:.6f}"),
+                    observed=entry, limit=previous_exit, unit="km/h"))
+            for left, right in zip(fact.phases, fact.phases[1:]):
+                if abs(left.exit_speed_kmh - right.entry_speed_kmh) > 1e-6:
+                    issues.append(Violation(
+                        code="speed_discontinuity", segment_id=fact.segment_id,
+                        detail="段内相位之间速度跳变",
+                        observed=right.entry_speed_kmh,
+                        limit=left.exit_speed_kmh, unit="km/h"))
+            previous_exit = fact.phases[-1].exit_speed_kmh
+            previous_segment = fact.segment_id
+        return issues
+
 
 def _ramp_time_s(from_kmh: float, to_kmh: float, rate_mps2: float) -> float:
     if rate_mps2 <= 0:
@@ -333,6 +382,23 @@ def speed_ceiling(segment: SegmentConstraint, grid: TimeGridSpec) -> float:
     return high
 
 
+def effective_exit_speed(segment: SegmentConstraint, exit_speed_kmh: float, *,
+                         grid: TimeGridSpec, clamp_exit_to_floor: bool = True,
+                         exit_floor: float | None = None) -> float:
+    """减速斜坡的**实际**出口速度（限速下限夹取后的值）。
+
+    本段减速斜坡不得把航速压到本航段限速下限之下；若计划出口速度低于该下限，
+    实际出口速度被截在下限，过渡由下一段的入段斜坡完成。该值同时是下一段的
+    入口速度（链式口径的唯一来源）。
+    """
+    _, high = segment_limits(segment, grid)
+    floor = fixed_speed_floor(segment, grid)
+    decel_floor = floor if exit_floor is None else max(floor, exit_floor)
+    if clamp_exit_to_floor:
+        return min(max(exit_speed_kmh, decel_floor), high)
+    return max(min(exit_speed_kmh, high), 0.0)
+
+
 def segment_handoff_floor(segment: SegmentConstraint, next_segment: SegmentConstraint | None,
                           grid: TimeGridSpec) -> float:
     """本段减速目标下限 = 本段限速下限与固定航速取较严者。
@@ -350,13 +416,21 @@ def plan_segment_phases(segment: SegmentConstraint, *, cruise_speed_kmh: float,
                         grid: TimeGridSpec, fixed: bool,
                         distance_tolerance_km: float | None = None,
                         clamp_exit_to_floor: bool = True,
-                        exit_floor: float | None = None
+                        exit_floor: float | None = None,
+                        entry_is_boundary: bool = False
                         ) -> tuple[list[PhaseSpan], list[Violation]]:
     """规划单个航段的加速→巡航→减速阶段，距离按实际速度积分。
 
     ``clamp_exit_to_floor=False`` 用于终点停车：靠泊必然把航速降到 0，
     此时不应再被航段限速下限夹住。``exit_floor`` 为交接速度下限（默认为本段
     减速目标下限），由调用方按相邻两段给出。
+
+    ``entry_is_boundary=True`` 只用于请求的第一个航段：入口速度是请求的当前
+    速度（边界条件，不是决策变量）。此时不按限速上限夹取入口、也不报
+    ``entry_speed_above_limit``——船舶只能从真实当前速度出发，用一段满足
+    减速上限的入段斜坡向限速区间过渡；该过渡由 ``expand_trajectory`` 记入
+    ``boundary_transitions`` 并接受独立复核。非首段的入口速度来自上一段的
+    实际出口速度（决策的结果），越过限速上限仍是违规。
     """
     tolerance = (grid.distance_tolerance_km if distance_tolerance_km is None
                  else distance_tolerance_km)
@@ -368,7 +442,7 @@ def plan_segment_phases(segment: SegmentConstraint, *, cruise_speed_kmh: float,
     decel_floor = floor if exit_floor is None else max(floor, exit_floor)
     # 入段斜坡必须从上一段的真实出口速度起步，该速度可能低于本段限速下限
     # （前一段限速更宽）：这是物理过程，不是违规。真正不能突破的是本段限速上限。
-    if entry_speed_kmh > high + TOLERANCE:
+    if entry_speed_kmh > high + TOLERANCE and not entry_is_boundary:
         violations.append(Violation(
             code="entry_speed_above_limit", segment_id=segment.segment_id,
             detail="入段速度高于该航段限速上限，本段内无法满足限速",
@@ -380,12 +454,11 @@ def plan_segment_phases(segment: SegmentConstraint, *, cruise_speed_kmh: float,
             code="target_speed_above_limit", segment_id=segment.segment_id,
             detail="目标航速超过该航段限速上限（不静默夹住，只如实报告）",
             observed=cruise_speed_kmh, limit=high, unit="km/h"))
-    if entry_speed_kmh > high + TOLERANCE:
-        violations.append(Violation(
-            code="entry_speed_above_limit", segment_id=segment.segment_id,
-            detail="入段速度高于该航段限速上限，本段内无法满足限速",
-            observed=entry_speed_kmh, limit=high, unit="km/h"))
-    entry = min(max(entry_speed_kmh, 0.0), high)
+    if entry_is_boundary:
+        # 边界条件：入口速度是给定事实，不得夹取；过渡斜坡从真实速度起步。
+        entry = max(entry_speed_kmh, 0.0)
+    else:
+        entry = min(max(entry_speed_kmh, 0.0), high)
     # 减速斜坡的目标速度不得低于本航段可用下限，否则会展开出低于限速下限的
     # "通过速度"。终点停车时例外（靠泊必然降到 0）。
     exit_speed = (min(max(exit_speed_kmh, decel_floor), high) if clamp_exit_to_floor
@@ -418,7 +491,10 @@ def plan_segment_phases(segment: SegmentConstraint, *, cruise_speed_kmh: float,
         # 距离不足以完成完整斜坡：求恰好覆盖该距离的峰值航速（一次加速 + 一次减速）
         peak = _peak_speed_for_distance(segment.distance_km, entry, exit_speed,
                                         max_accel, max_decel)
-        capped = min(max(peak, max(entry, exit_speed)), high)
+        # 边界入口（首段真实当前速度）不得被限速上限截住：过渡斜坡必须
+        # 从真实速度起步，超限部分由 boundary_transitions 记录与复核。
+        cap = max(high, entry) if entry_is_boundary else high
+        capped = min(max(peak, max(entry, exit_speed)), cap)
         phases = [phase for phase in ramp_phases(capped)
                   if phase.duration_s > TOLERANCE]
         covered = sum(phase.distance_km for phase in phases)
@@ -427,7 +503,8 @@ def plan_segment_phases(segment: SegmentConstraint, *, cruise_speed_kmh: float,
                 code="distance_too_short_for_speed_limit", segment_id=segment.segment_id,
                 detail="按加减速上限展开时，该航段距离无法达到限速下限",
                 observed=peak, limit=low, unit="km/h"))
-        if peak > high + TOLERANCE:
+        if peak > cap + TOLERANCE or (peak > high + TOLERANCE
+                                      and not entry_is_boundary):
             violations.append(Violation(
                 code="speed_limit_exceeded_for_distance", segment_id=segment.segment_id,
                 detail="覆盖该航段距离所需峰值航速超过限速上限",
@@ -518,6 +595,7 @@ def expand_trajectory(speed_vector, *, request, time_grid: TimeGridSpec | None =
 
     facts: list[SegmentFact] = []
     violations: list[Violation] = []
+    transitions: list[Violation] = []
     offset = 0.0
     if request.current_speed_kmh is None:
         raise ValueError("展开轨迹必须给出当前航速 current_speed_kmh；不得默认为 0")
@@ -531,24 +609,52 @@ def expand_trajectory(speed_vector, *, request, time_grid: TimeGridSpec | None =
         if next_segment is None:
             # 终点：默认减速停车；显式关闭时按该航段的通过速度处理。
             if grid.decelerate_to_stop_at_end:
-                exit_speed = 0.0
+                planned_exit = 0.0
             else:
-                exit_speed = fixed_speed_floor(segment, grid)
+                planned_exit = fixed_speed_floor(segment, grid)
+            clamp_exit = not grid.decelerate_to_stop_at_end
         elif next_segment.optimizable:
-            # 出口速度 = 下一段目标航速（不得越过本段限速上限）。
+            # 计划出口速度 = 下一段目标航速（不得越过本段限速上限）。
             # 下一段的限速下限由下一段自己的入段斜坡负责，不前置到本段出口。
-            exit_speed = min(targets[next_segment.segment_id],
-                             speed_ceiling(segment, grid))
+            planned_exit = min(targets[next_segment.segment_id],
+                               speed_ceiling(segment, grid))
+            clamp_exit = True
         else:
-            exit_speed = next_segment.fixed_speed_kmh or 0.0
+            planned_exit = next_segment.fixed_speed_kmh or 0.0
+            clamp_exit = True
         target = segment.fixed_speed_kmh if fixed else targets[segment.segment_id]
         phases, segment_violations = plan_segment_phases(
             segment, cruise_speed_kmh=target, entry_speed_kmh=entry_speed,
-            exit_speed_kmh=exit_speed, grid=grid, fixed=fixed,
+            exit_speed_kmh=planned_exit, grid=grid, fixed=fixed,
             distance_tolerance_km=grid.distance_tolerance_km,
-            clamp_exit_to_floor=not (next_segment is None
-                                     and grid.decelerate_to_stop_at_end),
+            clamp_exit_to_floor=clamp_exit,
+            exit_floor=handoff_floor,
+            entry_is_boundary=(index == 0))
+        # 实际出口速度：计划出口速度经本段限速下限夹取后的值。
+        # 若计划出口低于本段下限（下一段允许更低速度），本段只降到下限，
+        # 剩余过渡由下一段的入段斜坡完成——下一段入口必须取该实际值，
+        # 否则段间出现速度跳变，轨迹不可执行。
+        actual_exit = effective_exit_speed(
+            segment, planned_exit, grid=grid, clamp_exit_to_floor=clamp_exit,
             exit_floor=handoff_floor)
+        if index == 0:
+            low0, high0 = segment_limits(segment, grid)
+            if entry_speed > high0 + TOLERANCE:
+                excess_s = _ramp_time_s(entry_speed, high0, grid.max_deceleration_mps2)
+                transitions.append(Violation(
+                    code="boundary_transition_above_limit", segment_id=segment.segment_id,
+                    detail=(f"当前速度 {entry_speed:.3f} km/h 高于首段限速上限 "
+                            f"{high0:.3f} km/h：入段斜坡从真实当前速度减速过渡，"
+                            f"超限历时约 {excess_s:.1f}s（边界条件，非决策变量）"),
+                    observed=entry_speed, limit=high0, unit="km/h"))
+            elif entry_speed < low0 - TOLERANCE:
+                excess_s = _ramp_time_s(entry_speed, low0, grid.max_acceleration_mps2)
+                transitions.append(Violation(
+                    code="boundary_transition_below_floor", segment_id=segment.segment_id,
+                    detail=(f"当前速度 {entry_speed:.3f} km/h 低于首段限速下限 "
+                            f"{low0:.3f} km/h：入段斜坡从真实当前速度加速过渡，"
+                            f"低于下限历时约 {excess_s:.1f}s（边界条件，非决策变量）"),
+                    observed=entry_speed, limit=low0, unit="km/h"))
         sampled = sample_phases(phases, start_offset_s=offset,
                                 step_s=grid.prediction_step_s, max_step_s=max_step_s)
         waiting = segment.waiting_duration_s if segment.waiting_rule else 0.0
@@ -558,7 +664,7 @@ def expand_trajectory(speed_vector, *, request, time_grid: TimeGridSpec | None =
             phases=tuple(phases),
             sampled=tuple(sampled),
             entry_speed_kmh=entry_speed,
-            exit_speed_kmh=exit_speed,
+            exit_speed_kmh=actual_exit,
             cruise_speed_kmh=(target if any(p.kind == "cruise" for p in phases) else None),
             waiting_duration_s=waiting,
             waiting_rule=segment.waiting_rule,
@@ -574,12 +680,9 @@ def expand_trajectory(speed_vector, *, request, time_grid: TimeGridSpec | None =
         facts.append(fact)
         violations.extend(segment_violations)
         offset = fact.end_offset_s
-        # 链式口径：本段入口速度 = 上一段的**实际出口速度**。出口速度已被安排为
-        # "下一段目标航速与交接下限取较大者"，因此下一段只需一段入段斜坡，
-        # 不会重复减速、漏掉加速，也不会从低于限速下限的速度起步。
-        entry_speed = exit_speed
-
-    from research.tspeed.trajectory import ExpandedTrajectory  # noqa: F401  (同模块类型)
+        # 链式口径：下一段入口速度 = 本段的**实际出口速度**（限速夹取后的值），
+        # 因此段间速度严格连续，不会重复减速、漏掉加速，也不会出现瞬时跳变。
+        entry_speed = actual_exit
 
     return ExpandedTrajectory(
         speed_vector=vector,
@@ -587,4 +690,5 @@ def expand_trajectory(speed_vector, *, request, time_grid: TimeGridSpec | None =
         segment_facts=tuple(facts),
         violations=tuple(violations),
         prediction_step_s=min(grid.prediction_step_s, max_step_s),
+        boundary_transitions=tuple(transitions),
     )

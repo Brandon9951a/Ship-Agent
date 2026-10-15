@@ -24,6 +24,7 @@ MODULES = (
     "research.tests.test_tool_entry",
     "research.tests.test_lstm_adapter",
     "research.tests.test_samples_and_schemas",
+    "research.tests.test_baseline_and_rolling",
     "research.tests.test_migration_v1",
 )
 

@@ -38,6 +38,71 @@ VERIFICATION_TOLERANCE_KM = 1e-6
 VERIFICATION_TOLERANCE_S = 1e-6
 
 
+def _boundary_prefix_lengths(fact, low: float, high: float) -> int:
+    """首段边界过渡前缀的长度：从真实当前速度向限速区间过渡的连续越界切片数。
+
+    只豁免"从段首起、一旦进入限速区间就结束"的单调过渡前缀；过渡结束后再次
+    越界的区间不在豁免之列（仍由逐区间限速检查判定）。
+    """
+    count = 0
+    for interval in fact.sampled:
+        speed = interval.planned_speed_kmh
+        if speed > high + 1e-6 or speed < low - 1e-6:
+            count += 1
+        else:
+            break
+    return count
+
+
+def _audit_boundary_transition(expanded, *, request) -> tuple[list[Violation], float | None]:
+    """复核首段边界速度过渡：入口必须是真实当前速度，过渡单调逼近限速区间。
+
+    返回 ``(违规列表, 过渡越界历时 s)``。越界历时按首段入口斜坡的采样切片
+    实测；采样网格粗于过渡时长时为 0，分析上界见诊断记录的 detail。
+    """
+    issues: list[Violation] = []
+    if not expanded.boundary_transitions:
+        return issues, None
+    transition = expanded.boundary_transitions[0]
+    fact = expanded.segment_facts[0]
+    expected = request.current_speed_kmh
+    entry = fact.phases[0].entry_speed_kmh if fact.phases else None
+    if expected is None or entry is None or abs(entry - expected) > 1e-6:
+        issues.append(Violation(
+            code="boundary_entry_changed", segment_id=fact.segment_id,
+            detail="首段入口速度不等于请求的当前速度（边界条件不得改动）",
+            observed=entry, limit=expected, unit="km/h"))
+    grid = request.time_grid
+    segment = request.segments[0]
+    low = max(grid.min_speed_kmh,
+              segment.min_speed_kmh if segment.min_speed_kmh is not None
+              else grid.min_speed_kmh)
+    high = min(grid.max_speed_kmh,
+               segment.max_speed_kmh if segment.max_speed_kmh is not None
+               else grid.max_speed_kmh)
+    prefix = _boundary_prefix_lengths(fact, low, high)
+    descending = transition.code == "boundary_transition_above_limit"
+    previous: float | None = None
+    excess_s = 0.0
+    for interval in fact.sampled[:prefix]:
+        speed = interval.planned_speed_kmh
+        if previous is not None:
+            if descending and speed > previous + 1e-6:
+                issues.append(Violation(
+                    code="boundary_transition_not_monotone", segment_id=fact.segment_id,
+                    detail="边界过渡期间航速未单调逼近限速区间",
+                    observed=speed, limit=previous, unit="km/h"))
+            if not descending and speed < previous - 1e-6:
+                issues.append(Violation(
+                    code="boundary_transition_not_monotone", segment_id=fact.segment_id,
+                    detail="边界过渡期间航速未单调逼近限速区间",
+                    observed=speed, limit=previous, unit="km/h"))
+        previous = speed
+        excess_s += interval.duration_s
+    # 过渡斜坡的加速度上限由 acceleration 检查逐项复核，此处不重复。
+    return issues, excess_s
+
+
 @dataclass(frozen=True)
 class VerificationReport:
     """最终候选的核验结论；``passed`` 只表示在给定来源与假设下通过。"""
@@ -91,10 +156,13 @@ def verify_candidate(candidate: CandidateTrajectory, *,
                                 max_step_s=grid.verification_step_s)
 
     # 2) 速度与加速度检查（独立复核展开结果本身，含逐航段限速比对）。
+    #    首段的边界速度过渡（当前速度越过首段限速）不计违规，但单独检查。
     speed_violations = [item for item in expanded.violations
                         if item.code in ("speed_limit_exceeded_for_distance",
                                          "distance_too_short_for_speed_limit",
-                                         "zero_cruise_speed_on_positive_distance")]
+                                         "zero_cruise_speed_on_positive_distance",
+                                         "entry_speed_above_limit",
+                                         "target_speed_above_limit")]
     limits_by_segment = {}
     for index, segment in enumerate(request.segments):
         low = max(grid.min_speed_kmh,
@@ -103,22 +171,21 @@ def verify_candidate(candidate: CandidateTrajectory, *,
         high = min(grid.max_speed_kmh,
                    segment.max_speed_kmh if segment.max_speed_kmh is not None
                    else grid.max_speed_kmh)
-        next_segment = (request.segments[index + 1]
-                        if index + 1 < len(request.segments) else None)
-        # 巡航区间必须达到本段限速下限；入段斜坡允许从上一段更低/更高的出口速度
-        # 起步（段内加速或减速到目标航速），这是物理过程而非违规。
-        del next_segment
         cruise_floor = fixed_speed_floor(segment, grid)
         limits_by_segment[segment.segment_id] = (
             max(grid.min_speed_kmh, low), high,
             segment.fixed_speed_kmh, cruise_floor)
     observed_max = 0.0
-    for fact in expanded.segment_facts:
+    for fact_index, fact in enumerate(expanded.segment_facts):
         low, high, fixed_speed, cruise_floor = limits_by_segment[fact.segment_id]
         observed_max = max(observed_max,
                            max((item.planned_speed_kmh for item in fact.sampled),
                                default=0.0))
-        for interval in fact.sampled:
+        exempt = (_boundary_prefix_lengths(fact, low, high)
+                  if fact_index == 0 and expanded.boundary_transitions else 0)
+        for position, interval in enumerate(fact.sampled):
+            if position < exempt:
+                continue  # 边界过渡前缀：由 boundary_transition 检查单独复核
             speed = interval.planned_speed_kmh
             if speed > high + 1e-6 or speed < low - 1e-6:
                 speed_violations.append(Violation(
@@ -154,6 +221,33 @@ def verify_candidate(candidate: CandidateTrajectory, *,
     checks.append(ConstraintCheckRecord(
         name="trajectory_continuity", passed=not continuity,
         reason="; ".join(item.detail for item in continuity) or "时间轴无重叠与未解释间隙"))
+
+    # 2b) 速度连续性（相位级精确比对，不信采样均值）与首段边界过渡。
+    speed_jumps = expanded.audit_speed_continuity(
+        expected_entry_speed_kmh=request.current_speed_kmh)
+    checks.append(ConstraintCheckRecord(
+        name="speed_continuity", passed=not speed_jumps,
+        reason="; ".join(item.detail for item in speed_jumps)
+        or "相位与航段之间速度连续，无瞬时跳变"))
+    transition_issues, transition_excess_s = _audit_boundary_transition(
+        expanded, request=request)
+    if expanded.boundary_transitions:
+        transition = expanded.boundary_transitions[0]
+        checks.append(ConstraintCheckRecord(
+            name="boundary_transition", passed=not transition_issues,
+            actual=transition_excess_s, limit=None, unit="s",
+            reason=("; ".join(item.detail for item in transition_issues)
+                    or f"边界过渡合规（{transition.detail}）"),
+            segment_id=transition.segment_id))
+        diagnostics.append(Diagnostic(
+            stage="verify", code=transition.code,
+            detail=transition.detail, field_ref="current_speed_kmh",
+            observed=transition.observed, limit=transition.limit,
+            unit=transition.unit, retryable=False))
+    else:
+        checks.append(ConstraintCheckRecord(
+            name="boundary_transition", passed=True,
+            reason="首段入口速度在限速范围内，无需边界过渡"))
 
     # 3) 距离一致性：以展开轨迹的速度积分复核航段距离。
     checks.append(ConstraintCheckRecord(
@@ -201,6 +295,22 @@ def verify_candidate(candidate: CandidateTrajectory, *,
         checks.append(ConstraintCheckRecord(
             name="energy_integration", passed=balance,
             reason="逐时能量与 P·Δt/3600 一致" if balance else "逐时能量与积分区间不一致"))
+        # 独立复算：逐区间能量之和必须与后端汇总值一致（不只信后端内部账）。
+        point_energies = [point.motor_energy_kwh for point in envelope.power_points]
+        reported = envelope.predicted_motor_energy_kwh
+        if reported is None or any(value is None for value in point_energies):
+            checks.append(ConstraintCheckRecord(
+                name="energy_total_consistency", passed=False,
+                reason="存在未预测区间或汇总缺失，能量总量无法独立复核"))
+        else:
+            summed = sum(point_energies)
+            residual = summed - reported
+            checks.append(ConstraintCheckRecord(
+                name="energy_total_consistency",
+                passed=abs(residual) <= 1e-6 * max(1.0, abs(reported)),
+                actual=summed, limit=reported, unit="kWh",
+                tolerance=1e-6 * max(1.0, abs(reported)),
+                reason=f"Σ 逐区间能量与后端汇总值之差 {residual:.3e} kWh"))
 
     energy = envelope.predicted_motor_energy_kwh
     resampling_error = None
