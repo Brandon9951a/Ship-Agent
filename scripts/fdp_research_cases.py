@@ -135,6 +135,52 @@ def build_request(case_id: str = "success") -> BatteryManagementRequest:
     )
 
 
+def build_full_voyage_request() -> BatteryManagementRequest:
+    """A named, assumed 24-hour run with sailing and waiting intervals."""
+    base = build_request("success")
+    points = []
+    for index in range(48):
+        phase = "waiting" if index % 3 == 2 else "sailing"
+        demand = 5.0 if phase == "waiting" else 70.0
+        propulsion = demand - 5.0 if phase == "sailing" else 0.0
+        point = _point(index, demand, duration_s=1800, phase=phase)
+        points.append(replace(
+            point,
+            segment_id=f"leg-{index // 3 + 1:02d}",
+            start_offset_s=index * 1800.0,
+            duration_s=1800.0,
+            motor_power_kw=max(propulsion - 1.0, 0.0),
+            propulsion_bus_kw=propulsion,
+            auxiliary_bus_kw=5.0,
+        ))
+    assumptions = [
+        *base.assumptions,
+        {"assumption_id": "fdp-24h-battery-fixture",
+         "value": "两组 1500 kWh、初始 SOC 0.9、效率 0.9、每组 50 kW 上限均为具名仿真假设。"},
+        {"assumption_id": "fdp-24h-demand-fixture",
+         "value": "48 个 30 分钟区间；32 个 70 kW 航行区间、16 个 5 kW 等待区间。"},
+    ]
+    return replace(
+        base,
+        task_id="task:fdp-full-voyage-24h",
+        snapshot_id="snapshot:fdp-full-voyage-24h",
+        scenario_id="assumption:fdp-full-voyage-24h",
+        call_id="call:fdp-full-voyage-24h",
+        selected_candidate_id="candidate:fdp-full-voyage-24h",
+        selected_demand_ref="demand:fdp-full-voyage-24h",
+        demand_series=points,
+        battery_1=_battery("battery_1", capacity_kwh=1500, initial_soc=0.9,
+                           soc_min=0.2, min_power_kw=5, max_power_kw=50),
+        battery_2=_battery("battery_2", capacity_kwh=1500, initial_soc=0.9,
+                           soc_min=0.2, min_power_kw=5, max_power_kw=50),
+        # This explicit fine grid avoids excessive conservative rounding over
+        # the full horizon; report it with the measured resource results.
+        grid=replace(base.grid, soc_step=0.005, max_states_per_layer=5000,
+                     max_transitions=1_000_000),
+        assumptions=assumptions,
+    )
+
+
 def invalid_missing_efficiency_request() -> dict[str, Any]:
     """A JSON-shaped example showing missing facts stay missing, not defaults."""
     request = build_request("success").to_dict()
