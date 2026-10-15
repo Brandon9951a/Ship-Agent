@@ -37,8 +37,24 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _json_safe(value: Any) -> Any:
+    """Keep invalid non-finite inputs hashable and diagnostics JSON-safe."""
+    if isinstance(value, float) and not isfinite(value):
+        label = "nan" if value != value else (
+            "positive_infinity" if value > 0 else "negative_infinity"
+        )
+        return {"$non_finite": label}
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if value is None or type(value) in (str, int, float, bool):
+        return value
+    return repr(value)
+
+
 def _canonical(value: Any) -> bytes:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True,
+    return json.dumps(_json_safe(value), ensure_ascii=False, sort_keys=True,
                       separators=(",", ":"), allow_nan=False).encode("utf-8")
 
 
@@ -64,8 +80,8 @@ def _diagnostic(stage: str, code: str, interval: str | None = None,
         "code": code,
         "time_interval_or_segment_id": interval,
         "field_ref": field_ref,
-        "observed": observed,
-        "limit": limit,
+        "observed": _json_safe(observed),
+        "limit": _json_safe(limit),
         "unit": unit,
         "source_refs": source_refs or [],
         "retryable": retryable,
@@ -180,18 +196,30 @@ def validate_request(request: BatteryManagementRequest) -> list[dict[str, Any]]:
             ))
         if point.demand_source is None:
             missing(path + ".demand_source", "母线需求必须有共享适配器来源。")
-        elif not point.demand_source.source_id.strip():
+        elif not isinstance(point.demand_source.source_id, str) or not point.demand_source.source_id.strip():
             missing(path + ".demand_source.source_id", "source_id 不能为空。")
-        if point.conversion_source is None or not point.conversion_model_ref:
+        if (not isinstance(point.conversion_model_ref, str)
+                or not point.conversion_model_ref.strip()):
             missing(path + ".conversion_model_ref", "电机侧到母线侧的转换依据不能省略。")
-        elif not point.conversion_source.source_id.strip():
+        if point.conversion_source is None:
+            missing(path + ".conversion_source", "转换模型必须有来源。")
+        elif not isinstance(point.conversion_source.source_id, str) or not point.conversion_source.source_id.strip():
             missing(path + ".conversion_source.source_id", "source_id 不能为空。")
-        optional_components = (point.motor_power_kw, point.propulsion_bus_kw,
-                               point.auxiliary_bus_kw)
+        components = (point.motor_power_kw, point.propulsion_bus_kw,
+                      point.auxiliary_bus_kw)
         for name, value in zip(("motor_power_kw", "propulsion_bus_kw", "auxiliary_bus_kw"),
-                               optional_components):
-            if value is not None and not _finite(value):
-                invalid(path + "." + name, value, "如提供，必须是有限数值。")
+                               components):
+            if value is None:
+                missing(path + "." + name, "共享需求工件必须保留电机、推进母线和辅助功率分项。")
+            elif not _finite(value):
+                invalid(path + "." + name, value, "必须是有限数值。")
+            elif (value < -EPS and _finite(point.demand_bus_kw)
+                  and point.demand_bus_kw >= -EPS):
+                invalid(path + "." + name, value, "功率分项不能为负；回馈/充电尚未实现。")
+        if (point.component_source is None
+                or not isinstance(point.component_source.source_id, str)
+                or not point.component_source.source_id.strip()):
+            missing(path + ".component_source", "需求分项必须保留共享适配器来源。")
         if (point.propulsion_bus_kw is not None and point.auxiliary_bus_kw is not None
                 and _finite(point.demand_bus_kw)
                 and not isclose(point.propulsion_bus_kw + point.auxiliary_bus_kw,
@@ -199,9 +227,6 @@ def validate_request(request: BatteryManagementRequest) -> list[dict[str, Any]]:
             invalid(path + ".demand_bus_kw", point.demand_bus_kw,
                     "母线需求应等于适配器提供的推进母线功率与辅助功率之和。",
                     point.propulsion_bus_kw + point.auxiliary_bus_kw)
-        if ((point.propulsion_bus_kw is not None or point.auxiliary_bus_kw is not None)
-                and point.component_source is None):
-            missing(path + ".component_source", "需求分项须保留共享适配器来源。")
         if _finite(point.start_offset_s) and _finite(point.duration_s):
             expected_start = float(point.start_offset_s) + float(point.duration_s)
 
@@ -241,12 +266,14 @@ def validate_request(request: BatteryManagementRequest) -> list[dict[str, Any]]:
                             "回放/实测输入要求已确认来源。")
         for index, point in enumerate(request.demand_series):
             for field, source in (("demand_source", point.demand_source),
-                                  ("conversion_source", point.conversion_source)):
+                                  ("conversion_source", point.conversion_source),
+                                  ("component_source", point.component_source)):
                 if source is not None and not source.confirmed:
                     missing(f"demand_series[{index}].{field}.confirmed",
                             "回放/实测输入要求已确认来源。")
     for field, source in (("load_rate_reference_source", request.load_rate_reference_source),
-                          ("allowed_mode_transitions_source", request.allowed_mode_transitions_source)):
+                          ("allowed_mode_transitions_source", request.allowed_mode_transitions_source),
+                          ("weights.source", request.weights.source)):
         if (request.source_mode in ("replay", "measured") and source is not None
                 and not source.confirmed):
             missing(field + ".confirmed", "回放/实测输入要求已确认来源。")
@@ -428,7 +455,7 @@ def _dp_costs(request: BatteryManagementRequest, mode: int,
         # same single-pack term symmetrically to the paper's mode 2.
         "soc_balance": (weight.k_soc * soc_difference if mode in (1, 2)
                         else 2 * weight.k_soc * soc_difference if mode == 3 else 0.0),
-        "low_load_mode3": (weight.k_low if mode == 3
+        "low_load_mode3": (weight.k_low if mode == 3 and demand > EPS
                            and demand / request.load_rate_reference_kw
                            <= weight.low_load_threshold else 0.0),
     }
@@ -449,6 +476,7 @@ def _row(request: BatteryManagementRequest, point: PowerDemandPoint,
         "start_offset_s": point.start_offset_s,
         "duration_s": point.duration_s,
         "demand_bus_kw": point.demand_bus_kw,
+        "demand_bus_energy_kwh": point.demand_bus_kw * duration_h,
         "mode": transition["mode"],
         "battery_1_power_kw": transition["battery_1_power_kw"],
         "battery_2_power_kw": transition["battery_2_power_kw"],
@@ -481,6 +509,12 @@ def _row(request: BatteryManagementRequest, point: PowerDemandPoint,
         "input_provenance": {
             "demand_source": _source_dict(point.demand_source),
             "conversion_source": _source_dict(point.conversion_source),
+            "component_source": _source_dict(point.component_source),
+            "load_rate_reference_source": _source_dict(request.load_rate_reference_source),
+            "allowed_mode_transitions_source": _source_dict(
+                request.allowed_mode_transitions_source),
+            "weights_source": _source_dict(request.weights.source),
+            "assumptions": request.assumptions,
             "battery_1": {key: source.to_dict()
                           for key, source in request.battery_1.sources.items()},
             "battery_2": {key: source.to_dict()
@@ -518,12 +552,25 @@ def _feedback(request: BatteryManagementRequest, *, scope: str,
               certainty: str, suggestion: str, limit_source: Any = None) -> dict[str, Any]:
     battery_hash = _sha({"battery_1": request.battery_1.to_dict(),
                          "battery_2": request.battery_2.to_dict()})
+    interval = None
+    if point is not None:
+        interval = {
+            "segment_id": point.segment_id,
+            "start_offset_s": point.start_offset_s,
+            "duration_s": point.duration_s,
+            "end_offset_s": point.start_offset_s + point.duration_s,
+        }
     return {
         "selected_candidate_id": request.selected_candidate_id,
         "selected_demand_ref": request.selected_demand_ref,
+        "request_revision": request.request_revision,
+        "snapshot_id": request.snapshot_id,
+        "scenario_id": request.scenario_id,
+        "call_id": request.call_id,
+        "demand_series_hash": _sha([point.to_dict() for point in request.demand_series]),
         "battery_config_hash": battery_hash,
         "failure_scope": scope,
-        "first_failure_interval": point.segment_id if point else None,
+        "first_failure_interval": interval,
         "violated_rule": violated,
         "demand_kw": demand,
         "deliverable_kw": deliverable,
@@ -603,6 +650,7 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
         }
     }
     transitions_seen = 0
+    peak_states_per_layer = len(layers)
     for point_index, point in enumerate(request.demand_series):
         next_layer: dict[tuple[int, int, int | None], dict[str, Any]] = {}
         for state in layers.values():
@@ -621,9 +669,14 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
                     payload = {"safe": False, "feedback": _feedback(
                         request, scope="grid_budget", point=point, violated="max_transitions",
                         demand=point.demand_bus_kw, deliverable=None,
-                        soc1=state["actual_soc1"], soc2=state["actual_soc2"], certainty="grid_limited",
+                        soc1=state["actual_soc1"], soc2=state["actual_soc2"],
+                        certainty="transition_budget_exhausted",
                         suggestion="increase_fdp_budget_or_adjust_grid"),
-                        "grid": request.grid.to_dict()}
+                        "grid": request.grid.to_dict(),
+                        "transitions_seen": transitions_seen,
+                        "peak_states_per_layer": max(
+                            peak_states_per_layer, len(next_layer)
+                        )}
                     return _envelope(request, started_at=started, finished_at=_now(),
                                      execution_status="completed", outcome_code="grid_unresolved",
                                      diagnostics=[diagnostic], payload=payload,
@@ -686,25 +739,33 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
                     demand=point.demand_bus_kw, deliverable=None,
                     soc1=state["soc1"], soc2=state["soc2"], certainty="grid_limited",
                     suggestion="increase_fdp_budget_or_adjust_grid"),
-                    "grid": request.grid.to_dict()}
+                    "grid": request.grid.to_dict(),
+                    "transitions_seen": transitions_seen,
+                    "peak_states_per_layer": len(next_layer)}
                 return _envelope(request, started_at=started, finished_at=_now(),
                                  execution_status="completed", outcome_code="grid_unresolved",
                                  diagnostics=[diagnostic], payload=payload,
                                  runtime_ms=(time.perf_counter() - wall_start) * 1000)
+        peak_states_per_layer = max(peak_states_per_layer, len(next_layer))
         if not next_layer:
             diagnostic = _diagnostic(
-                "fdp", "soc_path_infeasible", point.segment_id, "soc_or_mode_constraints",
+                "fdp", "no_path_on_requested_grid", point.segment_id, "soc_or_mode_constraints",
                 point.demand_bus_kw, None, "kW", [], False,
-                "当前逐时需求、SOC演化、功率限值或模式转换规则下无可行路径；结论仅限本请求模型。",
+                "当前离散 SOC 网格的全部状态均无可行转移；这不证明连续模型或实船全局无解。",
             )
-            fallback_state = next(iter(layers.values()))
+            fallback_state = min(
+                layers.values(), key=lambda item: _total_cost(item["cost_terms"])
+            )
             payload = {"safe": False, "feedback": _feedback(
-                request, scope="candidate_path", point=point,
+                request, scope="candidate_grid_path", point=point,
                 violated="no_feasible_state_transition", demand=point.demand_bus_kw,
-                deliverable=request.battery_1.max_power_kw + request.battery_2.max_power_kw,
+                deliverable=None,
                 soc1=fallback_state["actual_soc1"], soc2=fallback_state["actual_soc2"],
-                certainty="grid_limited", suggestion="rerun_fdp_for_new_candidate"),
-                "grid": request.grid.to_dict()}
+                certainty="no_path_on_requested_grid",
+                suggestion="inspect_grid_or_replan_candidate"),
+                "grid": request.grid.to_dict(),
+                "transitions_seen": transitions_seen,
+                "peak_states_per_layer": peak_states_per_layer}
             return _envelope(request, started_at=started, finished_at=_now(),
                              execution_status="completed", outcome_code="grid_unresolved",
                              diagnostics=[diagnostic], payload=payload,
@@ -758,6 +819,7 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
         "summary": {
             "final_soc_1": best["actual_soc1"], "final_soc_2": best["actual_soc2"],
             "final_planning_soc_1": best["soc1"], "final_planning_soc_2": best["soc2"],
+            "demand_bus_energy_kwh": sum(row["demand_bus_energy_kwh"] for row in rows),
             "bus_energy_1_kwh": sum(row["battery_1_bus_energy_kwh"] for row in rows),
             "bus_energy_2_kwh": sum(row["battery_2_bus_energy_kwh"] for row in rows),
             "battery_energy_drawn_1_kwh": sum(row["battery_1_energy_drawn_kwh"] for row in rows),
@@ -778,6 +840,7 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
             "segment_summary": _segment_summary(rows),
             "mode_counts": {str(mode): sum(row["mode"] == mode for row in rows) for mode in MODES},
             "transitions_seen": transitions_seen,
+            "peak_states_per_layer": peak_states_per_layer,
         },
     }
     outcome = "ok" if verification["passed"] else "tool_error"
@@ -877,8 +940,19 @@ def run_state_machine(request: BatteryManagementRequest, *, high_load_threshold:
         soc1, soc2 = transition["soc_1_after"], transition["soc_2_after"]
         if point.demand_bus_kw > EPS:
             mode = target_mode
-    return {"outcome_code": "ok", "rows": rows,
-            "cost_terms": {**costs, "total": _total_cost(costs)},
+    cost_summary = {**costs, "total": _total_cost(costs)}
+    verification = verify_trajectory(
+        request, rows, cost_summary, conservative_grid=False
+    )
+    if not verification["passed"]:
+        return {"outcome_code": "tool_error", "safe": False,
+                "diagnostics": [_diagnostic(
+                    "verification", "independent_check_failed", None,
+                    "state_machine.constraint_checks", None, None, None, [], False,
+                    "状态机轨迹未通过独立复核。",
+                )], "rows": rows, "constraint_checks": verification["checks"]}
+    return {"outcome_code": "ok", "safe": True, "rows": rows,
+            "cost_terms": cost_summary, "constraint_checks": verification["checks"],
             "summary": {"final_soc_1": soc1, "final_soc_2": soc2,
                         "mode_counts": {str(m): sum(row["mode"] == m for row in rows) for m in MODES}},
             "policy": {"high_load_threshold": high_load_threshold,
@@ -895,11 +969,15 @@ def compare_policies(request: BatteryManagementRequest) -> dict[str, Any]:
                               "state_machine_outcome": state["outcome_code"]}
     if fdp.get("payload", {}).get("safe"):
         frows = fdp["payload"]["rows"]
-        result["fdp"] = _policy_metrics(frows, fdp["payload"]["cost_terms"])
+        result["fdp"] = _policy_metrics(
+            frows, fdp["payload"]["cost_terms"], initial_mode=request.previous_mode
+        )
     else:
         result["fdp"] = {"feasible": False, "diagnostics": fdp.get("diagnostics", [])}
-    if state["outcome_code"] == "ok":
-        result["state_machine"] = _policy_metrics(state["rows"], state["cost_terms"])
+    if state["outcome_code"] == "ok" and state.get("safe"):
+        result["state_machine"] = _policy_metrics(
+            state["rows"], state["cost_terms"], initial_mode=request.previous_mode
+        )
     else:
         result["state_machine"] = {"feasible": False, "diagnostics": state.get("diagnostics", [])}
     if result["fdp"].get("feasible") and result["state_machine"].get("feasible"):
@@ -908,24 +986,70 @@ def compare_policies(request: BatteryManagementRequest) -> dict[str, Any]:
                 result["fdp"]["final_soc_1"] - result["state_machine"]["final_soc_1"],
                 result["fdp"]["final_soc_2"] - result["state_machine"]["final_soc_2"],
             ],
+            "final_soc_difference_delta": (
+                result["fdp"]["final_soc_difference"]
+                - result["state_machine"]["final_soc_difference"]
+            ),
+            "max_soc_difference_delta": (
+                result["fdp"]["max_soc_difference"]
+                - result["state_machine"]["max_soc_difference"]
+            ),
+            "power_variation_delta_kw": [
+                result["fdp"]["power_variation_1_kw"]
+                - result["state_machine"]["power_variation_1_kw"],
+                result["fdp"]["power_variation_2_kw"]
+                - result["state_machine"]["power_variation_2_kw"],
+            ],
             "switch_count_delta": result["fdp"]["switch_count"] - result["state_machine"]["switch_count"],
-            "cost_delta": result["fdp"]["total_cost"] - result["state_machine"]["total_cost"],
+            "cost_term_delta": {
+                key: result["fdp"]["cost_terms"][key]
+                - result["state_machine"]["cost_terms"][key]
+                for key in ("power", "switch", "soc_balance", "low_load_mode3", "total")
+            },
+            "constraint_violations": {
+                "fdp": sum(not item["passed"] for item in
+                           fdp["payload"].get("constraint_checks", [])),
+                "state_machine": sum(not item["passed"] for item in
+                                     state.get("constraint_checks", [])),
+            },
         }
     else:
         result["comparison"] = {"status": "not_comparable_when_either_policy_is_infeasible"}
     return result
 
 
-def _policy_metrics(rows: list[dict[str, Any]], costs: dict[str, float]) -> dict[str, Any]:
+def _policy_metrics(rows: list[dict[str, Any]], costs: dict[str, float],
+                    *, initial_mode: int | None = None) -> dict[str, Any]:
     powers = [(row["battery_1_power_kw"], row["battery_2_power_kw"]) for row in rows]
+    soc_differences = [
+        abs(value)
+        for row in rows
+        for value in (row["soc_1_before"] - row["soc_2_before"],
+                      row["soc_1_after"] - row["soc_2_after"])
+    ]
+    switches = 0
+    previous_mode = initial_mode
+    for row in rows:
+        if row["demand_bus_kw"] > EPS and row["mode"] in MODES:
+            if previous_mode in MODES and row["mode"] != previous_mode:
+                switches += 1
+            previous_mode = row["mode"]
+    final_soc_1 = rows[-1]["soc_1_after"] if rows else None
+    final_soc_2 = rows[-1]["soc_2_after"] if rows else None
     return {
         "feasible": True,
-        "final_soc_1": rows[-1]["soc_1_after"] if rows else None,
-        "final_soc_2": rows[-1]["soc_2_after"] if rows else None,
-        "max_soc_difference": max((abs(row["soc_1_before"] - row["soc_2_before"]) for row in rows), default=0.0),
-        "power_variation_1": sum(abs(powers[i][0] - powers[i - 1][0]) for i in range(1, len(powers))),
-        "power_variation_2": sum(abs(powers[i][1] - powers[i - 1][1]) for i in range(1, len(powers))),
-        "switch_count": sum(rows[i]["mode"] != rows[i - 1]["mode"] for i in range(1, len(rows))),
+        "final_soc_1": final_soc_1,
+        "final_soc_2": final_soc_2,
+        "final_soc_difference": (abs(final_soc_1 - final_soc_2)
+                                 if rows else None),
+        "max_soc_difference": max(soc_differences, default=0.0),
+        "power_variation_1_kw": sum(
+            abs(powers[i][0] - powers[i - 1][0]) for i in range(1, len(powers))
+        ),
+        "power_variation_2_kw": sum(
+            abs(powers[i][1] - powers[i - 1][1]) for i in range(1, len(powers))
+        ),
+        "switch_count": switches,
         "cost_terms": costs,
         "total_cost": costs.get("total", _total_cost(costs)),
     }
@@ -944,11 +1068,18 @@ def run_sensitivity(request: BatteryManagementRequest,
             result = run_management_fdp(candidate)
             elapsed = (time.perf_counter() - started) * 1000
             payload = result.get("payload") or {}
+            summary = payload.get("summary") or {}
             records.append({"soc_step": step, "weight_profile": profile_id,
                             "outcome_code": result["outcome_code"],
                             "safe": payload.get("safe", False),
                             "total_cost": (payload.get("cost_terms") or {}).get("total"),
                             "runtime_ms": round(elapsed, 6),
+                            "transitions_seen": summary.get("transitions_seen"),
+                            "peak_states_per_layer": summary.get("peak_states_per_layer"),
+                            "mode_trajectory": payload.get("mode_trajectory"),
+                            "final_soc": [
+                                summary.get("final_soc_1"), summary.get("final_soc_2")
+                            ],
                             "constraint_checks_passed": sum(
                                 bool(item.get("passed")) for item in payload.get("constraint_checks", [])
                             ),
