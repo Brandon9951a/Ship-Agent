@@ -1,0 +1,430 @@
+{
+  "scope": "named research simulation; not vessel validation",
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu": "Intel64 Family 6 Model 191 Stepping 2, GenuineIntel",
+    "measurement": "Python tracemalloc peak; excludes native allocations"
+  },
+  "sample_outcomes": {
+    "success": {
+      "outcome_code": "ok",
+      "safe": true,
+      "diagnostic_codes": []
+    },
+    "instantaneous_overload": {
+      "outcome_code": "infeasible_under_assumptions",
+      "safe": false,
+      "diagnostic_codes": [
+        "instantaneous_power_exceeds_known_limit"
+      ]
+    },
+    "soc_depletion": {
+      "outcome_code": "grid_unresolved",
+      "safe": false,
+      "diagnostic_codes": [
+        "no_path_on_requested_grid"
+      ]
+    },
+    "grid_budget": {
+      "outcome_code": "grid_unresolved",
+      "safe": false,
+      "diagnostic_codes": [
+        "grid_unresolved"
+      ]
+    },
+    "charging_unsupported": {
+      "outcome_code": "unsupported_charging",
+      "safe": null,
+      "diagnostic_codes": [
+        "charging_not_supported"
+      ]
+    },
+    "missing_efficiency": {
+      "outcome_code": "needs_input",
+      "safe": null,
+      "diagnostic_codes": [
+        "missing_input",
+        "missing_input"
+      ]
+    }
+  },
+  "same_input_policy_comparison": {
+    "fdp_outcome": "ok",
+    "state_machine_outcome": "ok",
+    "fdp": {
+      "feasible": true,
+      "final_soc_1": 0.745878136200717,
+      "final_soc_2": 0.7541218637992833,
+      "final_soc_difference": 0.008243727598566286,
+      "max_soc_difference": 0.008243727598566286,
+      "power_variation_1_kw": 77.41935483870968,
+      "power_variation_2_kw": 82.58064516129032,
+      "switch_count": 2,
+      "cost_terms": {
+        "power": 0.5003329864724246,
+        "switch": 2000.0,
+        "soc_balance": 0.07500000000000007,
+        "low_load_mode3": 0.0,
+        "total": 2000.5753329864724
+      },
+      "total_cost": 2000.5753329864724
+    },
+    "state_machine": {
+      "feasible": true,
+      "final_soc_1": 0.7501548586914442,
+      "final_soc_2": 0.7498451413085561,
+      "final_soc_difference": 0.00030971738288809725,
+      "max_soc_difference": 0.005555555555555536,
+      "power_variation_1_kw": 49.72125435540069,
+      "power_variation_2_kw": 110.2787456445993,
+      "switch_count": 2,
+      "cost_terms": {
+        "power": 0.5000038849567191,
+        "switch": 2000.0,
+        "soc_balance": 0.008054587688734016,
+        "low_load_mode3": 0.0,
+        "total": 2000.5080584726454
+      },
+      "total_cost": 2000.5080584726454
+    },
+    "comparison": {
+      "final_soc_delta": [
+        -0.004276722490727192,
+        0.004276722490727192
+      ],
+      "final_soc_difference_delta": 0.007934010215678189,
+      "max_soc_difference_delta": 0.0026881720430107503,
+      "power_variation_delta_kw": [
+        27.69810048330899,
+        -27.698100483308977
+      ],
+      "switch_count_delta": 0,
+      "cost_term_delta": {
+        "power": 0.00032910151570553214,
+        "switch": 0.0,
+        "soc_balance": 0.06694541231126605,
+        "low_load_mode3": 0.0,
+        "total": 0.06727451382698746
+      },
+      "constraint_violations": {
+        "fdp": 0,
+        "state_machine": 0
+      }
+    }
+  },
+  "automated_tests": {
+    "command": "python -B -m pytest -q -p no:cacheprovider tests/test_fdp_research.py",
+    "exit_code": 0,
+    "summary": "14 passed in 0.18s"
+  },
+  "sensitivity": [
+    {
+      "soc_step": 0.1,
+      "weight_profile": "paper_reference",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5014222222222223,
+        "switch": 2000.0,
+        "soc_balance": 0.1499999999999999,
+        "low_load_mode3": 0.0,
+        "total": 2000.6514222222222
+      },
+      "final_soc": [
+        0.7474074074074075,
+        0.7525925925925926
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 12.637,
+      "python_heap_peak_bytes": 260119,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.1,
+      "weight_profile": "half_soc_balance",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5014222222222223,
+        "switch": 2000.0,
+        "soc_balance": 0.07499999999999996,
+        "low_load_mode3": 0.0,
+        "total": 2000.5764222222222
+      },
+      "final_soc": [
+        0.7474074074074075,
+        0.7525925925925926
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 12.252,
+      "python_heap_peak_bytes": 244268,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.1,
+      "weight_profile": "double_soc_balance",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5014222222222223,
+        "switch": 2000.0,
+        "soc_balance": 0.2999999999999998,
+        "low_load_mode3": 0.0,
+        "total": 2000.8014222222223
+      },
+      "final_soc": [
+        0.7474074074074075,
+        0.7525925925925926
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 12.532,
+      "python_heap_peak_bytes": 249613,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.05,
+      "weight_profile": "paper_reference",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5003329864724246,
+        "switch": 2000.0,
+        "soc_balance": 0.07500000000000007,
+        "low_load_mode3": 0.0,
+        "total": 2000.5753329864724
+      },
+      "final_soc": [
+        0.745878136200717,
+        0.7541218637992833
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 12.127,
+      "python_heap_peak_bytes": 218618,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.05,
+      "weight_profile": "half_soc_balance",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5003329864724246,
+        "switch": 2000.0,
+        "soc_balance": 0.03750000000000003,
+        "low_load_mode3": 0.0,
+        "total": 2000.5378329864725
+      },
+      "final_soc": [
+        0.745878136200717,
+        0.7541218637992833
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 11.707,
+      "python_heap_peak_bytes": 231498,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.05,
+      "weight_profile": "double_soc_balance",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5003329864724246,
+        "switch": 2000.0,
+        "soc_balance": 0.15000000000000013,
+        "low_load_mode3": 0.0,
+        "total": 2000.6503329864724
+      },
+      "final_soc": [
+        0.745878136200717,
+        0.7541218637992833
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 12.603,
+      "python_heap_peak_bytes": 235888,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.025,
+      "weight_profile": "paper_reference",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5000806248425297,
+        "switch": 2000.0,
+        "soc_balance": 0.03749999999999987,
+        "low_load_mode3": 0.0,
+        "total": 2000.5375806248426
+      },
+      "final_soc": [
+        0.7451499118165785,
+        0.7548500881834216
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 11.381,
+      "python_heap_peak_bytes": 235497,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.025,
+      "weight_profile": "half_soc_balance",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5000806248425297,
+        "switch": 2000.0,
+        "soc_balance": 0.018749999999999933,
+        "low_load_mode3": 0.0,
+        "total": 2000.5188306248426
+      },
+      "final_soc": [
+        0.7451499118165785,
+        0.7548500881834216
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 11.281,
+      "python_heap_peak_bytes": 235022,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    },
+    {
+      "soc_step": 0.025,
+      "weight_profile": "double_soc_balance",
+      "outcome_code": "ok",
+      "safe": true,
+      "mode_trajectory": [
+        1,
+        3,
+        3,
+        1
+      ],
+      "cost_terms": {
+        "power": 0.5000806248425297,
+        "switch": 2000.0,
+        "soc_balance": 0.07499999999999973,
+        "low_load_mode3": 0.0,
+        "total": 2000.5750806248425
+      },
+      "final_soc": [
+        0.7451499118165785,
+        0.7548500881834216
+      ],
+      "transitions_seen": 24,
+      "peak_states_per_layer": 9,
+      "elapsed_ms": 11.332,
+      "python_heap_peak_bytes": 234639,
+      "constraint_checks_passed": 41,
+      "constraint_checks_total": 41
+    }
+  ],
+  "full_voyage_24h": {
+    "interval_count": 48,
+    "soc_step": 0.005,
+    "grid": {
+      "soc_step": 0.005,
+      "max_states_per_layer": 5000,
+      "max_transitions": 1000000,
+      "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+    },
+    "duration_s": 86400.0,
+    "outcome_code": "ok",
+    "safe": true,
+    "final_soc": [
+      0.46938894575634815,
+      0.47135179498439267
+    ],
+    "mode_counts": {
+      "1": 9,
+      "2": 7,
+      "3": 32
+    },
+    "transitions_seen": 1539,
+    "peak_states_per_layer": 32,
+    "elapsed_ms": 284.894,
+    "python_heap_peak_bytes": 3906492,
+    "constraint_checks_passed": 481,
+    "constraint_checks_total": 481,
+    "assumptions": [
+      {
+        "assumption_id": "acceptance-battery-parameters",
+        "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+      },
+      {
+        "assumption_id": "acceptance-bus-demand",
+        "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+      },
+      {
+        "assumption_id": "fdp-24h-battery-fixture",
+        "value": "两组 1500 kWh、初始 SOC 0.9、效率 0.9、每组 50 kW 上限均为具名仿真假设。"
+      },
+      {
+        "assumption_id": "fdp-24h-demand-fixture",
+        "value": "48 个 30 分钟区间；32 个 70 kW 航行区间、16 个 5 kW 等待区间。"
+      }
+    ]
+  }
+}
