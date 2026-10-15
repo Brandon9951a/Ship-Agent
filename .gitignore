@@ -19,3 +19,6 @@ build/
 /artifacts/
 /profile_output/
 /var/
+
+# Sandbox ACL diagnosis output (workstation-local, contains machine paths)
+/.dsh-acl-recovery/
