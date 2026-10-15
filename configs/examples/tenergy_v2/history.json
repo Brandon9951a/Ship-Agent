@@ -1,0 +1,83 @@
+{
+  "snapshot_id": "synthetic-snapshot-1",
+  "source_ref": {
+    "source_id": "named-fixture-history-v1",
+    "kind": "assumption",
+    "confirmed": false,
+    "note": "Synthetic 10 km/h, 60 kW history; not measured vessel data"
+  },
+  "points": [
+    {
+      "observed_offset_s": -55,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -50,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -45,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -40,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -35,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -30,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -25,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -20,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -15,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -10,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": -5,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    },
+    {
+      "observed_offset_s": 0,
+      "speed_kmh": 10.0,
+      "motor_power_kw": 60.0,
+      "dt_seconds": 5.0
+    }
+  ]
+}
