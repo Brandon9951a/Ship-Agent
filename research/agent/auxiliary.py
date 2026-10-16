@@ -50,8 +50,13 @@ def field(value, path):
         raise ValueError("invalid_field_path")
     for part in path.split("."):
         if isinstance(value, list) and part.isdigit():
-            value = value[int(part)]
+            index = int(part)
+            if index >= len(value):
+                raise ValueError("field_not_found")
+            value = value[index]
         elif isinstance(value, dict):
+            if part not in value:
+                raise ValueError("field_not_found")
             value = value[part]
         else:
             raise ValueError("field_not_found")
@@ -101,7 +106,14 @@ def query_results(store, state, args):
         return {"outcome_code":"ok","task_id":task,"results":store.list(task)}
     if operation=="read":
         doc=store.read(task,args["artifact_ref"])
-        value=field(doc["payload"],args["field_path"]) if args.get("field_path") else doc["payload"].get("summary",{})
+        try:
+            value=field(doc["payload"],args["field_path"]) if args.get("field_path") else doc["payload"].get("summary",{})
+        except ValueError as exc:
+            if str(exc)!="field_not_found":
+                raise
+            return {"outcome_code":"not_found","artifact_ref":args["artifact_ref"],
+                    "field_path":args.get("field_path"),"available_fields":list(doc["payload"])[:30],
+                    "diagnostics":[{"code":"field_not_found","detail":"该工件没有请求字段，请从现有字段选择；预测轨迹由 Tenergy 工具读取。"}]}
         if isinstance(value,list):
             offset=args.get("offset",0);limit=args.get("limit",20)
             if type(offset)!=int or type(limit)!=int or offset<0 or not 1<=limit<=100:

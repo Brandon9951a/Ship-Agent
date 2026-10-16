@@ -92,8 +92,12 @@ class ProfessionalTools:
                 return self.save(state,"Tdata",{"diagnostics":[{
                     "code":"invalid_current_speed","field_ref":"current_speed_kmh",
                     "detail":"当前航速须为选定情景限速范围内的有限数值。"}]},"invalid_input")
+        assumptions = [cfg["assumption"]]
+        load_state = state["request"].get("load_state")
+        if load_state:
+            assumptions.append(f"用户指定{load_state}；当前解析功率系数不按载况区分，结果仅为该载况下的软件仿真假设。")
         body = {"config": cfg, "batteries": batteries, "source_mode": "simulation",
-                "assumptions": [cfg["assumption"]], "call_id": call_id}
+                "assumptions": assumptions, "load_state": load_state, "call_id": call_id}
         body["field_sources"]={key:source(key).to_dict() for key in
             ("current_speed_kmh","environment","conversion_efficiency","auxiliary_kw","coefficient")}
         if current is not None:

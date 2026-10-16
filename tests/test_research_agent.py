@@ -133,6 +133,19 @@ def test_artifacts_scope_hash_and_revision(tmp_path):
     store.close()
 
 
+def test_query_missing_field_reports_available_fields(tmp_path):
+    store=Store(tmp_path);store.create("task","local",{})
+    try:
+        ref=store.put("task","Tdata",{"snapshot_id":"sample","batteries":{}})
+        result=query_results(store,{"task_id":"task","owner":"local"},
+            {"operation":"read","artifact_ref":ref,"field_path":"trajectory"})
+        assert result["outcome_code"]=="not_found"
+        assert result["diagnostics"][0]["code"]=="field_not_found"
+        assert result["available_fields"]==["batteries","snapshot_id"]
+    finally:
+        store.close()
+
+
 def test_calculations_refs_and_units(tmp_path):
     store=Store(tmp_path);store.create("a","alice",{})
     state={"task_id":"a","owner":"alice"}
@@ -191,7 +204,7 @@ def test_api_unavailable_does_not_fake_completion(tmp_path):
         runtime.close()
 
 
-def test_percent_soc_and_unmodeled_half_load_preserve_known_route(tmp_path):
+def test_percent_soc_and_half_load_run_with_explicit_simulation_scope(tmp_path):
     class PercentModel(ScriptedModel):
         def complete_chat(self,messages,*,tools,**kwargs):
             if [x["function"]["name"] for x in tools]==["submit_request"]:
@@ -210,11 +223,12 @@ def test_percent_soc_and_unmodeled_half_load_preserve_known_route(tmp_path):
         assert result["request"]["initial_soc_1"]==.85
         assert result["request"]["initial_soc_2"]==.85
         assert result["request"]["soc_applied_to_both"]
-        assert result["outcome_code"]=="load_condition_unmodeled"
+        assert result["outcome_code"]=="research_feasible"
         assert result["metrics"]["distance_km"]["value"]==25.5
-        assert result["outcomes"]["Tdata"]=="ok" and result["outcomes"]["Tseg"]=="ok"
-        assert "Tspeed" not in result["outcomes"]
-        assert len([e for e in runtime.store.events(result["task_id"]) if e["type"]=="input_scope_unmodeled"])==1
+        assert all(result["outcomes"][name]=="ok" for name in ("Tdata","Tseg","Tspeed","Tmanagement"))
+        snapshot=runtime.store.read(result["task_id"],result["result_refs"]["Tdata"])["payload"]
+        assert snapshot["load_state"]=="半载"
+        assert any("不按载况区分" in note for note in snapshot["assumptions"])
     finally:
         runtime.close()
 

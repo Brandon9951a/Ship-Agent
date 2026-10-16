@@ -163,20 +163,13 @@ class AgentRuntime:
         if s["steps"]>=budget["agent_steps"] or s["invalid_actions"]>=budget["invalid_actions"]:
             return {"route":"finish","outcome_code":"agent_budget_exhausted"}
         outcomes=s["outcomes"]
-        if (s["task_type"]=="planning" and outcomes.get("Tseg")=="ok" and s["request"].get("load_state")
-                and s["request"]["load_state"]!=configuration(s["scenario_id"]).get("calibrated_load_state")):
-            self.store.event(s["task_id"],"input_scope_unmodeled",field="load_state",
-                value=s["request"]["load_state"],reason="选定仿真情景没有该载况的功率标定")
-            distance=sum(item["distance_km"] for item in self.professional.payload(s,"Tseg")["segments"])
-            return {"route":"finish","outcome_code":"load_condition_unmodeled",
-                    "metrics":self._metrics(s,{"distance_km":distance})}
         missing=[]
         if s["task_type"]=="planning":
             missing=[x for x in ("origin","destination") if not s["request"].get(x)]
             if outcomes.get("Tseg")=="needs_input":
                 missing=["origin","destination"]
         allowed=[]
-        if s["aux_calls"]<budget["aux_calls"]:
+        if s["aux_calls"]<budget["aux_calls"] and (s["task_type"]!="prediction" or "Tenergy" in outcomes):
             allowed.extend(sorted(AUX))
         if s["task_type"] in ("planning","prediction"):
             if "Tdata" not in outcomes:
@@ -366,13 +359,19 @@ class AgentRuntime:
             instructions+="本次没有计算数值指标，请仅回答原始用户问题，claims 必须为 []；省略接口版本和未经核验的预测数值。"
         messages=[{"role":"system","content":instructions},
             {"role":"user","content":json.dumps(evidence,ensure_ascii=False)}]
+        citation_context="\n".join(configuration(s["scenario_id"])["docs"])+"\n"+"\n".join(
+            hit.get("source","")+"\n"+hit.get("section","")+"\n"+hit.get("content","")
+            for obs in s["observations"] if obs["tool"]=="search_project_docs"
+            for hit in obs.get("results",[]))
         status="rejected";body=None;errors=[]
         for attempt in range(2):
             msg=None
             try:
                 msg=self._model(s,messages,[definition],{"type":"function","function":{"name":"submit_answer"}})
                 answer=self._arguments(msg,definition)
-                body=render_answer(answer,metrics,"\n".join(evidence["user_task"]))
+                source_numbers=citation_context if s["task_type"]=="question" and any(
+                    obs["tool"]=="search_project_docs" and obs.get("results") for obs in s["observations"]) else ""
+                body=render_answer(answer,metrics,"\n".join(evidence["user_task"])+"\n"+source_numbers)
                 if evidence["outcome_code"] not in ("research_feasible","prediction_completed","question_answered") and any(
                     word in body for word in ("该方案可行","方案已可行","已安全抵达","已满足所有约束","规划成功")):
                     raise ValueError("unsupported_success_claim")
