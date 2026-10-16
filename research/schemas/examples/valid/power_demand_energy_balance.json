@@ -1,0 +1,10 @@
+{
+  "applicable": true,
+  "motor_energy_kwh": 73.69701163837469,
+  "propulsion_bus_energy_kwh": 78.40107621103793,
+  "auxiliary_bus_energy_kwh": 89.62540187757348,
+  "demand_bus_energy_kwh": 168.02647808860337,
+  "residual_kwh": -8.043343768804334e-12,
+  "tolerance_kwh": 1e-09,
+  "passed": true
+}
