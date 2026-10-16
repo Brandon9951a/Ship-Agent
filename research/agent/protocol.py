@@ -20,6 +20,8 @@ REQUEST_TOOL=tool("submit_request","提取任务；缺失字段填 null，不推
     "origin":{"type":["string","null"]},"destination":{"type":["string","null"]},
     "remaining_time_s":{"type":["number","null"]},"initial_soc_1":{"type":["number","null"]},
     "initial_soc_2":{"type":["number","null"]},"current_speed_kmh":{"type":["number","null"]},
+    "load_state":{"type":["string","null"],"enum":["空载","半载","满载",None]},
+    "departure_at":{"type":["string","null"]},
     "objective":{"type":["string","null"],"enum":["min_energy","min_time",None]}},("task_type",),False)
 
 OPERAND={"anyOf":[N,{"type":"object","properties":{"task_id":S,"artifact_ref":S,"field_path":S},
@@ -52,7 +54,7 @@ ANSWER_TOOL=tool("submit_answer","生成完整中文答复。数值只能用给�
         "required":["key","unit"],"additionalProperties":False}}},("answer_markdown","claims"),False)
 
 
-def render_answer(answer,metrics):
+def render_answer(answer,metrics,user_input_text=""):
     text=answer["answer_markdown"]
     if not text.strip() or len(text)>12000:
         raise ValueError("empty_or_large_answer")
@@ -61,7 +63,9 @@ def render_answer(answer,metrics):
     if set(keys)!=set(claims) or any(k not in metrics or claims[k]!=metrics[k]["unit"] for k in keys):
         raise ValueError("unsupported_claim")
     remaining=re.sub(r"\{\{[A-Za-z0-9_]+\}\}","",text)
-    if re.search(r"[0-9０-９]|\{\{|\}\}",remaining):
+    user_numbers=set(re.findall(r"(?<![\d.])[-+]?\d+(?:\.\d+)?",user_input_text))
+    output_numbers=re.findall(r"(?<![\d.])[-+]?\d+(?:\.\d+)?",remaining)
+    if any(number not in user_numbers for number in output_numbers) or re.search(r"[０-９]|\{\{|\}\}",remaining):
         raise ValueError("numeric_claim_requires_placeholder")
     # Chinese quantitative claims must also use the same typed placeholders.
     if re.search(r"[零一二三四五六七八九十百千万两]+(?:\s*(?:秒|分钟|小时|千瓦|公里|千米|区间|百分之))|百分之",remaining):

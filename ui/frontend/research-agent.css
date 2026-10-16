@@ -19,4 +19,10 @@
 .research-panel summary { cursor: pointer; overflow-wrap: anywhere; }
 #research-events { max-height: 420px; overflow: auto; }
 #research-answer { white-space: pre-wrap; line-height: 1.85; }
+.research-answer-section { margin: 18px 0; padding: 18px; border: 1px solid #a9c8d2; border-left: 4px solid #205869; border-radius: 8px; background: #f7fbfc; }
+.research-answer-section h3 { margin: 0 0 6px; font-size: 18px; }
+#research-answer-provenance { margin: 0 0 12px; color: #566e77; font-size: 13px; }
+#research-failure { padding: 10px 12px; border-radius: 5px; background: #fff2e6; color: #815120; }
+#research-sources { margin-top: 12px; }
+#research-source-list { max-height: 220px; }
 .research-status { font-weight: 600; }

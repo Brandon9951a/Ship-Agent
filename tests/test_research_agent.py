@@ -174,6 +174,12 @@ def test_docs_and_answer_validation():
         {"duration_s":{"value":20,"unit":"s"}})=="历时 20 s。"
     with pytest.raises(ValueError):
         render_answer({"answer_markdown":"能耗 99 kWh。","claims":[]},{})
+    assert render_answer({"answer_markdown":"用户输入 SOC85%，限时6小时。距离 {{distance_km}}。",
+        "claims":[{"key":"distance_km","unit":"km"}]},
+        {"distance_km":{"value":25.5,"unit":"km"}},
+        "SOC85%，6小时内到达")=="用户输入 SOC85%，限时6小时。距离 25.5 km。"
+    with pytest.raises(ValueError):
+        render_answer({"answer_markdown":"预测能耗 99 kWh。","claims":[]},{},"SOC85%，6小时内到达")
 
 
 def test_api_unavailable_does_not_fake_completion(tmp_path):
@@ -183,6 +189,45 @@ def test_api_unavailable_does_not_fake_completion(tmp_path):
         assert result["status"]=="failed" and result["outcome_code"]=="model_unavailable"
     finally:
         runtime.close()
+
+
+def test_percent_soc_and_unmodeled_half_load_preserve_known_route(tmp_path):
+    class PercentModel(ScriptedModel):
+        def complete_chat(self,messages,*,tools,**kwargs):
+            if [x["function"]["name"] for x in tools]==["submit_request"]:
+                args={"task_type":"planning","origin":"平顶山港","destination":"军李船闸",
+                    "initial_soc_1":85,"remaining_time_s":21600,"load_state":"半载",
+                    "departure_at":"2026-10-17 09:00"}
+                return {"message":{"role":"assistant","content":"","tool_calls":[{
+                    "id":str(uuid4()),"type":"function",
+                    "function":{"name":"submit_request","arguments":json.dumps(args,ensure_ascii=False)}}]},
+                    "response_model":"scripted-test","request_id":str(uuid4()),"latency_ms":0}
+            return super().complete_chat(messages,tools=tools,**kwargs)
+    runtime=AgentRuntime(tmp_path,PercentModel())
+    try:
+        result=runtime.start("从平顶山港到军李船闸，2026-10-17 09:00出发，SOC85%，半载，6小时内到达",
+            task_type="planning",background=False)
+        assert result["request"]["initial_soc_1"]==.85
+        assert result["request"]["initial_soc_2"]==.85
+        assert result["request"]["soc_applied_to_both"]
+        assert result["outcome_code"]=="load_condition_unmodeled"
+        assert result["metrics"]["distance_km"]["value"]==25.5
+        assert result["outcomes"]["Tdata"]=="ok" and result["outcomes"]["Tseg"]=="ok"
+        assert "Tspeed" not in result["outcomes"]
+        assert len([e for e in runtime.store.events(result["task_id"]) if e["type"]=="input_scope_unmodeled"])==1
+    finally:
+        runtime.close()
+
+
+def test_invalid_percent_is_field_diagnostic(tmp_path):
+    store=Store(tmp_path);store.create("task","local",{})
+    try:
+        result=ProfessionalTools(store).data({"task_id":"task","scenario_id":"route_success",
+            "revision":1,"request":{"initial_soc_1":140}},"call")
+        assert result["outcome_code"]=="invalid_input"
+        assert result["diagnostics"][0]["field_ref"]=="initial_soc_1"
+    finally:
+        store.close()
 
 
 @pytest.mark.parametrize("scenario,expected",[("lstm_short","ok"),("lstm_domain","model_out_of_domain")])

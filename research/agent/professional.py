@@ -68,17 +68,30 @@ class ProfessionalTools:
             values = dict(cfg["battery"])
             key = f"initial_soc_{i}"
             if state["request"].get(key) is not None:
-                values["initial_soc"] = finite(state["request"][key], 0, 1)
+                try:
+                    values["initial_soc"] = finite(state["request"][key], 0, 1)
+                except ValueError:
+                    return self.save(state,"Tdata",{"diagnostics":[{
+                        "code":"invalid_initial_soc","field_ref":key,
+                        "detail":"初始 SOC 须为 0 到 1 的比例；百分数请明确写出 %。"}]},"invalid_input")
             if "battery_power_kw" in cfg:
                 values.update(min_power_kw=0, max_power_kw=cfg["battery_power_kw"])
             values["sources"] = {k: source(f"battery_{i}.{k}").to_dict() for k in values}
             if state["request"].get(key) is not None:
-                values["sources"]["initial_soc"] = SourceRef("user:" + key, "user", confirmed=True,
-                    mode="simulation", note="用户指定仿真初态").to_dict()
+                combined=bool(state["request"].get("soc_applied_to_both"))
+                values["sources"]["initial_soc"] = SourceRef(
+                    "user:overall_soc" if combined else "user:" + key,
+                    "assumption" if combined else "user",confirmed=not combined,mode="simulation",
+                    note="未区分双电池，按相同初始 SOC 作研究仿真" if combined else "用户指定仿真初态").to_dict()
             batteries[f"battery_{i}"] = values
         current = state["request"].get("current_speed_kmh")
         if current is not None:
-            cfg["current_speed_kmh"] = finite(current, 0, cfg["max_speed_kmh"])
+            try:
+                cfg["current_speed_kmh"] = finite(current, 0, cfg["max_speed_kmh"])
+            except ValueError:
+                return self.save(state,"Tdata",{"diagnostics":[{
+                    "code":"invalid_current_speed","field_ref":"current_speed_kmh",
+                    "detail":"当前航速须为选定情景限速范围内的有限数值。"}]},"invalid_input")
         body = {"config": cfg, "batteries": batteries, "source_mode": "simulation",
                 "assumptions": [cfg["assumption"]], "call_id": call_id}
         body["field_sources"]={key:source(key).to_dict() for key in
