@@ -1,0 +1,15 @@
+.research-panel { grid-column: 1 / -1; min-width: 0; margin: 0; padding: 24px; border: 1px solid #cad9df; border-radius: 12px; background: #fff; color: #203d49; }
+.research-panel h2 { margin: 0 0 8px; font-size: 21px; }
+.research-panel p { line-height: 1.7; }
+.research-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.research-controls label { display: grid; gap: 6px; flex: 1; }
+.research-panel select, .research-panel textarea, .research-panel input { padding: 10px; border: 1px solid #b1c3ca; border-radius: 6px; background: white; color: #203d49; }
+.research-panel textarea { width: 100%; min-height: 85px; box-sizing: border-box; }
+.research-panel button { background: #205869; color: white; padding: 10px 16px; border-radius: 6px; margin: 8px 8px 8px 0; cursor: pointer; }
+.research-panel button:disabled { opacity: .5; cursor: wait; }
+.research-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 440px; overflow: auto; background: #f1f5f6; padding: 14px; }
+.research-panel details { padding: 9px 0; border-bottom: 1px solid #e3e9eb; }
+.research-panel summary { cursor: pointer; overflow-wrap: anywhere; }
+#research-events { max-height: 420px; overflow: auto; }
+#research-answer { white-space: pre-wrap; line-height: 1.85; }
+.research-status { font-weight: 600; }

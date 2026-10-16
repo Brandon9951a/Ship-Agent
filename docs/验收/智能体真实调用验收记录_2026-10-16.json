@@ -1,0 +1,1089 @@
+{
+  "started_at": "2026-10-16T09:44:24.876502+00:00",
+  "requested_model": "deepseek-v4-pro",
+  "cases": [
+    {
+      "case": "normal",
+      "task_id": "5e41e314-0e20-4b83-adea-ad6c7cad6593",
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_outcomes": [
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "Tseg",
+          "ok"
+        ],
+        [
+          "Tspeed",
+          "ok"
+        ],
+        [
+          "Tmanagement",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "Tdata": "c4a50020b5ad820c653b7957bed786cf2537ce3931ca298b8e32fcb6d329e068",
+        "Tmanagement": "62dfcd7283c6a3690b89f869c48c78e0eda08b417895a5d39bcfd282c646d651",
+        "Tseg": "21bdde74f3b075f35ad75760825e61a70dca7ab22f0726927247af62e480fef7",
+        "Tspeed": "0c50628fd30ff05a50a9ed175055934970af6b0513fd9e4c44134fe1ce34f84b"
+      },
+      "answer_ref": "50995d799ffa7b56a461fc6e06418e68afb61b14b1baa5dc70a536d028c95c8f",
+      "metrics": {
+        "bus_energy_kwh": {
+          "field_path": "summary.bus_energy_kwh",
+          "source_ref": "62dfcd7283c6a3690b89f869c48c78e0eda08b417895a5d39bcfd282c646d651",
+          "unit": "kWh",
+          "value": 2.0262208383941127
+        },
+        "distance_km": {
+          "field_path": "summary.distance_km",
+          "source_ref": "62dfcd7283c6a3690b89f869c48c78e0eda08b417895a5d39bcfd282c646d651",
+          "unit": "km",
+          "value": 0.6890000000000001
+        },
+        "duration_s": {
+          "field_path": "summary.duration_s",
+          "source_ref": "62dfcd7283c6a3690b89f869c48c78e0eda08b417895a5d39bcfd282c646d651",
+          "unit": "s",
+          "value": 413.2842592592593
+        },
+        "final_soc_1": {
+          "field_path": "summary.final_soc_1",
+          "source_ref": "62dfcd7283c6a3690b89f869c48c78e0eda08b417895a5d39bcfd282c646d651",
+          "unit": "fraction",
+          "value": 0.799990968585372
+        },
+        "final_soc_2": {
+          "field_path": "summary.final_soc_2",
+          "source_ref": "62dfcd7283c6a3690b89f869c48c78e0eda08b417895a5d39bcfd282c646d651",
+          "unit": "fraction",
+          "value": 0.7977576749275225
+        },
+        "motor_energy_kwh": {
+          "field_path": "summary.motor_energy_kwh",
+          "source_ref": "62dfcd7283c6a3690b89f869c48c78e0eda08b417895a5d39bcfd282c646d651",
+          "unit": "kWh",
+          "value": 1.3650820273912176
+        }
+      },
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "cfb975c3-3cc7-4d62-8dd0-ee1021c1b3d9",
+          "latency_ms": 2078,
+          "artifact_ref": "0a04ff7df627f464a4b024a85efa4d351d9d634a48dec146f28fcfa136a202c3"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "cc5bc8e9-49a6-4282-a493-5140b3dc82dc",
+          "latency_ms": 1734,
+          "artifact_ref": "9200084572dadae3de0a0ea8f4ac749dd1a33e9e4e34c6501e8e14099f650174"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "167a5474-c15f-451d-a963-d2ff9b8f920b",
+          "latency_ms": 1437,
+          "artifact_ref": "155b376f344ae67fb6dd9035c337e792d2e49ec44bde6205c4d362dad17ea3a1"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "621badec-b13a-43bd-98a9-775ced603df4",
+          "latency_ms": 2703,
+          "artifact_ref": "81a0a511c4a185347c41d64001fa36b1aac38d55ebce407899758b672edcab1a"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "ff6d104b-5826-432b-b9b2-9577539d218c",
+          "latency_ms": 2250,
+          "artifact_ref": "4d67a4d4f54424e9614fe8698c610cb20ab7f1f8afc7594c395eeb23fd95eaed"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "4c9c7fe9-aed6-4190-aa7d-6c9ce9409bf0",
+          "latency_ms": 2328,
+          "artifact_ref": "01190f26b4b6fc9df7128d9d00484fdd865c208c5a2a2d0e9540481ae3749763"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "7c41a4ee-1c3f-499f-8623-db4d741eb015",
+          "latency_ms": 4891,
+          "artifact_ref": "dea3e3144de5320b6e17dd55532ea3beedb3b3896c3888e799c9460af6f719a9"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "e4995798-4214-4619-810e-6bb517d3917a",
+          "latency_ms": 2968,
+          "artifact_ref": "e0f05a75700bccee9b81e26248e8ecc4a64ba03b34a5d8edf81e11d35d66fd97"
+        }
+      ]
+    },
+    {
+      "case": "multi_wait",
+      "task_id": "c2f561a2-3216-4228-bc8f-b40cd96c5dd6",
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_outcomes": [
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "Tseg",
+          "ok"
+        ],
+        [
+          "Tspeed",
+          "ok"
+        ],
+        [
+          "Tmanagement",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "Tdata": "40b0a5a8a218c5fa55f3d7405a4d5c3981e474f17b59b810c1aa2011be99b447",
+        "Tmanagement": "ac5e8a30ac9bca5a6a5b533eb17d057cda5efc3fcc42f284d5b223bffa11224e",
+        "Tseg": "6f49900f9b11c7ed8b022941fa0fec84fb3538e1ff0bc5e32345c519478eb756",
+        "Tspeed": "2584cf0dcb0e95e3764cdb12f3214797392eff0ae8f7317d68e3219b93b69b18"
+      },
+      "answer_ref": "ee0858b76b0d023e7043db9649801542c7e8b762b06c5bff5d7165662c6fdf8d",
+      "metrics": {
+        "bus_energy_kwh": {
+          "field_path": "summary.bus_energy_kwh",
+          "source_ref": "ac5e8a30ac9bca5a6a5b533eb17d057cda5efc3fcc42f284d5b223bffa11224e",
+          "unit": "kWh",
+          "value": 1.5539477887487247
+        },
+        "distance_km": {
+          "field_path": "summary.distance_km",
+          "source_ref": "ac5e8a30ac9bca5a6a5b533eb17d057cda5efc3fcc42f284d5b223bffa11224e",
+          "unit": "km",
+          "value": 0.5
+        },
+        "duration_s": {
+          "field_path": "summary.duration_s",
+          "source_ref": "ac5e8a30ac9bca5a6a5b533eb17d057cda5efc3fcc42f284d5b223bffa11224e",
+          "unit": "s",
+          "value": 359.88425925925924
+        },
+        "final_soc_1": {
+          "field_path": "summary.final_soc_1",
+          "source_ref": "ac5e8a30ac9bca5a6a5b533eb17d057cda5efc3fcc42f284d5b223bffa11224e",
+          "unit": "fraction",
+          "value": 0.799990968585372
+        },
+        "final_soc_2": {
+          "field_path": "summary.final_soc_2",
+          "source_ref": "ac5e8a30ac9bca5a6a5b533eb17d057cda5efc3fcc42f284d5b223bffa11224e",
+          "unit": "fraction",
+          "value": 0.7982824227604621
+        },
+        "motor_energy_kwh": {
+          "field_path": "summary.motor_energy_kwh",
+          "source_ref": "ac5e8a30ac9bca5a6a5b533eb17d057cda5efc3fcc42f284d5b223bffa11224e",
+          "unit": "kWh",
+          "value": 0.9908620273912184
+        }
+      },
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "b18d29ea-5652-4954-9739-6cdb9d7e6e17",
+          "latency_ms": 2093,
+          "artifact_ref": "ec86d3b0b9f2bc0cc4eeab38370dfb9f84d9d544fe75a9129cabf435d5a2be09"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "58e4b6a8-b699-4080-acd7-981b35e5c1bd",
+          "latency_ms": 1375,
+          "artifact_ref": "f04a3ad7a678e6ff2f8745c2c0485b631989093a9151ceb44d2646751386dbe8"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "04c1745c-8d64-4d38-aeb2-af204b721eba",
+          "latency_ms": 2235,
+          "artifact_ref": "5ada248210966c8647dd66df4120c00524d8b1c9b71f3610475caabe9720e782"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "7229f3b3-be1d-4bf1-b5b1-835edb389649",
+          "latency_ms": 3047,
+          "artifact_ref": "d42356329991e78fe1e562a983a5ec176b495fedc293c1f9c2d38b8d4b9a672c"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "9e711719-7d3d-48c8-8a0f-ab76a5d3a2e8",
+          "latency_ms": 2281,
+          "artifact_ref": "d434627e49f6669b1cd18035dafe4c805b9a8d7a2b01a2e718341da0741ec368"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "f2ced562-000d-4d83-8952-4c2df8f685ac",
+          "latency_ms": 2360,
+          "artifact_ref": "d753e2bcd5383d0e4df3b3b3327146402728c173a7d6555fa2ceb8288d2a69c1"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "78c22fe5-bd4c-4a44-94e6-587fe4ccc558",
+          "latency_ms": 6406,
+          "artifact_ref": "1569510acf84b5f765d1598955b67f288063040011637de4c27559a596d78fd9"
+        }
+      ]
+    },
+    {
+      "case": "fdp_reject",
+      "task_id": "47504a4f-bacb-4f95-a6ab-fb4362a2bfa4",
+      "outcome_code": "infeasible_under_assumptions",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "search_project_docs",
+        "search_project_docs",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "query_task_results",
+        "finish_without_plan"
+      ],
+      "tool_outcomes": [
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ],
+        [
+          "Tseg",
+          "ok"
+        ],
+        [
+          "Tspeed",
+          "ok"
+        ],
+        [
+          "Tmanagement",
+          "infeasible_under_assumptions"
+        ],
+        [
+          "query_task_results",
+          "tool_error"
+        ]
+      ],
+      "result_refs": {
+        "Tdata": "f1bc2eacd20a2878c7f3a8150b9cf46860ff3ec0f6615017fc436ee6a536bf06",
+        "Tmanagement": "9703e83821cdf071149ba59c5df212255c5e8d86b153b208506ce0b742a4791b",
+        "Tseg": "8bd7d9cfea58393806945e85e337d9b3662a65b33f311fefd4bb9b43bb20493f",
+        "Tspeed": "13cbe69da1cdee2c88985ef484f20f9b02dad707f52715f7a6637b93d8907492",
+        "search_project_docs": "49e1cb3ee887ec0684b1bd90ed2bef659f5674f2e81eb7158c1cf98d41afbf1f"
+      },
+      "answer_ref": "586b1f6ef458e6378b6ecc1826d4cb1a17052424208526b7a3a65db423ebc676",
+      "metrics": {},
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "06fafea5-6b7b-4cf6-b723-9907468eb0f0",
+          "latency_ms": 2140,
+          "artifact_ref": "d851f72d8ef3577921d2600e65c50872aa7f1af646d8d2b46497a49558084de6"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "ddb39e03-9a65-4c1a-af62-120b460f7434",
+          "latency_ms": 2375,
+          "artifact_ref": "9a91a516a1505bc09d4a441ec56519a7fba05cbf1d0dc7b40fb7ce5bef06fbd1"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "bdffffee-5875-40ee-bd5c-2e56b65c40f2",
+          "latency_ms": 2829,
+          "artifact_ref": "206a1d94d5532244ed422f2f19141dba90a5651441c963bd89297c1e2e4877dc"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "53ac6938-698e-4262-9a0f-745b0eed78bb",
+          "latency_ms": 2110,
+          "artifact_ref": "f32410c0b4ad514f13cd0d5c7621672798474ee609dc7ff7ab9d7e26acb58e41"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "b6cc8bfe-b68c-41be-84d3-6b7e6d5c3455",
+          "latency_ms": 2187,
+          "artifact_ref": "23558973ba2b2aa00be3680fad04fbe21b06df368c82d440944443f51ea40149"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "45295d71-b206-4574-b9cf-a0cd5d4a3559",
+          "latency_ms": 1875,
+          "artifact_ref": "d110a814e1764c021e2e957fbcd79dc5e87ec289f098dd116b4a0a1d3cc257c3"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "8ce78328-26a7-498f-b832-4e65375e4249",
+          "latency_ms": 2828,
+          "artifact_ref": "de6c31db002acd235da63136987000c20d2be9360da69b306bcdb3b9ecbce558"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "7269cb8c-3cde-45da-8216-5e2457296ed9",
+          "latency_ms": 2219,
+          "artifact_ref": "84c69e4aa76ebb881835d25de0753b42a3f8dea8e4bd1ebe50446ba5d43aa2bc"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "c25f9bee-6cb1-48b5-8961-5d4b8c74e57d",
+          "latency_ms": 8750,
+          "artifact_ref": "c56e2b930f283710f40e5b6a899d174156f1686f2ab1f73ff3b94d95a6b14364"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "38bb063d-a8a1-49cd-a0a3-4d6b7f5bc0a0",
+          "latency_ms": 11953,
+          "artifact_ref": "7b8e75bf8e0eb77e8ba2ff4de13be8032dfe3ee3622c9eabca1e73de05ab255b"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "17ed458d-b05b-4b9b-b51c-f359685b3ae8",
+          "latency_ms": 8094,
+          "artifact_ref": "db9c5d8283eece7555f6eeb10d1828a61d67bc793a8465272ea134ebfa58d741"
+        }
+      ]
+    },
+    {
+      "case": "missing_conversion",
+      "task_id": "6411a0bb-8f17-402d-9b98-44d2ec0ebd70",
+      "outcome_code": "needs_input",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "search_project_docs",
+        "search_project_docs",
+        "finish_without_plan"
+      ],
+      "tool_outcomes": [
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "Tseg",
+          "ok"
+        ],
+        [
+          "Tspeed",
+          "needs_input"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "Tdata": "308bb38b4e37e4dab2452551ca969fceb6227bd794a31db4b9a8c9f74c3d5929",
+        "Tseg": "32b359be4081e9708aed18fcc3b7ca86c706c044a346343552ec6c3d7070f514",
+        "Tspeed": "b58102c649a267dee7079d1086ba24dc7d69997be7567f5341b611074b8fd7a6",
+        "search_project_docs": "cdea0bda422d905bdc03945ce4b9720018ee235ba9aca5a5c71df6925151055e"
+      },
+      "answer_ref": "0d2f066ca64b1d7c9df6351a1c350da87ff2498def54ffc47ab6001781bfab4f",
+      "metrics": {},
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "71b045b7-b0d1-4b65-85a9-fb193ea471d0",
+          "latency_ms": 2156,
+          "artifact_ref": "1d4eb6410480211471f62497f73418c4ea861389b81071cbda5ebc655d8a4e89"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "cefa5f02-8e7e-4d77-b153-90080865c6e5",
+          "latency_ms": 1750,
+          "artifact_ref": "9cdb5ea257ed5ae68b4f8117cd01c4afe1dbc19aa7d8c611791e75017e492089"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "983b7fe5-4858-4e9d-9ef3-a4e43e10f05d",
+          "latency_ms": 2156,
+          "artifact_ref": "fca1ece6baa43b79f2bf0261de307ca981cabe146ddc345b1a2c1bdd22fc0555"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "d6a92024-f0ea-4eda-bb25-22ebcf184935",
+          "latency_ms": 2390,
+          "artifact_ref": "cd8765c0feed21d286200b67e9a38e384bbacd5cbb4ea1db5adc58c450aa8be8"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "f7e3832e-ffbc-43bb-83c3-f9b51bda6bb7",
+          "latency_ms": 2594,
+          "artifact_ref": "9e90be8d074e71cdd0ce86718f7a94e32bd251a045201f5669fb2bfd8fec3de1"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "364d0e99-3ac3-4b4f-b35b-15e78a7e685d",
+          "latency_ms": 3328,
+          "artifact_ref": "e9fe7f6b0ce2b6801c8f45651a8f56a18eb551af2088e04e6107c0d23efd47c8"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "b6022d0c-9b3a-4263-966d-71ec85604f87",
+          "latency_ms": 3843,
+          "artifact_ref": "36a8f87807452cb0ce051e6aec96bcc4e18e11c0f73c9238e63a14d89dc14594"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "c0ff83aa-e717-4ab8-8aef-8d773be8f6a5",
+          "latency_ms": 5891,
+          "artifact_ref": "bc4600bf5bb9ba86854efaae5c49f893c96b230cb1088811bb9d644e6a5f6e41"
+        }
+      ]
+    },
+    {
+      "case": "lstm_short",
+      "task_id": "ca68b1ed-945b-4828-80fa-0d5ccdb28104",
+      "outcome_code": "prediction_completed",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tenergy",
+        "query_task_results",
+        "prepare_final"
+      ],
+      "tool_outcomes": [
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "Tenergy",
+          "ok"
+        ],
+        [
+          "query_task_results",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "Tdata": "68938d9aea8f58bff88351d8cb39cbac69b1ab9d709bd36e6632bebe2de9a58d",
+        "Tenergy": "3df22b4230b821f65be73fe42a8a158108d9500fe9b1e77d79e52e356290da1c",
+        "query_task_results": "4b5c80984df4673a647ff8ec90c969789ab1de10b56617265710b339315abc57"
+      },
+      "answer_ref": "f890de569f0d449b27bd20fc4189182e066d1e4e7b185452f48caf2b35da4b95",
+      "metrics": {
+        "bus_energy_kwh": {
+          "field_path": "summary.bus_energy_kwh",
+          "source_ref": "3df22b4230b821f65be73fe42a8a158108d9500fe9b1e77d79e52e356290da1c",
+          "unit": "kWh",
+          "value": 0.3826755000626223
+        },
+        "duration_s": {
+          "field_path": "summary.duration_s",
+          "source_ref": "3df22b4230b821f65be73fe42a8a158108d9500fe9b1e77d79e52e356290da1c",
+          "unit": "s",
+          "value": 20.0
+        },
+        "motor_energy_kwh": {
+          "field_path": "summary.motor_energy_kwh",
+          "source_ref": "3df22b4230b821f65be73fe42a8a158108d9500fe9b1e77d79e52e356290da1c",
+          "unit": "kWh",
+          "value": 0.3336038589477538
+        }
+      },
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "9cac2800-ba36-4e91-b86e-0aedd89b27dd",
+          "latency_ms": 1969,
+          "artifact_ref": "88caa01846c6a0fddc341e3a8b24f347c3fcd309a6e9cab70f9e5dc2f723efcc"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "545de77c-525a-4842-895a-37709f946ad9",
+          "latency_ms": 2891,
+          "artifact_ref": "8c2db5a25d73770925fd9c96cc173d2dcb80faabf553605bdc1e5e838cc73070"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "1114d7ce-2e16-4657-96bc-5a38a875ec0a",
+          "latency_ms": 1718,
+          "artifact_ref": "638f4a364b81b19a560c2f2bb9f451d40115b25e018dc7946993e0e5a4f48224"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "1cd4f5d3-b36f-401d-bc82-feb7befb70f3",
+          "latency_ms": 2109,
+          "artifact_ref": "524db6219e8d647bb263ec6bcee2e6fcc62be1254bbf5f9538131aa4fc01980d"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "b93dbc79-188a-49e8-8699-e08fc06fe76f",
+          "latency_ms": 2891,
+          "artifact_ref": "d492cd5336bc3f8d51f99ee17d67a0a443d61f948149309e49be70175ad73204"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "e80a0dac-3e95-4a57-8179-36c5ebf16b48",
+          "latency_ms": 2609,
+          "artifact_ref": "fb6e4fec25c5e1c88acd366d5c2d33615a13ea7bdeaecb1b0622fc192af88352"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "7a71a990-72eb-4e1b-a835-61d7ff34559c",
+          "latency_ms": 3828,
+          "artifact_ref": "91894d3b4e66dd9396fe0624b0d222d43d9191d2dfa0e6ff4fa0b88eafff7887"
+        }
+      ]
+    },
+    {
+      "case": "lstm_domain",
+      "task_id": "d64db6c6-641c-41fd-90a7-a7630586f964",
+      "outcome_code": "model_out_of_domain",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tenergy",
+        "query_task_results",
+        "finish_without_plan"
+      ],
+      "tool_outcomes": [
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "Tenergy",
+          "model_out_of_domain"
+        ],
+        [
+          "query_task_results",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "Tdata": "905605cbdf654ed4190ddd3ca5da6cfa70bfe509bef0e3ee1a0a6078ac2c1b58",
+        "Tenergy": "2dfd9e2895a9b1cffd91c835d791d0686a353d99db5acfe1d74cb5699a515110",
+        "query_task_results": "4d605e381ef5a7676a078273d19f166114c0ca35c4ade01f080d7a9a6c492364"
+      },
+      "answer_ref": "34d9db6eb1de8aa7fecf8666feadac7d184ce63d716e44ab4106e2bb001e39c1",
+      "metrics": {},
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "5f0da864-f151-4bb0-bc6c-303a60b3ce60",
+          "latency_ms": 2203,
+          "artifact_ref": "8982dd17979aa1d8b3d6398fd6e3437df8351c1d46fc847078c29f0298a81d5d"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "a6ce78f5-59c2-4f86-afe9-6c88c44bb06c",
+          "latency_ms": 1859,
+          "artifact_ref": "5dd4eb108a577274ea199f01f4eb83e6449f0f1d57b57202663b52860afadc17"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "7593abe0-c95e-436f-ae6c-3035c41205bf",
+          "latency_ms": 1531,
+          "artifact_ref": "40e100e6650f6364543f869d14389644a76aea18f10d533b5c8436629741798c"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "5ef16222-f417-4d23-8348-ef372ca1ccc7",
+          "latency_ms": 4844,
+          "artifact_ref": "c6e892f5ee0307be73815b7b307c899eca4c2a3ea5e9f020c82c049cc06b1e76"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "595f0da8-7ced-4c83-9295-9e8725b2003d",
+          "latency_ms": 3047,
+          "artifact_ref": "9baf1835060cf8b294e541b6a912ae213e3c7c7a512a71c62a90ea110794cd7c"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "347a0e22-764e-4460-9084-610be8941fb4",
+          "latency_ms": 4281,
+          "artifact_ref": "4035627da2d55c63c48472fbc3984fd3a54d6786c6ce8e938af991c367ba0411"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "358d110d-908d-4c76-b098-61c857e82e5e",
+          "latency_ms": 2234,
+          "artifact_ref": "e7fc210531dd0bb8b1b5f6791bfb8c2ab622453663fbaa03fc4b01fe3e94ac23"
+        }
+      ]
+    },
+    {
+      "case": "docs",
+      "task_id": "5f9f18a2-2f07-42c6-99d0-aca9eea76f43",
+      "outcome_code": "question_answered",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "search_project_docs",
+        "search_project_docs",
+        "search_project_docs",
+        "prepare_final"
+      ],
+      "tool_outcomes": [
+        [
+          "search_project_docs",
+          "ok"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "search_project_docs": "ad2965afbddf8ae5338e7e1245baea74312c2c4b8a4d42d3f1b298ef0a746af2"
+      },
+      "answer_ref": "1b9fd2c088f0a195c5739636a877b9e14f6aba0c4ff1baecbd751a2ba723735a",
+      "metrics": {},
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "33850d26-e540-44cc-b4e2-765947931f45",
+          "latency_ms": 2172,
+          "artifact_ref": "a15b7177391821f46f9901c9ae1de277f811304f14fa0501c29295946a80b4c0"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "99314e97-9caf-471d-a570-2b41071be17c",
+          "latency_ms": 3047,
+          "artifact_ref": "66edcf3a950438ea81571785df078497aa8c9a49870aaf8036ce9ba39fd7bac0"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "be9f31be-469c-4a23-b008-375928212cf9",
+          "latency_ms": 1625,
+          "artifact_ref": "46f435519a305d66cb2948c032fdf8d73f1d75d2416880a238e480bb2cb8a952"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "35168ad4-9276-4578-81ff-69058853d9c0",
+          "latency_ms": 2657,
+          "artifact_ref": "efc0a2d971c65e55ac77124550132ca58ac751ed10c2037c45b7a067083ffb50"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "2ae64419-0e77-43ef-8693-b44cb82f98e7",
+          "latency_ms": 2703,
+          "artifact_ref": "9c7afb74754b8dc548d01cd77e1cb6fa4f6784306a2d43672ae3160b48fbaee7"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "4865102b-ef10-4a48-b540-8a6e2053ccbb",
+          "latency_ms": 1453,
+          "artifact_ref": "cd26661534fac42ac8a8b2d0d6c5921added3e459cdbccc13fbf4a029d30b960"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "9f8f7535-b404-4cbe-a760-9ff6c3bf9e83",
+          "latency_ms": 4078,
+          "artifact_ref": "9e5c0ce68a4fc893961ad37917e12a2b58f2a188342101cb00d3e1236f7bf202"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "954f6db7-8287-46e1-a577-e944a4b3cc35",
+          "latency_ms": 3469,
+          "artifact_ref": "e4b1c4c19ac5370fb684a98d9ee5b6488b5af624ea8c7337ab4f730369f464d0"
+        }
+      ]
+    },
+    {
+      "case": "calculate",
+      "task_id": "83bf1162-b0e9-4ab3-a1cb-742060a4a97f",
+      "outcome_code": "question_answered",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "calculate",
+        "prepare_final"
+      ],
+      "tool_outcomes": [
+        [
+          "calculate",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "calculate": "f61693aebc341bca7b7c91ef91dd08defb5cb83b06ae2bb8764472f1660961ef"
+      },
+      "answer_ref": "ad621c10a9ea32e6143ab9f9d78de5e46f23069171bdcc6c3e18f2d3fb1e75a2",
+      "metrics": {
+        "calculated_value": {
+          "field_path": "value",
+          "source_ref": "f61693aebc341bca7b7c91ef91dd08defb5cb83b06ae2bb8764472f1660961ef",
+          "unit": "km/h",
+          "value": 18.52
+        }
+      },
+      "passed": true,
+      "superseded_task_id": "2a13f117-84ad-4714-8068-5ea7da8d7607",
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "06560491-b394-41bc-b31b-6e70a162b2c8",
+          "latency_ms": 2172,
+          "artifact_ref": "ddbf8600e1b4962637f0a43a399f620c73662f4fe2dd9ce30f5d5aadeccd1cf4"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "2f361021-841d-4f3e-9b6f-8579e69a4376",
+          "latency_ms": 2000,
+          "artifact_ref": "308c46e6e97cbc46f276db6c35981e93ebf47c8bc3f621f5a92e2ec7b1b87df3"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "0fcaabb9-d360-48e6-a0c8-219636bcdbfb",
+          "latency_ms": 2047,
+          "artifact_ref": "760520756170e2e79649c45cbd471a3c108235fdb042b917b3bfc682ae170559"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "82144858-f018-4a1b-b219-1dd122d78647",
+          "latency_ms": 1985,
+          "artifact_ref": "a588f6faa16e3f205c41193a682dba280f39478ffaf3efc124703c0f281a7d6f"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "ac020405-b8cc-4f57-9a43-d6c2244aeb23",
+          "latency_ms": 1813,
+          "artifact_ref": "ceb1529de8489500b5f27004f3a1203e0bad10b69cadadf7e68221c4a2a36cf9"
+        }
+      ]
+    },
+    {
+      "case": "compare",
+      "task_id": "41c9a32b-041b-48f4-b50a-04118a23ea3e",
+      "outcome_code": "question_answered",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "query_task_results",
+        "prepare_final"
+      ],
+      "tool_outcomes": [
+        [
+          "query_task_results",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "query_task_results": "eccc5b0975f7369731a50a29f75dd9d6ba09b74459d781a747550cc48e70e6f3"
+      },
+      "answer_ref": "8b423f2fccc398f769c6e88b3c31d6321ac21bb4e5a3de45303fb9bb2f217687",
+      "metrics": {
+        "difference_bus_energy_kwh": {
+          "field_path": "difference_after_minus_before.bus_energy_kwh",
+          "source_ref": "eccc5b0975f7369731a50a29f75dd9d6ba09b74459d781a747550cc48e70e6f3",
+          "unit": "kWh",
+          "value": -0.47227304964538797
+        },
+        "difference_duration_s": {
+          "field_path": "difference_after_minus_before.duration_s",
+          "source_ref": "eccc5b0975f7369731a50a29f75dd9d6ba09b74459d781a747550cc48e70e6f3",
+          "unit": "s",
+          "value": -53.400000000000034
+        },
+        "difference_final_soc_1": {
+          "field_path": "difference_after_minus_before.final_soc_1",
+          "source_ref": "eccc5b0975f7369731a50a29f75dd9d6ba09b74459d781a747550cc48e70e6f3",
+          "unit": "fraction",
+          "value": 0.0
+        },
+        "difference_final_soc_2": {
+          "field_path": "difference_after_minus_before.final_soc_2",
+          "source_ref": "eccc5b0975f7369731a50a29f75dd9d6ba09b74459d781a747550cc48e70e6f3",
+          "unit": "fraction",
+          "value": 0.0005247478329396538
+        }
+      },
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "2883bdb1-b38d-4742-a21e-a264b0abad77",
+          "latency_ms": 2125,
+          "artifact_ref": "deb8a6595382dde3d2e6706b875c70392a555c1a8a9e37179a92d8e1bbcef292"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "3b35bd7b-baef-4689-adb8-9cdcf41cd50c",
+          "latency_ms": 2907,
+          "artifact_ref": "aa01d84fc5367e3f359b7c3c3af880eaaf66b69e9d2991b780bccfda7a71cf15"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "7989632e-c800-4664-8541-807637ac62f6",
+          "latency_ms": 2312,
+          "artifact_ref": "c5d44317d5381124b01b0cf3818bd66e854a74b326282e9bad6af91539d8bd17"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "6dd026a5-20dc-492d-8c6a-0b3d0c9179c9",
+          "latency_ms": 9390,
+          "artifact_ref": "f64d66252d39e537c4077350403abf3bc4e01590c7bf4cb676fbfac79b044101"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "ad8ed6ef-3189-4cfc-b42d-373b2aeb2ddc",
+          "latency_ms": 3266,
+          "artifact_ref": "45df1153ded6628c55f4f0792ae188ee9951598795b26fdda4a0b31c3be93f0b"
+        }
+      ]
+    },
+    {
+      "case": "clarification_restart",
+      "task_id": "15920b1b-a019-4b46-b706-123fa66814ce",
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "ask_clarification",
+        "Tdata",
+        "search_project_docs",
+        "search_project_docs",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_outcomes": [
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "Tdata",
+          "ok"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ],
+        [
+          "search_project_docs",
+          "ok"
+        ],
+        [
+          "Tseg",
+          "ok"
+        ],
+        [
+          "Tspeed",
+          "ok"
+        ],
+        [
+          "Tmanagement",
+          "ok"
+        ]
+      ],
+      "result_refs": {
+        "Tdata": "c1084f75cde8773b123480bd1a3e238d7f6968942e290671dd5fb7c119a10311",
+        "Tmanagement": "e914a79dd920f713037e38e951a16db49d2e94c29fc111595b4cd537fe65821b",
+        "Tseg": "9afe6245e77834f605a2fbd0ab9e52b58e0772f077d90782c855b8b2f638de54",
+        "Tspeed": "eef0fac581ea68de6ee77733cbabf67fafb2040b6c3b85733712ad3f9f95e789",
+        "search_project_docs": "d64b34e18214894478c1e3bb31dccd896a7bddd713d0f94920783befdc0e79af"
+      },
+      "answer_ref": "28934076acbc6f6ac453355093394fb71d9738c48df639b2435630ffa12f9c7f",
+      "metrics": {
+        "bus_energy_kwh": {
+          "field_path": "summary.bus_energy_kwh",
+          "source_ref": "e914a79dd920f713037e38e951a16db49d2e94c29fc111595b4cd537fe65821b",
+          "unit": "kWh",
+          "value": 2.0262208383941127
+        },
+        "distance_km": {
+          "field_path": "summary.distance_km",
+          "source_ref": "e914a79dd920f713037e38e951a16db49d2e94c29fc111595b4cd537fe65821b",
+          "unit": "km",
+          "value": 0.6890000000000001
+        },
+        "duration_s": {
+          "field_path": "summary.duration_s",
+          "source_ref": "e914a79dd920f713037e38e951a16db49d2e94c29fc111595b4cd537fe65821b",
+          "unit": "s",
+          "value": 413.2842592592593
+        },
+        "final_soc_1": {
+          "field_path": "summary.final_soc_1",
+          "source_ref": "e914a79dd920f713037e38e951a16db49d2e94c29fc111595b4cd537fe65821b",
+          "unit": "fraction",
+          "value": 0.799990968585372
+        },
+        "final_soc_2": {
+          "field_path": "summary.final_soc_2",
+          "source_ref": "e914a79dd920f713037e38e951a16db49d2e94c29fc111595b4cd537fe65821b",
+          "unit": "fraction",
+          "value": 0.7977576749275225
+        },
+        "motor_energy_kwh": {
+          "field_path": "summary.motor_energy_kwh",
+          "source_ref": "e914a79dd920f713037e38e951a16db49d2e94c29fc111595b4cd537fe65821b",
+          "unit": "kWh",
+          "value": 1.3650820273912176
+        }
+      },
+      "passed": true,
+      "model_calls": [
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "ef05a9e2-93a7-49c8-be49-66f48283759d",
+          "latency_ms": 1921,
+          "artifact_ref": "9ea2f7b044eb32d44bb0c4e4a57431341721d1ebd2eee55da62604a76e895baf"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "f4a8e725-e392-467a-b349-c0af920753fd",
+          "latency_ms": 3156,
+          "artifact_ref": "497bcb62794248b51fdf18272e27655e3be6985073c6c57c7e37349214d42cac"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "6a62e1e1-133a-4018-8530-0aadc9f5d226",
+          "latency_ms": 1610,
+          "artifact_ref": "b331c01e8b0244c10527961b507b5b67d7b523c76e2b44665429c236da38b4dd"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "a934d420-5146-4289-bc55-f0833f414771",
+          "latency_ms": 2875,
+          "artifact_ref": "bac696ff53d77bb37f0dce59e591ac23556d67e8462b9d10db6a4c74343673f8"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "9c6fa971-ee0d-4b31-b739-f59cbc50cb88",
+          "latency_ms": 2156,
+          "artifact_ref": "d32ae767749e91882a3c23399e37e57daef5908f0beb76b8a93c13446626965c"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "398bf26e-d5a3-4b4d-ac2d-26b0b3189a28",
+          "latency_ms": 1969,
+          "artifact_ref": "f421f40c31963de264e30611ad11dd46752a66268e1902a75ad3895d275ea3bf"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "94544abe-f524-4535-af1d-a2e3d0ca7373",
+          "latency_ms": 2187,
+          "artifact_ref": "405d6206709b905d09c67c5732688f6401dda93555e82c2157d79f956c2cb08a"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "7b31ea6a-d674-42be-bb5c-cee8e7569fcc",
+          "latency_ms": 2641,
+          "artifact_ref": "73c137427f70652b5a7954d657af2e74ce1333353768a62218b7327c6d9e0f3c"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "399a4707-f21b-4016-a928-9eb35edc404c",
+          "latency_ms": 2922,
+          "artifact_ref": "2ec2b7f6b1544d0fe147bc4ba0a54afe26730658122617a2484c8208c562921b"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "59d14249-d445-4d1b-863d-b41a480d8906",
+          "latency_ms": 2157,
+          "artifact_ref": "0c111efd3a9a749a01e720efa15e2e0bb51f21cf0d948b10431ed891e3d0bd34"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "8b7fc8df-9ea4-44b7-992d-3e12481c3856",
+          "latency_ms": 2766,
+          "artifact_ref": "088a1eb98601b0060bde8d31ac1c5b242573a1d0351c4559b1b8168040311808"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "68662bba-da32-4573-a055-0c9d8869b3bd",
+          "latency_ms": 1938,
+          "artifact_ref": "d9b5fd5c8f02de17ae2829ed68d22be29a2e507fb3911b39527b07e4f6ab7444"
+        },
+        {
+          "model": "deepseek-v4-pro",
+          "request_id": "bed6a1d8-3632-4038-ac82-5846facd6925",
+          "latency_ms": 6406,
+          "artifact_ref": "ab167fe11ab6aaed0874bd69b9a1110fd0ea24d2103fb71674a858baee8567ea"
+        }
+      ]
+    }
+  ],
+  "finished_at": "2026-10-16T09:53:57.863585+00:00",
+  "passed": true,
+  "evidence_directory": "var\\agent-acceptance-v3",
+  "note": "Final per-case records; corrected unit-conversion case rerun separately; prior attempts retained."
+}

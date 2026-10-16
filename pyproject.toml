@@ -11,6 +11,11 @@ dependencies = [
   "psycopg[binary]>=3.2,<4",
   "uvicorn==0.35.0",
   "websocket-client>=1.8,<2",
+  "rank-bm25==0.2.2",
+  "jieba==0.42.1",
+  "Pint>=0.24,<0.26",
+  "tzdata>=2024.1",
+  "jsonschema>=4.23,<5",
 ]
 
 [project.optional-dependencies]
@@ -28,7 +33,9 @@ ship-agent = "main:main"
 
 [tool.setuptools]
 py-modules = ["main"]
-packages = ["core", "tools", "schemas", "ui"]
+
+[tool.setuptools.packages.find]
+include = ["core*", "tools*", "schemas*", "ui*", "research*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

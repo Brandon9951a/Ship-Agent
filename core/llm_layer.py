@@ -68,7 +68,8 @@ class LLMConfig:
     def from_env(
         cls, env: Mapping[str, str] | None = None, env_file: Path | None = None,
     ) -> "LLMConfig":
-        path = env_file if env_file is not None else Path(__file__).resolve().parents[1] / ".env"
+        path = env_file if env_file is not None else Path(os.environ.get(
+            "SHIP_ENV_FILE", str(Path(__file__).resolve().parents[1] / ".env")))
         values = _read_dotenv(path)
         values.update(os.environ if env is None else env)
         enabled = values.get("SHIP_LLM_ENABLED", "false").strip().lower()
@@ -191,6 +192,52 @@ class LLMClient:
             status, redact(self.config.provider), redact(self.config.model),
             **{key: redact(value) for key, value in kwargs.items()},
         )
+
+    def complete_chat(self, messages: list[dict], *, tools: list[dict],
+                      tool_choice: Any = "auto", max_tokens: int = 2048) -> dict:
+        """Native tool calls. Never silently fall back to text or a scripted agent."""
+        if not self.config.enabled:
+            raise LLMTransportError("disabled")
+        body = {"model": self.config.model, "messages": messages,
+                "stream": False, "max_tokens": max_tokens}
+        if tools:
+            body.update(tools=tools, tool_choice=tool_choice)
+        if self.config.provider.lower() == "deepseek":
+            body["thinking"] = {"type": "disabled"}
+        started = time.monotonic()
+        try:
+            raw = self.transport(
+                self.config.base_url.rstrip("/") + "/chat/completions",
+                {"Content-Type": "application/json", "Authorization": "Bearer " + self.config.api_key},
+                json.dumps(body, ensure_ascii=False, allow_nan=False).encode("utf-8"),
+                self.config.timeout_s)
+            raw = json.loads(json.dumps(raw, ensure_ascii=False).replace(
+                self.config.api_key, "[REDACTED]"))
+            choice = raw["choices"][0]
+            message = choice["message"]
+            if choice.get("finish_reason") not in ("stop", "tool_calls"):
+                raise LLMTransportError("incomplete_response")
+            if not isinstance(message, dict) or message.get("role") != "assistant":
+                raise LLMTransportError("invalid_response")
+            calls = message.get("tool_calls", [])
+            if not isinstance(calls, list) or (not calls and not message.get("content")):
+                raise LLMTransportError("empty_response")
+            ids = set()
+            for call in calls:
+                if (call.get("type") != "function" or not isinstance(call.get("id"), str)
+                        or not call["id"] or call["id"] in ids):
+                    raise LLMTransportError("invalid_tool_call")
+                ids.add(call["id"])
+                fn = call["function"]
+                if not isinstance(fn["name"], str) or not isinstance(fn["arguments"], str):
+                    raise LLMTransportError("invalid_tool_call")
+            return {"message": message, "raw": raw, "request_id": raw.get("id"),
+                    "response_model": raw.get("model"), "requested_model": self.config.model,
+                    "latency_ms": round((time.monotonic() - started) * 1000)}
+        except LLMTransportError:
+            raise
+        except Exception:
+            raise LLMTransportError("invalid_response") from None
 
     def complete_text(
         self, user_text: str, *,

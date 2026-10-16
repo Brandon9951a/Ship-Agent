@@ -45,6 +45,8 @@ MAX_REQUEST_BYTES = 64 * 1024
 MAX_VOICE_REQUEST_BYTES = 96 * 1024
 MAX_VOICE_CHUNK_BYTES = 64 * 1024
 STATIC_FILES = {
+    "research-agent.js": (ROOT / "research-agent.js", "text/javascript; charset=utf-8"),
+    "research-agent.css": (ROOT / "research-agent.css", "text/css; charset=utf-8"),
     "app.css": (STYLESHEET, "text/css; charset=utf-8"),
     "interaction.css": (ROOT / "interaction.css", "text/css; charset=utf-8"),
     "app.js": (ROOT / "app.js", "text/javascript; charset=utf-8"),
@@ -156,6 +158,7 @@ def create_app(
     checkpoint_database_url: str | None = None,
     checkpoint_sqlite_path: str | Path | None = None,
     auth_store: AuthStore | None = None,
+    research_directory: str | Path | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI):
@@ -171,7 +174,15 @@ def create_app(
             sqlite_path=checkpoint_sqlite_path,
         ) as runtime:
             application.state.workflow_runtime = runtime
-            yield
+            from research.agent.runtime import AgentRuntime
+            directory = research_directory or os.getenv("SHIP_RESEARCH_STORAGE") or (
+                Path(checkpoint_sqlite_path).parent / "research-agent" if checkpoint_sqlite_path
+                else PROJECT_ROOT / "var" / "research-agent")
+            application.state.research_runtime = AgentRuntime(directory, llm_client)
+            try:
+                yield
+            finally:
+                await run_in_threadpool(application.state.research_runtime.close)
 
     app = FastAPI(
         title="智行合一本地演示",
@@ -452,6 +463,14 @@ def create_app(
             return _error(400, "invalid_json")
         if not isinstance(payload, dict):
             return _error(400, "request_must_be_object")
+        if payload.get("workflow_mode") == "research_agent":
+            try:
+                result = await run_in_threadpool(app.state.research_runtime.start, payload.get("task_text"),
+                    owner=request.state.session["id"], scenario_id=payload.get("scenario_id", "route_success"),
+                    task_type=payload.get("task_type", "auto"))
+                return JSONResponse(result, status_code=202)
+            except (KeyError, TypeError, ValueError):
+                return _error(400, "invalid_research_request")
         # Bind before invoking the graph so a created checkpoint is never
         # observable without an owner record, including interrupted runs.
         thread_id = str(uuid4())
@@ -488,6 +507,17 @@ def create_app(
             if not isinstance(payload, dict):
                 raise ValueError
             thread_id = validate_thread_id(str(payload.get("thread_id", "")))
+            if payload.get("workflow_mode") == "research_agent":
+                try:
+                    result = await run_in_threadpool(app.state.research_runtime.resume, thread_id,
+                        request.state.session["id"], pending_id=payload.get("pending_id"),
+                        revision=payload.get("revision"), response_id=payload.get("response_id"),
+                        reply_text=payload.get("reply_text"))
+                    return JSONResponse(result, status_code=202)
+                except LookupError:
+                    return _workflow_error(404, "workflow_not_found")
+                except (TypeError, ValueError):
+                    return _workflow_error(409, "invalid_or_stale_response")
             decision_id = str(payload.get("decision_id", ""))
             option_id = str(payload.get("option_id", ""))
             if (
@@ -527,6 +557,10 @@ def create_app(
         except ValueError:
             return _workflow_error(400, "invalid_resume_request")
         try:
+            return app.state.research_runtime.store.get(thread_id, request.state.session["id"])
+        except LookupError:
+            pass
+        try:
             owned = await run_in_threadpool(app.state.auth_store.owns_workflow,
                                             thread_id, request.state.session["id"])
         except Exception:
@@ -540,6 +574,34 @@ def create_app(
         except Exception:
             return _workflow_error(500, "workflow_failed")
         return JSONResponse(content=_public_result(_result_from_state(state), request.state.session["role"]))
+
+    @app.get("/api/research/config", include_in_schema=False)
+    async def research_config(request: Request):
+        config = json.loads((PROJECT_ROOT / "configs/research_agent.json").read_text(encoding="utf-8"))
+        client = app.state.llm_client
+        return {"scenarios": config["scenarios"], "model_configured": bool(client and client.config.enabled),
+                "requested_model": client.config.model if client else None,
+                "connection_status": "验收以任务中的真实 model_completed 事件为准"}
+
+    @app.get("/api/runs/{thread_id}/events", include_in_schema=False)
+    async def research_events(thread_id: str, request: Request, after_seq: int = 0):
+        runtime = app.state.research_runtime
+        try:
+            runtime.store.get(thread_id, request.state.session["id"])
+            return {"events": runtime.store.events(thread_id, max(0, after_seq))}
+        except LookupError:
+            return _workflow_error(404, "workflow_not_found")
+
+    @app.get("/api/runs/{thread_id}/artifacts/{artifact_ref}", include_in_schema=False)
+    async def research_artifact(thread_id: str, artifact_ref: str, request: Request):
+        runtime = app.state.research_runtime
+        try:
+            runtime.store.get(thread_id, request.state.session["id"])
+            return runtime.store.read(thread_id, artifact_ref)
+        except LookupError:
+            return _workflow_error(404, "artifact_not_found")
+        except (ValueError, OSError):
+            return _workflow_error(409, "artifact_integrity_failed")
 
     return app
 
@@ -591,6 +653,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="运行智行合一本地驾驶舱")
     parser.add_argument("--host", default=os.environ.get("SHIP_WEB_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8765")))
+    parser.add_argument("--env-file", type=Path, help="显式加载已有模型配置文件")
     parser.add_argument(
         "--llm", action="store_true", help="启用云端定性理解和解释；失败自动回退模板",
     )
@@ -598,6 +661,8 @@ def main() -> None:
         "--open-browser", action="store_true", help="服务就绪后尝试打开本地页面",
     )
     args = parser.parse_args()
+    if args.env_file:
+        os.environ["SHIP_ENV_FILE"] = str(args.env_file.resolve())
     if not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
     client, mode = _load_llm(args.llm)
