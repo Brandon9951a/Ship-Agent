@@ -1,0 +1,1594 @@
+{
+  "data_audit": {
+    "data.xlsx": {
+      "unique_times_after_policy": 12257,
+      "zero_speed_points": 4714,
+      "negative_power_points": 3,
+      "zero_power_points": 5216,
+      "non_five_second_intervals": 0
+    },
+    "log4p-10-29(1).csv": {
+      "missing_speed_or_power": 14653,
+      "invalid_time": 10,
+      "duplicate_groups": 4458,
+      "conflicting_groups": 641,
+      "unique_times_after_policy": 5683,
+      "zero_speed_points": 0,
+      "negative_power_points": 3,
+      "zero_power_points": 48,
+      "non_five_second_intervals": 369
+    },
+    "log4p-10-31(1).csv": {
+      "missing_speed_or_power": 29187,
+      "invalid_time": 2,
+      "duplicate_groups": 11323,
+      "conflicting_groups": 354,
+      "unique_times_after_policy": 10986,
+      "zero_speed_points": 0,
+      "negative_power_points": 0,
+      "zero_power_points": 6502,
+      "non_five_second_intervals": 203
+    }
+  },
+  "experiments": {
+    "common_time": {
+      "manifest": {
+        "split": {
+          "history": 12,
+          "horizon": 5,
+          "purge_points": 17,
+          "extension": false,
+          "source_holdout": false,
+          "blocks": [
+            {
+              "source": "data.xlsx",
+              "split": "train",
+              "start": 0,
+              "end": 7354,
+              "first_time": 0.0,
+              "last_time": 36765.0
+            },
+            {
+              "source": "data.xlsx",
+              "split": "val",
+              "start": 7371,
+              "end": 9805,
+              "first_time": 36855.0,
+              "last_time": 49020.0
+            },
+            {
+              "source": "data.xlsx",
+              "split": "test",
+              "start": 9822,
+              "end": 12257,
+              "first_time": 49110.0,
+              "last_time": 61280.0
+            },
+            {
+              "source": "log4p-10-29(1).csv",
+              "split": "train",
+              "start": 0,
+              "end": 3409,
+              "first_time": 1761726702.277295,
+              "last_time": 1761745473.132347
+            },
+            {
+              "source": "log4p-10-29(1).csv",
+              "split": "val",
+              "start": 3426,
+              "end": 4546,
+              "first_time": 1761745563.131178,
+              "last_time": 1761752103.087826
+            },
+            {
+              "source": "log4p-10-29(1).csv",
+              "split": "test",
+              "start": 4563,
+              "end": 5683,
+              "first_time": 1761752193.087366,
+              "last_time": 1761758493.064975
+            },
+            {
+              "source": "log4p-10-31(1).csv",
+              "split": "train",
+              "start": 0,
+              "end": 6591,
+              "first_time": 1761898266.82275,
+              "last_time": 1761933111.57528
+            },
+            {
+              "source": "log4p-10-31(1).csv",
+              "split": "val",
+              "start": 6608,
+              "end": 8788,
+              "first_time": 1761933201.573515,
+              "last_time": 1761944126.491903
+            },
+            {
+              "source": "log4p-10-31(1).csv",
+              "split": "test",
+              "start": 8805,
+              "end": 10986,
+              "first_time": 1761944216.490338,
+              "last_time": 1761955196.380825
+            }
+          ],
+          "sample_counts": {
+            "train": 7447,
+            "val": 2918,
+            "test": 2340
+          },
+          "sample_counts_by_source": {
+            "train": {
+              "data.xlsx": 2467,
+              "log4p-10-29(1).csv": 2164,
+              "log4p-10-31(1).csv": 2816
+            },
+            "val": {
+              "data.xlsx": 2298,
+              "log4p-10-29(1).csv": 620,
+              "log4p-10-31(1).csv": 0
+            },
+            "test": {
+              "data.xlsx": 1809,
+              "log4p-10-29(1).csv": 531,
+              "log4p-10-31(1).csv": 0
+            }
+          },
+          "rejected_windows": {
+            "nonmoving_negative_or_outlier": 11862,
+            "timing_discontinuity": 4113
+          }
+        },
+        "speed_range_kmh": [
+          0.0018520000157877803,
+          11.656488418579102
+        ],
+        "future_features": 2,
+        "extension": false,
+        "source_holdout": false,
+        "hidden": 32,
+        "seed": 20261014,
+        "training": {
+          "epochs_run": 16,
+          "best_epoch": 11,
+          "validation_scaled_mae": [
+            0.41447081168492633,
+            0.12826009839773178,
+            0.10391031826535861,
+            0.0815271685520808,
+            0.07086872309446335,
+            0.06140721713503202,
+            0.06088868031899134,
+            0.062134029964605965,
+            0.05859932800134023,
+            0.0588709469884634,
+            0.0577551145106554,
+            0.05812005636592706,
+            0.058112877110640206,
+            0.062421138087908425,
+            0.06175793707370758,
+            0.06353576108813286
+          ],
+          "early_stop_patience": 5
+        },
+        "cubic_coefficients": [
+          16.17720603942871,
+          0.06398491561412811
+        ],
+        "version": "tenergy-lstm-v5",
+        "source_sha256": {
+          "data.xlsx": "a62c5fde4796aa8e18322661ed19fe1fa3be473e1cc130d0a8c5b90d2206f5b7",
+          "log4p-10-29(1).csv": "d1123094ee22ebb8098d3920fa0d45f803dd8b374f257d2032ff837d0e23b1f7",
+          "log4p-10-31(1).csv": "2cf012d1ddb2c73acc957598cf40a126ffc60e8cb5f87197d1e99dcdca813fb5"
+        },
+        "dependency_versions": {
+          "python": "3.13.3",
+          "numpy": "2.5.4",
+          "torch": "2.14.1+cpu"
+        },
+        "label": "propulsion_motor_observed_kw",
+        "status": "experimental_unapproved",
+        "step_seconds": 5,
+        "horizon": 5,
+        "csv_units": "provisional per LSTM task book; field dictionary unconfirmed",
+        "integration": "right_endpoint_kW_seconds_over_3600",
+        "planner_approved": false
+      },
+      "metrics": {
+        "val": {
+          "lstm": {
+            "windows": 2918,
+            "steps": 14590,
+            "mae_kw": 1.7440739870071411,
+            "rmse_kw": 3.7975611686706543,
+            "per_horizon": [
+              {
+                "mae_kw": 1.4841798543930054,
+                "rmse_kw": 2.9637770652770996
+              },
+              {
+                "mae_kw": 1.6045655012130737,
+                "rmse_kw": 3.4567453861236572
+              },
+              {
+                "mae_kw": 1.736427903175354,
+                "rmse_kw": 3.830605983734131
+              },
+              {
+                "mae_kw": 1.87460458278656,
+                "rmse_kw": 4.146838665008545
+              },
+              {
+                "mae_kw": 2.0205917358398438,
+                "rmse_kw": 4.416387557983398
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1845,
+                "mae_kw": 1.0463863611221313,
+                "rmse_kw": 3.0790116786956787
+              },
+              "4-8 km/h": {
+                "steps": 1551,
+                "mae_kw": 4.9622273445129395,
+                "rmse_kw": 8.862533569335938
+              },
+              "8-12 km/h": {
+                "steps": 11194,
+                "mae_kw": 1.413171410560608,
+                "rmse_kw": 2.52016282081604
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 2298,
+                "mae_kw": 2.0313568115234375,
+                "rmse_kw": 4.243189811706543
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 620,
+                "mae_kw": 0.6792739033699036,
+                "rmse_kw": 1.06796395778656
+              }
+            },
+            "peak_mae_kw": 1.7342278957366943,
+            "window_energy_mae_kwh": 0.009148108072534562,
+            "window_energy_bias_kwh": 0.0008920399684707838,
+            "rolling_ten_step": {
+              "windows": 282,
+              "mae_kw": 1.9002184867858887,
+              "first_five_mae_kw": 1.5775636434555054,
+              "second_five_mae_kw": 2.2228734493255615,
+              "ten_step_energy_mae_kwh": 0.018476169337968088
+            }
+          },
+          "persistence": {
+            "windows": 2918,
+            "steps": 14590,
+            "mae_kw": 1.7749035358428955,
+            "rmse_kw": 3.870652437210083,
+            "per_horizon": [
+              {
+                "mae_kw": 1.4314168691635132,
+                "rmse_kw": 2.654276132583618
+              },
+              {
+                "mae_kw": 1.645247459411621,
+                "rmse_kw": 3.441877603530884
+              },
+              {
+                "mae_kw": 1.8006893396377563,
+                "rmse_kw": 3.917478084564209
+              },
+              {
+                "mae_kw": 1.9120521545410156,
+                "rmse_kw": 4.3302741050720215
+              },
+              {
+                "mae_kw": 2.085111618041992,
+                "rmse_kw": 4.681894779205322
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1845,
+                "mae_kw": 0.7733656764030457,
+                "rmse_kw": 3.1668293476104736
+              },
+              "4-8 km/h": {
+                "steps": 1551,
+                "mae_kw": 4.436757564544678,
+                "rmse_kw": 9.08046817779541
+              },
+              "8-12 km/h": {
+                "steps": 11194,
+                "mae_kw": 1.5711604356765747,
+                "rmse_kw": 2.5395913124084473
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 2298,
+                "mae_kw": 2.0711350440979004,
+                "rmse_kw": 4.328121662139893
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 620,
+                "mae_kw": 0.6769353151321411,
+                "rmse_kw": 1.0393321514129639
+              }
+            },
+            "peak_mae_kw": 2.132164239883423,
+            "window_energy_mae_kwh": 0.010427846678243464,
+            "window_energy_bias_kwh": -0.0009171756794033204
+          },
+          "cubic": {
+            "windows": 2918,
+            "steps": 14590,
+            "mae_kw": 7.379901885986328,
+            "rmse_kw": 9.863677024841309,
+            "per_horizon": [
+              {
+                "mae_kw": 7.406484127044678,
+                "rmse_kw": 9.89483642578125
+              },
+              {
+                "mae_kw": 7.396896839141846,
+                "rmse_kw": 9.881038665771484
+              },
+              {
+                "mae_kw": 7.384860038757324,
+                "rmse_kw": 9.869841575622559
+              },
+              {
+                "mae_kw": 7.36344051361084,
+                "rmse_kw": 9.846986770629883
+              },
+              {
+                "mae_kw": 7.347830772399902,
+                "rmse_kw": 9.82552719116211
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1845,
+                "mae_kw": 13.073843955993652,
+                "rmse_kw": 13.720559120178223
+              },
+              "4-8 km/h": {
+                "steps": 1551,
+                "mae_kw": 10.720531463623047,
+                "rmse_kw": 14.059917449951172
+              },
+              "8-12 km/h": {
+                "steps": 11194,
+                "mae_kw": 5.9785590171813965,
+                "rmse_kw": 8.269838333129883
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 2298,
+                "mae_kw": 5.941500663757324,
+                "rmse_kw": 8.3613862991333
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 620,
+                "mae_kw": 12.711267471313477,
+                "rmse_kw": 14.098664283752441
+              }
+            },
+            "peak_mae_kw": 6.955845832824707,
+            "window_energy_mae_kwh": 0.0485533667170442,
+            "window_energy_bias_kwh": -0.017951406747291853
+          }
+        },
+        "test": {
+          "lstm": {
+            "windows": 2340,
+            "steps": 11700,
+            "mae_kw": 2.515961170196533,
+            "rmse_kw": 6.268956661224365,
+            "per_horizon": [
+              {
+                "mae_kw": 2.0548791885375977,
+                "rmse_kw": 4.884219646453857
+              },
+              {
+                "mae_kw": 2.268709421157837,
+                "rmse_kw": 5.617264270782471
+              },
+              {
+                "mae_kw": 2.4988553524017334,
+                "rmse_kw": 6.230138301849365
+              },
+              {
+                "mae_kw": 2.7347171306610107,
+                "rmse_kw": 6.7674455642700195
+              },
+              {
+                "mae_kw": 3.0226452350616455,
+                "rmse_kw": 7.515111923217773
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1710,
+                "mae_kw": 5.043676853179932,
+                "rmse_kw": 10.070757865905762
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 7.460263252258301,
+                "rmse_kw": 12.5222749710083
+              },
+              "8-12 km/h": {
+                "steps": 8986,
+                "mae_kw": 1.4825233221054077,
+                "rmse_kw": 3.788076639175415
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 2.9940881729125977,
+                "rmse_kw": 7.10158109664917
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 531,
+                "mae_kw": 0.8870880603790283,
+                "rmse_kw": 1.1719145774841309
+              }
+            },
+            "peak_mae_kw": 2.3171658515930176,
+            "window_energy_mae_kwh": 0.013379036254860732,
+            "window_energy_bias_kwh": 0.002387810140844382,
+            "rolling_ten_step": {
+              "windows": 223,
+              "mae_kw": 2.957061529159546,
+              "first_five_mae_kw": 2.5346693992614746,
+              "second_five_mae_kw": 3.379453420639038,
+              "ten_step_energy_mae_kwh": 0.03182998794177343
+            }
+          },
+          "persistence": {
+            "windows": 2340,
+            "steps": 11700,
+            "mae_kw": 2.518928289413452,
+            "rmse_kw": 6.712924003601074,
+            "per_horizon": [
+              {
+                "mae_kw": 1.7981621026992798,
+                "rmse_kw": 4.419853210449219
+              },
+              {
+                "mae_kw": 2.198984146118164,
+                "rmse_kw": 5.761898517608643
+              },
+              {
+                "mae_kw": 2.539255380630493,
+                "rmse_kw": 6.718103885650635
+              },
+              {
+                "mae_kw": 2.9057161808013916,
+                "rmse_kw": 7.595338821411133
+              },
+              {
+                "mae_kw": 3.1525228023529053,
+                "rmse_kw": 8.352251052856445
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1710,
+                "mae_kw": 5.190311908721924,
+                "rmse_kw": 12.35893726348877
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 6.052968502044678,
+                "rmse_kw": 12.037516593933105
+              },
+              "8-12 km/h": {
+                "steps": 8986,
+                "mae_kw": 1.6157184839248657,
+                "rmse_kw": 3.6629762649536133
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 2.9859049320220947,
+                "rmse_kw": 7.606739044189453
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 531,
+                "mae_kw": 0.9280415177345276,
+                "rmse_kw": 1.2081190347671509
+              }
+            },
+            "peak_mae_kw": 2.82092547416687,
+            "window_energy_mae_kwh": 0.015025109463396438,
+            "window_energy_bias_kwh": 0.00040136254880965836
+          },
+          "cubic": {
+            "windows": 2340,
+            "steps": 11700,
+            "mae_kw": 8.682557106018066,
+            "rmse_kw": 12.318466186523438,
+            "per_horizon": [
+              {
+                "mae_kw": 8.673332214355469,
+                "rmse_kw": 12.290410041809082
+              },
+              {
+                "mae_kw": 8.663917541503906,
+                "rmse_kw": 12.265080451965332
+              },
+              {
+                "mae_kw": 8.666808128356934,
+                "rmse_kw": 12.266149520874023
+              },
+              {
+                "mae_kw": 8.671416282653809,
+                "rmse_kw": 12.30083179473877
+              },
+              {
+                "mae_kw": 8.737311363220215,
+                "rmse_kw": 12.468673706054688
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1710,
+                "mae_kw": 16.082122802734375,
+                "rmse_kw": 20.1744441986084
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 17.703941345214844,
+                "rmse_kw": 21.690710067749023
+              },
+              "8-12 km/h": {
+                "steps": 8986,
+                "mae_kw": 6.266495704650879,
+                "rmse_kw": 8.21925163269043
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 8.575488090515137,
+                "rmse_kw": 12.864978790283203
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 531,
+                "mae_kw": 9.047317504882812,
+                "rmse_kw": 10.239964485168457
+              }
+            },
+            "peak_mae_kw": 8.854864120483398,
+            "window_energy_mae_kwh": 0.05749883374976443,
+            "window_energy_bias_kwh": -0.04430262069868349
+          }
+        }
+      }
+    },
+    "common_source": {
+      "manifest": {
+        "split": {
+          "history": 12,
+          "horizon": 5,
+          "purge_points": 17,
+          "extension": false,
+          "source_holdout": true,
+          "blocks": [
+            {
+              "source": "data.xlsx",
+              "split": "train",
+              "start": 0,
+              "end": 9805,
+              "first_time": 0.0,
+              "last_time": 49020.0
+            },
+            {
+              "source": "data.xlsx",
+              "split": "val",
+              "start": 9822,
+              "end": 12257,
+              "first_time": 49110.0,
+              "last_time": 61280.0
+            },
+            {
+              "source": "log4p-10-29(1).csv",
+              "split": "train",
+              "start": 0,
+              "end": 4546,
+              "first_time": 1761726702.277295,
+              "last_time": 1761752103.087826
+            },
+            {
+              "source": "log4p-10-29(1).csv",
+              "split": "val",
+              "start": 4563,
+              "end": 5683,
+              "first_time": 1761752193.087366,
+              "last_time": 1761758493.064975
+            },
+            {
+              "source": "log4p-10-31(1).csv",
+              "split": "test",
+              "start": 0,
+              "end": 10986,
+              "first_time": 1761898266.82275,
+              "last_time": 1761955196.380825
+            }
+          ],
+          "sample_counts": {
+            "train": 7595,
+            "val": 2340,
+            "test": 2816
+          },
+          "sample_counts_by_source": {
+            "train": {
+              "data.xlsx": 4793,
+              "log4p-10-29(1).csv": 2802,
+              "log4p-10-31(1).csv": 0
+            },
+            "val": {
+              "data.xlsx": 1809,
+              "log4p-10-29(1).csv": 531,
+              "log4p-10-31(1).csv": 0
+            },
+            "test": {
+              "data.xlsx": 0,
+              "log4p-10-29(1).csv": 0,
+              "log4p-10-31(1).csv": 2816
+            }
+          },
+          "rejected_windows": {
+            "nonmoving_negative_or_outlier": 11933,
+            "timing_discontinuity": 4128
+          }
+        },
+        "speed_range_kmh": [
+          0.0018520000157877803,
+          11.656488418579102
+        ],
+        "future_features": 2,
+        "extension": false,
+        "source_holdout": true,
+        "hidden": 32,
+        "seed": 20261014,
+        "training": {
+          "epochs_run": 25,
+          "best_epoch": 22,
+          "validation_scaled_mae": [
+            0.31693412363529205,
+            0.16826347510019937,
+            0.13757898285984993,
+            0.10037720079223315,
+            0.08065203949809074,
+            0.07488762897749741,
+            0.07293927731613319,
+            0.07435490936040878,
+            0.07238381480177243,
+            0.07294957712292671,
+            0.07111577627559502,
+            0.07186717043320338,
+            0.07145961622397105,
+            0.07120726692179839,
+            0.07073251778880756,
+            0.07207616232335567,
+            0.06920851084093253,
+            0.06906291594107945,
+            0.07165299976865451,
+            0.0691678033520778,
+            0.07214601834615071,
+            0.06834140047430992,
+            0.06880751810967922,
+            0.0707312822341919,
+            0.0689206210275491
+          ],
+          "early_stop_patience": 5
+        },
+        "cubic_coefficients": [
+          19.994678497314453,
+          0.06546837836503983
+        ],
+        "version": "common_source",
+        "source_sha256": {
+          "data.xlsx": "a62c5fde4796aa8e18322661ed19fe1fa3be473e1cc130d0a8c5b90d2206f5b7",
+          "log4p-10-29(1).csv": "d1123094ee22ebb8098d3920fa0d45f803dd8b374f257d2032ff837d0e23b1f7",
+          "log4p-10-31(1).csv": "2cf012d1ddb2c73acc957598cf40a126ffc60e8cb5f87197d1e99dcdca813fb5"
+        },
+        "dependency_versions": {
+          "python": "3.13.3",
+          "numpy": "2.5.4",
+          "torch": "2.14.1+cpu"
+        },
+        "label": "propulsion_motor_observed_kw",
+        "status": "experimental_unapproved",
+        "step_seconds": 5,
+        "horizon": 5,
+        "csv_units": "provisional per LSTM task book; field dictionary unconfirmed",
+        "integration": "right_endpoint_kW_seconds_over_3600",
+        "planner_approved": false
+      },
+      "metrics": {
+        "val": {
+          "lstm": {
+            "windows": 2340,
+            "steps": 11700,
+            "mae_kw": 2.358149766921997,
+            "rmse_kw": 6.045021057128906,
+            "per_horizon": [
+              {
+                "mae_kw": 1.867517352104187,
+                "rmse_kw": 4.516576766967773
+              },
+              {
+                "mae_kw": 2.1308469772338867,
+                "rmse_kw": 5.370682716369629
+              },
+              {
+                "mae_kw": 2.3810551166534424,
+                "rmse_kw": 6.036739349365234
+              },
+              {
+                "mae_kw": 2.6008875370025635,
+                "rmse_kw": 6.5970072746276855
+              },
+              {
+                "mae_kw": 2.8104422092437744,
+                "rmse_kw": 7.314709663391113
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1710,
+                "mae_kw": 4.755029678344727,
+                "rmse_kw": 9.66524887084961
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 6.916410446166992,
+                "rmse_kw": 12.182051658630371
+              },
+              "8-12 km/h": {
+                "steps": 8986,
+                "mae_kw": 1.3927414417266846,
+                "rmse_kw": 3.636094808578491
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 2.806729316711426,
+                "rmse_kw": 6.85021448135376
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 531,
+                "mae_kw": 0.8299371600151062,
+                "rmse_kw": 1.0812718868255615
+              }
+            },
+            "peak_mae_kw": 2.636965751647949,
+            "window_energy_mae_kwh": 0.012091068786335228,
+            "window_energy_bias_kwh": -0.0018286876470794608,
+            "rolling_ten_step": {
+              "windows": 223,
+              "mae_kw": 2.66658878326416,
+              "first_five_mae_kw": 2.2842442989349365,
+              "second_five_mae_kw": 3.048933982849121,
+              "ten_step_energy_mae_kwh": 0.02694393810021891
+            }
+          },
+          "persistence": {
+            "windows": 2340,
+            "steps": 11700,
+            "mae_kw": 2.518928289413452,
+            "rmse_kw": 6.712924003601074,
+            "per_horizon": [
+              {
+                "mae_kw": 1.7981621026992798,
+                "rmse_kw": 4.419853210449219
+              },
+              {
+                "mae_kw": 2.198984146118164,
+                "rmse_kw": 5.761898517608643
+              },
+              {
+                "mae_kw": 2.539255380630493,
+                "rmse_kw": 6.718103885650635
+              },
+              {
+                "mae_kw": 2.9057161808013916,
+                "rmse_kw": 7.595338821411133
+              },
+              {
+                "mae_kw": 3.1525228023529053,
+                "rmse_kw": 8.352251052856445
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1710,
+                "mae_kw": 5.190311908721924,
+                "rmse_kw": 12.35893726348877
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 6.052968502044678,
+                "rmse_kw": 12.037516593933105
+              },
+              "8-12 km/h": {
+                "steps": 8986,
+                "mae_kw": 1.6157184839248657,
+                "rmse_kw": 3.6629762649536133
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 2.9859049320220947,
+                "rmse_kw": 7.606739044189453
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 531,
+                "mae_kw": 0.9280415177345276,
+                "rmse_kw": 1.2081190347671509
+              }
+            },
+            "peak_mae_kw": 2.82092547416687,
+            "window_energy_mae_kwh": 0.015025109463396438,
+            "window_energy_bias_kwh": 0.00040136254880965836
+          },
+          "cubic": {
+            "windows": 2340,
+            "steps": 11700,
+            "mae_kw": 7.221867084503174,
+            "rmse_kw": 10.889442443847656,
+            "per_horizon": [
+              {
+                "mae_kw": 7.20676326751709,
+                "rmse_kw": 10.859830856323242
+              },
+              {
+                "mae_kw": 7.201596736907959,
+                "rmse_kw": 10.83033275604248
+              },
+              {
+                "mae_kw": 7.203741073608398,
+                "rmse_kw": 10.82728385925293
+              },
+              {
+                "mae_kw": 7.215439796447754,
+                "rmse_kw": 10.861209869384766
+              },
+              {
+                "mae_kw": 7.281797409057617,
+                "rmse_kw": 11.066697120666504
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1710,
+                "mae_kw": 12.995001792907715,
+                "rmse_kw": 17.85479164123535
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 16.694833755493164,
+                "rmse_kw": 20.19933319091797
+              },
+              "8-12 km/h": {
+                "steps": 8986,
+                "mae_kw": 5.064854145050049,
+                "rmse_kw": 6.938437461853027
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 7.515288829803467,
+                "rmse_kw": 11.573213577270508
+              },
+              "log4p-10-29(1).csv": {
+                "windows": 531,
+                "mae_kw": 6.2222442626953125,
+                "rmse_kw": 8.139662742614746
+              }
+            },
+            "peak_mae_kw": 8.095531463623047,
+            "window_energy_mae_kwh": 0.046974965306422735,
+            "window_energy_bias_kwh": -0.008949820895786833
+          }
+        },
+        "test": {
+          "lstm": {
+            "windows": 2816,
+            "steps": 14080,
+            "mae_kw": 1.028921127319336,
+            "rmse_kw": 1.4532941579818726,
+            "per_horizon": [
+              {
+                "mae_kw": 0.936488687992096,
+                "rmse_kw": 1.2716038227081299
+              },
+              {
+                "mae_kw": 0.8656845092773438,
+                "rmse_kw": 1.2362297773361206
+              },
+              {
+                "mae_kw": 0.970955491065979,
+                "rmse_kw": 1.3885319232940674
+              },
+              {
+                "mae_kw": 1.1153833866119385,
+                "rmse_kw": 1.5708879232406616
+              },
+              {
+                "mae_kw": 1.2560932636260986,
+                "rmse_kw": 1.7376333475112915
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 2094,
+                "mae_kw": 0.32742318511009216,
+                "rmse_kw": 0.9243590831756592
+              },
+              "4-8 km/h": {
+                "steps": 927,
+                "mae_kw": 1.0013346672058105,
+                "rmse_kw": 1.625713586807251
+              },
+              "8-12 km/h": {
+                "steps": 11059,
+                "mae_kw": 1.1640607118606567,
+                "rmse_kw": 1.5184507369995117
+              }
+            },
+            "by_source": {
+              "log4p-10-31(1).csv": {
+                "windows": 2816,
+                "mae_kw": 1.028921127319336,
+                "rmse_kw": 1.4532941579818726
+              }
+            },
+            "peak_mae_kw": 0.8262204527854919,
+            "window_energy_mae_kwh": 0.0061569244702848165,
+            "window_energy_bias_kwh": 0.004016462592288741,
+            "rolling_ten_step": {
+              "windows": 250,
+              "mae_kw": 1.4407644271850586,
+              "first_five_mae_kw": 1.1138851642608643,
+              "second_five_mae_kw": 1.767643928527832,
+              "ten_step_energy_mae_kwh": 0.01817386308520213
+            }
+          },
+          "persistence": {
+            "windows": 2816,
+            "steps": 14080,
+            "mae_kw": 0.8575887680053711,
+            "rmse_kw": 1.2943923473358154,
+            "per_horizon": [
+              {
+                "mae_kw": 0.7280185222625732,
+                "rmse_kw": 1.0250425338745117
+              },
+              {
+                "mae_kw": 0.8036575317382812,
+                "rmse_kw": 1.1712168455123901
+              },
+              {
+                "mae_kw": 0.8591085076332092,
+                "rmse_kw": 1.2952187061309814
+              },
+              {
+                "mae_kw": 0.9200639128684998,
+                "rmse_kw": 1.4121849536895752
+              },
+              {
+                "mae_kw": 0.9770950675010681,
+                "rmse_kw": 1.5109394788742065
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 2094,
+                "mae_kw": 0.20668576657772064,
+                "rmse_kw": 0.9451327919960022
+              },
+              "4-8 km/h": {
+                "steps": 927,
+                "mae_kw": 0.7933117747306824,
+                "rmse_kw": 1.4964467287063599
+              },
+              "8-12 km/h": {
+                "steps": 11059,
+                "mae_kw": 0.9862238168716431,
+                "rmse_kw": 1.3327741622924805
+              }
+            },
+            "by_source": {
+              "log4p-10-31(1).csv": {
+                "windows": 2816,
+                "mae_kw": 0.8575887680053711,
+                "rmse_kw": 1.2943923473358154
+              }
+            },
+            "peak_mae_kw": 0.9805929660797119,
+            "window_energy_mae_kwh": 0.004928389379819992,
+            "window_energy_bias_kwh": 0.0001522377144133411
+          },
+          "cubic": {
+            "windows": 2816,
+            "steps": 14080,
+            "mae_kw": 18.215667724609375,
+            "rmse_kw": 20.56093978881836,
+            "per_horizon": [
+              {
+                "mae_kw": 18.19135284423828,
+                "rmse_kw": 20.525859832763672
+              },
+              {
+                "mae_kw": 18.201250076293945,
+                "rmse_kw": 20.540550231933594
+              },
+              {
+                "mae_kw": 18.211942672729492,
+                "rmse_kw": 20.55870246887207
+              },
+              {
+                "mae_kw": 18.227645874023438,
+                "rmse_kw": 20.579763412475586
+              },
+              {
+                "mae_kw": 18.246143341064453,
+                "rmse_kw": 20.599742889404297
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 2094,
+                "mae_kw": 17.34821128845215,
+                "rmse_kw": 17.4094295501709
+              },
+              "4-8 km/h": {
+                "steps": 927,
+                "mae_kw": 7.821038246154785,
+                "rmse_kw": 10.123311996459961
+              },
+              "8-12 km/h": {
+                "steps": 11059,
+                "mae_kw": 19.25122833251953,
+                "rmse_kw": 21.731464385986328
+              }
+            },
+            "by_source": {
+              "log4p-10-31(1).csv": {
+                "windows": 2816,
+                "mae_kw": 18.215667724609375,
+                "rmse_kw": 20.56093978881836
+              }
+            },
+            "peak_mae_kw": 18.056978225708008,
+            "window_energy_mae_kwh": 0.12637852293914145,
+            "window_energy_bias_kwh": 0.11141033400903312
+          }
+        }
+      }
+    },
+    "excel_six": {
+      "manifest": {
+        "split": {
+          "history": 12,
+          "horizon": 5,
+          "purge_points": 17,
+          "extension": true,
+          "source_holdout": false,
+          "blocks": [
+            {
+              "source": "data.xlsx",
+              "split": "train",
+              "start": 0,
+              "end": 7354,
+              "first_time": 0.0,
+              "last_time": 36765.0
+            },
+            {
+              "source": "data.xlsx",
+              "split": "val",
+              "start": 7371,
+              "end": 9805,
+              "first_time": 36855.0,
+              "last_time": 49020.0
+            },
+            {
+              "source": "data.xlsx",
+              "split": "test",
+              "start": 9822,
+              "end": 12257,
+              "first_time": 49110.0,
+              "last_time": 61280.0
+            }
+          ],
+          "sample_counts": {
+            "train": 2467,
+            "val": 2298,
+            "test": 1809
+          },
+          "sample_counts_by_source": {
+            "train": {
+              "data.xlsx": 2467,
+              "log4p-10-29(1).csv": 0,
+              "log4p-10-31(1).csv": 0
+            },
+            "val": {
+              "data.xlsx": 2298,
+              "log4p-10-29(1).csv": 0,
+              "log4p-10-31(1).csv": 0
+            },
+            "test": {
+              "data.xlsx": 1809,
+              "log4p-10-29(1).csv": 0,
+              "log4p-10-31(1).csv": 0
+            }
+          },
+          "rejected_windows": {
+            "nonmoving_negative_or_outlier": 5601
+          }
+        },
+        "speed_range_kmh": [
+          0.009269382804632187,
+          11.42654037475586
+        ],
+        "future_features": 6,
+        "extension": true,
+        "source_holdout": false,
+        "hidden": 32,
+        "seed": 20261014,
+        "training": {
+          "epochs_run": 25,
+          "best_epoch": 23,
+          "validation_scaled_mae": [
+            0.5540630718072256,
+            0.5053597291310629,
+            0.44995710750420886,
+            0.3081834663947423,
+            0.28498320529858273,
+            0.301114022731781,
+            0.2908666158715884,
+            0.2584213266770045,
+            0.23600024481614432,
+            0.23759725938240686,
+            0.22831930965185165,
+            0.20713286846876144,
+            0.19454009582599005,
+            0.18396414568026861,
+            0.16514667123556137,
+            0.17076275994380316,
+            0.17078932374715805,
+            0.16206005215644836,
+            0.15352710833152136,
+            0.1543786699573199,
+            0.1557253102461497,
+            0.15536716828743616,
+            0.15001801898082098,
+            0.150353342294693,
+            0.16439207891623178
+          ],
+          "early_stop_patience": 5
+        },
+        "cubic_coefficients": [
+          30.12732696533203,
+          0.060587648302316666
+        ],
+        "environment_range": {
+          "depth_m": [
+            5.417104721069336,
+            10.666289329528809
+          ],
+          "current_mps": [
+            -0.7491439580917358,
+            -0.2502318024635315
+          ],
+          "wind_mps": [
+            0.0,
+            10.7594575881958
+          ],
+          "wind_angle_deg": [
+            0.0,
+            376.82183837890625
+          ]
+        },
+        "version": "excel_six",
+        "source_sha256": {
+          "data.xlsx": "a62c5fde4796aa8e18322661ed19fe1fa3be473e1cc130d0a8c5b90d2206f5b7",
+          "log4p-10-29(1).csv": "d1123094ee22ebb8098d3920fa0d45f803dd8b374f257d2032ff837d0e23b1f7",
+          "log4p-10-31(1).csv": "2cf012d1ddb2c73acc957598cf40a126ffc60e8cb5f87197d1e99dcdca813fb5"
+        },
+        "dependency_versions": {
+          "python": "3.13.3",
+          "numpy": "2.5.4",
+          "torch": "2.14.1+cpu"
+        },
+        "label": "propulsion_motor_observed_kw",
+        "status": "experimental_unapproved",
+        "step_seconds": 5,
+        "horizon": 5,
+        "csv_units": "provisional per LSTM task book; field dictionary unconfirmed",
+        "integration": "right_endpoint_kW_seconds_over_3600",
+        "planner_approved": false
+      },
+      "metrics": {
+        "val": {
+          "lstm": {
+            "windows": 2298,
+            "steps": 11490,
+            "mae_kw": 4.28577995300293,
+            "rmse_kw": 7.626319408416748,
+            "per_horizon": [
+              {
+                "mae_kw": 3.964176893234253,
+                "rmse_kw": 7.043155670166016
+              },
+              {
+                "mae_kw": 4.075846195220947,
+                "rmse_kw": 7.278199672698975
+              },
+              {
+                "mae_kw": 4.2052226066589355,
+                "rmse_kw": 7.5512776374816895
+              },
+              {
+                "mae_kw": 4.422196865081787,
+                "rmse_kw": 7.903966903686523
+              },
+              {
+                "mae_kw": 4.76145601272583,
+                "rmse_kw": 8.29041862487793
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 680,
+                "mae_kw": 16.204572677612305,
+                "rmse_kw": 21.353078842163086
+              },
+              "4-8 km/h": {
+                "steps": 1496,
+                "mae_kw": 9.72092342376709,
+                "rmse_kw": 11.866546630859375
+              },
+              "8-12 km/h": {
+                "steps": 9314,
+                "mae_kw": 2.542623519897461,
+                "rmse_kw": 3.980292558670044
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 2298,
+                "mae_kw": 4.28577995300293,
+                "rmse_kw": 7.626319408416748
+              }
+            },
+            "peak_mae_kw": 4.557801723480225,
+            "window_energy_mae_kwh": 0.02624730118675996,
+            "window_energy_bias_kwh": 0.007508892975419765,
+            "rolling_ten_step": {
+              "windows": 225,
+              "mae_kw": 4.755641460418701,
+              "first_five_mae_kw": 3.972787857055664,
+              "second_five_mae_kw": 5.53849458694458,
+              "ten_step_energy_mae_kwh": 0.05768595058535352
+            }
+          },
+          "persistence": {
+            "windows": 2298,
+            "steps": 11490,
+            "mae_kw": 2.0711350440979004,
+            "rmse_kw": 4.328121662139893,
+            "per_horizon": [
+              {
+                "mae_kw": 1.6621298789978027,
+                "rmse_kw": 2.9587061405181885
+              },
+              {
+                "mae_kw": 1.9158101081848145,
+                "rmse_kw": 3.8467869758605957
+              },
+              {
+                "mae_kw": 2.1069676876068115,
+                "rmse_kw": 4.3823933601379395
+              },
+              {
+                "mae_kw": 2.238802671432495,
+                "rmse_kw": 4.845648288726807
+              },
+              {
+                "mae_kw": 2.431964874267578,
+                "rmse_kw": 5.236963748931885
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 680,
+                "mae_kw": 1.863616943359375,
+                "rmse_kw": 5.209134101867676
+              },
+              "4-8 km/h": {
+                "steps": 1496,
+                "mae_kw": 4.578617095947266,
+                "rmse_kw": 9.244813919067383
+              },
+              "8-12 km/h": {
+                "steps": 9314,
+                "mae_kw": 1.6835379600524902,
+                "rmse_kw": 2.720383644104004
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 2298,
+                "mae_kw": 2.0711350440979004,
+                "rmse_kw": 4.328121662139893
+              }
+            },
+            "peak_mae_kw": 2.4918429851531982,
+            "window_energy_mae_kwh": 0.01220559862893251,
+            "window_energy_bias_kwh": -0.0012141884808475327
+          },
+          "cubic": {
+            "windows": 2298,
+            "steps": 11490,
+            "mae_kw": 8.730243682861328,
+            "rmse_kw": 10.505415916442871,
+            "per_horizon": [
+              {
+                "mae_kw": 8.774226188659668,
+                "rmse_kw": 10.59677791595459
+              },
+              {
+                "mae_kw": 8.746810913085938,
+                "rmse_kw": 10.5429105758667
+              },
+              {
+                "mae_kw": 8.729207038879395,
+                "rmse_kw": 10.502936363220215
+              },
+              {
+                "mae_kw": 8.710147857666016,
+                "rmse_kw": 10.460418701171875
+              },
+              {
+                "mae_kw": 8.690825462341309,
+                "rmse_kw": 10.423152923583984
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 680,
+                "mae_kw": 5.857052326202393,
+                "rmse_kw": 6.9768195152282715
+              },
+              "4-8 km/h": {
+                "steps": 1496,
+                "mae_kw": 13.428152084350586,
+                "rmse_kw": 16.02999496459961
+              },
+              "8-12 km/h": {
+                "steps": 9314,
+                "mae_kw": 8.185440063476562,
+                "rmse_kw": 9.556218147277832
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 2298,
+                "mae_kw": 8.730243682861328,
+                "rmse_kw": 10.505415916442871
+              }
+            },
+            "peak_mae_kw": 9.433263778686523,
+            "window_energy_mae_kwh": 0.05863470114726483,
+            "window_energy_bias_kwh": 0.05141923955095286
+          }
+        },
+        "test": {
+          "lstm": {
+            "windows": 1809,
+            "steps": 9045,
+            "mae_kw": 7.49817419052124,
+            "rmse_kw": 13.020508766174316,
+            "per_horizon": [
+              {
+                "mae_kw": 6.1808648109436035,
+                "rmse_kw": 11.706459999084473
+              },
+              {
+                "mae_kw": 6.8811845779418945,
+                "rmse_kw": 12.258665084838867
+              },
+              {
+                "mae_kw": 7.523977279663086,
+                "rmse_kw": 12.900487899780273
+              },
+              {
+                "mae_kw": 8.140901565551758,
+                "rmse_kw": 13.598344802856445
+              },
+              {
+                "mae_kw": 8.76394271850586,
+                "rmse_kw": 14.457338333129883
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1550,
+                "mae_kw": 18.58076286315918,
+                "rmse_kw": 23.73195457458496
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 17.148149490356445,
+                "rmse_kw": 21.754589080810547
+              },
+              "8-12 km/h": {
+                "steps": 6491,
+                "mae_kw": 3.359121561050415,
+                "rmse_kw": 5.343072891235352
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 7.49817419052124,
+                "rmse_kw": 13.020508766174316
+              }
+            },
+            "peak_mae_kw": 7.6413164138793945,
+            "window_energy_mae_kwh": 0.0485402318844228,
+            "window_energy_bias_kwh": 0.034219995841560574,
+            "rolling_ten_step": {
+              "windows": 175,
+              "mae_kw": 8.405557632446289,
+              "first_five_mae_kw": 7.267860412597656,
+              "second_five_mae_kw": 9.543254852294922,
+              "ten_step_energy_mae_kwh": 0.10877285751463875
+            }
+          },
+          "persistence": {
+            "windows": 1809,
+            "steps": 9045,
+            "mae_kw": 2.9859049320220947,
+            "rmse_kw": 7.606739044189453,
+            "per_horizon": [
+              {
+                "mae_kw": 2.070204019546509,
+                "rmse_kw": 4.991081714630127
+              },
+              {
+                "mae_kw": 2.598381996154785,
+                "rmse_kw": 6.526432991027832
+              },
+              {
+                "mae_kw": 3.0178868770599365,
+                "rmse_kw": 7.6122846603393555
+              },
+              {
+                "mae_kw": 3.4739227294921875,
+                "rmse_kw": 8.611860275268555
+              },
+              {
+                "mae_kw": 3.7691285610198975,
+                "rmse_kw": 9.470805168151855
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1550,
+                "mae_kw": 5.711182594299316,
+                "rmse_kw": 12.980986595153809
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 6.052968502044678,
+                "rmse_kw": 12.037516593933105
+              },
+              "8-12 km/h": {
+                "steps": 6491,
+                "mae_kw": 1.860729694366455,
+                "rmse_kw": 4.240141868591309
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 2.9859049320220947,
+                "rmse_kw": 7.606739044189453
+              }
+            },
+            "peak_mae_kw": 3.3414406776428223,
+            "window_energy_mae_kwh": 0.017913364000720508,
+            "window_energy_bias_kwh": 0.0003844659807758039
+          },
+          "cubic": {
+            "windows": 1809,
+            "steps": 9045,
+            "mae_kw": 8.635293960571289,
+            "rmse_kw": 11.438741683959961,
+            "per_horizon": [
+              {
+                "mae_kw": 8.648553848266602,
+                "rmse_kw": 11.437935829162598
+              },
+              {
+                "mae_kw": 8.628645896911621,
+                "rmse_kw": 11.386580467224121
+              },
+              {
+                "mae_kw": 8.609025955200195,
+                "rmse_kw": 11.359911918640137
+              },
+              {
+                "mae_kw": 8.612531661987305,
+                "rmse_kw": 11.374327659606934
+              },
+              {
+                "mae_kw": 8.677715301513672,
+                "rmse_kw": 11.63273811340332
+              }
+            ],
+            "speed_bins": {
+              "0-4 km/h": {
+                "steps": 1550,
+                "mae_kw": 8.73713207244873,
+                "rmse_kw": 13.04690933227539
+              },
+              "4-8 km/h": {
+                "steps": 1004,
+                "mae_kw": 15.905131340026855,
+                "rmse_kw": 19.319889068603516
+              },
+              "8-12 km/h": {
+                "steps": 6491,
+                "mae_kw": 7.486508846282959,
+                "rmse_kw": 9.162230491638184
+              }
+            },
+            "by_source": {
+              "data.xlsx": {
+                "windows": 1809,
+                "mae_kw": 8.635293960571289,
+                "rmse_kw": 11.438741683959961
+              }
+            },
+            "peak_mae_kw": 9.822879791259766,
+            "window_energy_mae_kwh": 0.05683597537518045,
+            "window_energy_bias_kwh": 0.03232016974325504
+          }
+        }
+      }
+    }
+  },
+  "batch_inference": {
+    "plans": 100,
+    "seconds": 0.04390639999473933,
+    "hardware": "local CPU",
+    "method": "sequential API batch"
+  },
+  "prediction_gate_passed": false,
+  "planner_status": "rejected_by_holdout_baseline_comparison",
+  "limitations": [
+    "CSV units provisional from task book; D1 dictionary says unconfirmed",
+    "Motor electrical measurement boundary and battery conversion unverified",
+    "Overlapping window energy errors are not independent voyage errors",
+    "Forecasts beyond five steps are refused until rolling accumulation is validated"
+  ]
+}

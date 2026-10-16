@@ -18,6 +18,10 @@ dev = [
   "httpx>=0.27,<1",
   "pytest>=8.0",
 ]
+lstm = [
+  "numpy>=1.26,<3",
+  "torch>=2.7,<3",
+]
 
 [project.scripts]
 ship-agent = "main:main"

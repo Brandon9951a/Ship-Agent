@@ -1,0 +1,10 @@
+{
+  "research": {
+    "short": "ok",
+    "longer": "ok",
+    "out-of-domain": "model_out_of_domain",
+    "with-wait": "needs_input",
+    "long-horizon": "model_out_of_domain"
+  },
+  "planning_valid_candidates": "model_unapproved"
+}
