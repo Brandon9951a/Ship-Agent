@@ -67,15 +67,13 @@ def _exhaustive_oracle(request: BatteryManagementRequest) -> dict:
                   "soc_balance": 0.0, "low_load_mode3": 0.0},
         "rows": [],
     }
-    states = {(
-        round((initial["soc1"] - batteries[0].soc_min) / step),
-        round((initial["soc2"] - batteries[1].soc_min) / step),
-        initial["mode"],
-    ): initial}
+    # Keep every legal path. Merging by (grid SOC, mode) here would repeat
+    # the FDP algorithm and could conceal a bad dominance decision.
+    states = [initial]
 
     for point in request.demand_series:
-        next_states = {}
-        for state in states.values():
+        next_states = []
+        for state in states:
             choices = ((state["mode"],) if point.demand_bus_kw <= EPS else MODES)
             for mode in choices:
                 demand = point.demand_bus_kw
@@ -95,24 +93,24 @@ def _exhaustive_oracle(request: BatteryManagementRequest) -> dict:
                     elif mode == 2:
                         p1, p2 = 0.0, demand
                     else:
-                        total_soc = state["soc1"] + state["soc2"]
+                        total_soc = state["actual1"] + state["actual2"]
                         if total_soc <= EPS:
                             continue
-                        p1 = demand * state["soc1"] / total_soc
-                        p2 = demand * state["soc2"] / total_soc
+                        p1 = demand * state["actual1"] / total_soc
+                        p2 = demand * state["actual2"] / total_soc
 
                 powers = (p1, p2)
                 feasible = True
                 next_grid = []
                 actual_after = []
-                for battery, power, grid_soc, actual_soc in zip(
-                        batteries, powers, (state["soc1"], state["soc2"]),
+                for battery, power, actual_soc in zip(
+                        batteries, powers,
                         (state["actual1"], state["actual2"])):
                     if power > battery.max_power_kw + EPS:
                         feasible = False
                     if power > EPS and power < battery.min_power_kw - EPS:
                         feasible = False
-                    next_soc = grid_soc - (
+                    next_soc = actual_soc - (
                         power * point.duration_s / 3600.0
                         / (battery.discharge_efficiency * battery.capacity_kwh)
                     )
@@ -120,10 +118,7 @@ def _exhaustive_oracle(request: BatteryManagementRequest) -> dict:
                     if next_soc < battery.soc_min - EPS or snapped < battery.soc_min - EPS:
                         feasible = False
                     next_grid.append(snapped)
-                    actual_after.append(actual_soc - (
-                        power * point.duration_s / 3600.0
-                        / (battery.discharge_efficiency * battery.capacity_kwh)
-                    ))
+                    actual_after.append(next_soc)
                 if not feasible:
                     continue
 
@@ -172,19 +167,11 @@ def _exhaustive_oracle(request: BatteryManagementRequest) -> dict:
                     "mode": mode, "previous_mode": following_mode,
                     "costs": costs, "rows": [*state["rows"], row],
                 }
-                key = (
-                    round((candidate["soc1"] - batteries[0].soc_min) / step),
-                    round((candidate["soc2"] - batteries[1].soc_min) / step),
-                    mode,
-                )
-                total = sum(costs.values())
-                old = next_states.get(key)
-                if old is None or total < sum(old["costs"].values()):
-                    next_states[key] = candidate
+                next_states.append(candidate)
         assert next_states, "fixture must have at least one legal complete prefix"
         states = next_states
 
-    return min(states.values(), key=lambda state: sum(state["costs"].values()))
+    return min(states, key=lambda state: sum(state["costs"].values()))
 
 
 @pytest.mark.parametrize(
@@ -232,6 +219,18 @@ def test_zero_load_retains_previous_mode_without_idle_low_load_penalty():
     assert rows[1]["battery_2_power_kw"] == 0
     assert rows[1]["cost_terms"]["switch"] == 0
     assert rows[1]["cost_terms"]["low_load_mode3"] == 0
+
+
+def test_short_intervals_do_not_consume_one_soc_grid_step_each():
+    base = build_request("success")
+    points = [replace(base.demand_series[0], start_offset_s=i * 5.0,
+                      duration_s=5.0) for i in range(20)]
+    result = run_management_fdp(replace(base, demand_series=points))
+    assert result["outcome_code"] == "ok"
+    rows = result["payload"]["rows"]
+    assert rows[-1]["soc_1_after"] > 0.79
+    assert rows[-1]["planning_soc_1_after"] >= 0.75
+    assert all(check["passed"] for check in result["payload"]["constraint_checks"])
 
 
 @pytest.mark.parametrize(

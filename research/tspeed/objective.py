@@ -13,7 +13,7 @@ import math
 from research.contracts import ObjectiveTerms, SpeedOptimizationRequest
 
 DEFAULT_PENALTY_SCALE = 1.0
-PENALTY_DEFINITION = "J = E_motor_kwh + lambda * mean_i((v_i - v_{i+1})^2) * scale"
+PENALTY_DEFINITION = "J = E_scope_kwh + lambda * mean_i((v_i - v_{i+1})^2) * scale"
 DEFAULT_LAMBDA_NOTE = ("lambda 与 scale 为研究参数，须由敏感性实验冻结；"
                        "论文复现实验使用 lambda=10、scale=1.0")
 

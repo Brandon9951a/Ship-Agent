@@ -284,6 +284,7 @@ class AnalyticPowerPredictor:
                        for speed in profile.speeds],
             "durations": [round(value, 9) for value in profile.durations],
             "phases": list(profile.phases),
+            "keep_power_points": keep_power_points,
         })
         cached = self._cache.get(key)
         if cached is not None:

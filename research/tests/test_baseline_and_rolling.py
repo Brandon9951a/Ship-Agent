@@ -48,11 +48,10 @@ def test_initial_population_contains_both_corners():
     assert len(set(keys)) == len(keys), "种群个体必须互不相同"
 
 
-def test_de_reaches_the_all_min_corner_baseline():
-    """规则基线的同约束对照：DE 至少要与"各段最低速"基线一样好。
+def test_de_does_not_worsen_all_min_corner_baseline():
+    """DE 至少不劣于有效边界内的全最低速基线。
 
-    这是三.1 的回归测试。该角点在有效边界内且可行时，DE 必须找到它
-    （修复前实测比它差约 18%）。
+    母线目标含按航行时间累计的辅助负载，故最低速角点不一定最优。
     """
     request = f.request()
     spec = f.model_spec(grid=request.time_grid, demand_spec=f.demand_spec())
@@ -66,6 +65,8 @@ def test_de_reaches_the_all_min_corner_baseline():
     assert baseline.feasible, "各段最低速基线在验收情景下应可行"
     baseline_objective = baseline.objective_value
     assert baseline_objective is not None
+    assert baseline.demand is not None
+    assert baseline.demand.demand_energy_kwh() is not None
 
     search = run_differential_evolution(
         request, spec=spec, environment_ref=spec.environment_ref,
@@ -75,9 +76,6 @@ def test_de_reaches_the_all_min_corner_baseline():
     assert search.best.objective_value <= baseline_objective * 1.001, (
         f"DE 目标值 {search.best.objective_value:.4f} 明显差于规则基线 "
         f"{baseline_objective:.4f}")
-    # 该角点本身就在初始种群中，故应被精确命中
-    assert abs(search.best.objective_value - baseline_objective) < 1e-6, \
-        "全取下限角点在初始种群内，DE 应精确命中该解"
 
 
 def test_de_matches_baseline_across_seeds():

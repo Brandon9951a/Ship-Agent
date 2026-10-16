@@ -250,6 +250,8 @@ def render_markdown(report: dict[str, Any]) -> tuple[str, str]:
             "",
             f"独立检查器约束违例数：FDP {violations['fdp']}，"
             f"状态机 {violations['state_machine']}。",
+            "两列成本均按实际 SOC 回放复算；FDP 搜索用的保守网格成本另存于机器可读结果。"
+            "离散网格与状态压缩可能使 FDP 成本高于状态机，此对照不构成全局最优证明。",
         ])
     else:
         lines.append("至少一个策略没有可比较的可行轨迹；未计算改进率。")
@@ -309,8 +311,8 @@ def render_markdown(report: dict[str, Any]) -> tuple[str, str]:
         "",
         "## 已知限制",
         "",
-        "- 接口仍标记为 research-tools/2.0-draft，尚未完成跨工具契约冻结或端到端联调。",
-        "- 网格状态向下取整以避免高估 SOC；网格上没有路径不证明连续问题或实船全局无解。",
+        "- 接口仍标记为 research-tools/2.0-draft；现有三工具研究联调不等于正式五工具契约冻结。",
+        "- 网格状态取实际 SOC 的向下量化值；同格状态压缩只给出研究近似解，网格无路径不证明连续问题或实船全局无解。",
         "- 首版不支持充电；负母线需求返回明确的不支持结果。",
         "- 24 小时输入使用本工具内的具名仿真假设；不能用于声称实船 SOC、节能或安全。",
         "- Python 峰值内存使用 tracemalloc 测得，不包含本机原生库分配。",

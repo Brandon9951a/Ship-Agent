@@ -38,6 +38,7 @@ from research.tspeed.search import (
     run_differential_evolution,
 )
 from research.tspeed.verification import VerificationReport, verify_candidate
+from research.demand.artifact_store import DemandArtifactStore
 
 TOOL_NAME = "Tspeed"
 TOOL_VERSION = f"{ALGORITHM_VERSION}+contract-{CONTRACT_SCHEMA_VERSION}"
@@ -192,6 +193,7 @@ def run_speed_optimization(request: SpeedOptimizationRequest, *,
                            call_id: str | None = None,
                            parent_call_id: str | None = None,
                            fdp_feedback: ManagementFeedback | None = None,
+                           demand_store: DemandArtifactStore | None = None,
                            ) -> tuple[ToolRun, SpeedOptimizationResult]:
     """执行一次 Tspeed 求解；返回 v2 信封与结果工件。"""
     started = time.perf_counter()
@@ -223,7 +225,7 @@ def run_speed_optimization(request: SpeedOptimizationRequest, *,
         return finish_run(envelope, outcome=outcome, diagnostics=diagnostics,
                           payload=result.to_dict()), result
 
-    if request.objective not in ("min_energy", "min_time"):
+    if request.objective != "min_energy":
         diagnostics.append(Diagnostic(
             stage="input", code="objective_not_supported",
             detail=f"目标类型 {request.objective} 未实现，不能悄悄改用其他目标",
@@ -284,12 +286,29 @@ def run_speed_optimization(request: SpeedOptimizationRequest, *,
                     generations=search.trace.generations_run, trace=search.trace)
 
     bus_available = bool(verification.demand and verification.demand.bus_side_available)
+    selected_demand_ref = verification.demand.series_id if verification.demand else None
+    if verification.demand is not None and demand_store is not None:
+        try:
+            selected_demand_ref = demand_store.put(verification.demand).artifact_id
+        except (OSError, ValueError, TypeError) as exc:
+            diagnostics.append(Diagnostic(
+                stage="artifact", code="demand_artifact_write_failed",
+                detail=f"选定需求序列未能持久化：{type(exc).__name__}",
+                field_ref="selected_demand_ref", retryable=True))
+            return bail(OutcomeCode.TOOL_ERROR,
+                        extra_assumptions=feedback_assumptions,
+                        evaluations=search.evaluations,
+                        generations=search.trace.generations_run, trace=search.trace)
     terms = objective_terms(
-        speed_vector=best.speed_vector, energy_kwh=verification.energy_kwh,
+        speed_vector=best.speed_vector,
+        energy_kwh=(verification.demand_energy_kwh if bus_available
+                    else verification.energy_kwh),
         request=request, energy_scope="bus" if bus_available else "motor")
     collected = list(base_assumptions) + list(feedback_assumptions)
     if not bus_available:
         collected.append("母线侧无依据：本次仅为电机侧对照实验，不构成 SOC 安全结论")
+    if verification.demand is not None and demand_store is None:
+        collected.append("未提供需求工件库：selected_demand_ref 仅为本次内存标识，不能跨进程取回")
     assumptions = tuple(dict.fromkeys(collected))
     result = SpeedOptimizationResult(
         search_status="candidate_found",
@@ -298,8 +317,7 @@ def run_speed_optimization(request: SpeedOptimizationRequest, *,
         selected_energy_ref=(verification.energy_envelope.artifact_ref.artifact_id
                              if verification.energy_envelope
                              and verification.energy_envelope.artifact_ref else None),
-        selected_demand_ref=(verification.demand.series_id
-                             if verification.demand else None),
+        selected_demand_ref=selected_demand_ref,
         segment_summary=_segment_summaries(search, verification),
         total_duration_s=verification.total_duration_s,
         arrival_at=iso_from_offset(request.planning_origin_at,

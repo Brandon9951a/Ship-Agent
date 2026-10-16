@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Iterable, Protocol
+from typing import TYPE_CHECKING, Callable, Iterable, Protocol
 
 from research.contracts import (
     ArtifactRef,
@@ -28,6 +28,9 @@ from research.contracts import (
 )
 from research.contracts.envelope import _require_finite
 
+if TYPE_CHECKING:
+    from research.tspeed.profile import TrajectoryProfile
+
 
 class DemandBuildError(Exception):
     """构建失败，携带 v2 诊断项，供工具层转换为 outcome_code。"""
@@ -36,6 +39,42 @@ class DemandBuildError(Exception):
         super().__init__(message)
         self.code = code
         self.diagnostic = diagnostic
+
+
+@dataclass(frozen=True)
+class DemandProfileSummary:
+    """Search-only scalar summary; the selected candidate still emits a full artifact."""
+
+    bus_side_available: bool
+    energy_kwh: float | None
+    peak_kw: float | None
+    conversion_config_hash: str
+
+    def demand_energy_kwh(self) -> float | None:
+        return self.energy_kwh
+
+    def peak_demand_kw(self) -> float | None:
+        return self.peak_kw
+
+
+def summarize_analytic_profile(profile: TrajectoryProfile, *, power_at_speed: Callable[[float], float],
+                               spec: "DemandBuilderSpec") -> DemandProfileSummary:
+    """Use the shared conversion models without constructing thousands of row objects."""
+    if spec.conversion is None:
+        return DemandProfileSummary(False, None, None, spec.config_hash())
+    total = 0.0
+    peak: float | None = None
+    for phase, duration, speed in zip(profile.phases, profile.durations, profile.speeds):
+        auxiliary_kw = spec.auxiliary.power_kw(phase)
+        motor_kw = 0.0 if phase != Phase.SAILING.value else (
+            None if speed is None else power_at_speed(speed))
+        bus_kw = spec.conversion.to_bus_kw(motor_kw)
+        if bus_kw is None:
+            return DemandProfileSummary(False, None, None, spec.config_hash())
+        demand_kw = bus_kw + auxiliary_kw
+        total += demand_kw * duration / 3600.0
+        peak = max(peak, demand_kw) if peak is not None else demand_kw
+    return DemandProfileSummary(True, total, peak, spec.config_hash())
 
 
 @dataclass(frozen=True)
@@ -190,6 +229,10 @@ def build_power_demand(energy: EnergyResultEnvelope, *, spec: DemandBuilderSpec,
         raise DemandBuildError(
             "energy_not_ok",
             f"候选 {energy.candidate_id} 的 Tenergy 结果未成功，不能构建母线需求")
+    if not energy.power_points:
+        raise DemandBuildError(
+            "energy_points_missing",
+            f"候选 {energy.candidate_id} 缺少逐时功率，不能构建母线需求")
     points: list[PowerDemandPoint] = []
     quality: list[str] = []
     conversion = spec.conversion

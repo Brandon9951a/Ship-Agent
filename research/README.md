@@ -16,11 +16,11 @@ Tspeed 在真实约束下搜索各航段目标航速，向主智能体返回**�
 | DE/rand/1/bin 搜索 + 可行优先排序 + 精英保留 | 已实现 |
 | 独立约束检查器与核验精度复算 | 已实现 |
 | 电机侧 → 母线侧**唯一**转换（共同需求构建器） | 已实现 |
-| 与 Tenergy 的批量预测契约 + 解析后端 + LSTM 适配器 | 契约与适配器已实现；正式 LSTM 权重待罗冻结 |
+| 与 Tenergy 的批量预测契约 + 解析后端 + LSTM 适配器 | 已接入 Tenergy v2 的真实工件 API；模型仍只批准研究短时预测 |
 | 滚动重规划（请求裁剪 + 真实当前速度） | 已实现 |
 | `ManagementFeedback` 消费与有界重搜 | 反馈消费已实现（可证明上限 → 硬约束；SOC 路径失败 → 诊断） |
 | 双电池预算（两组独立可供功率与 SOC 演化） | **未实现**（属 Tmanagement/FDP）；Tspeed 只做单一预算筛选 |
-| 目标类型 | `min_energy` 已实现；`min_time` 按最短期望实现并如实标注；其他目标返回 `not_supported` |
+| 目标类型 | `min_energy` 已实现；`min_time` 尚未有独立的时间目标函数，返回 `not_supported`，避免把能量最优结果误称为时间最优 |
 
 ## 2. 代码结构
 
@@ -33,19 +33,23 @@ research/
 │   ├── energy_batch.py        # TrajectoryPoint / CandidateTrajectory / EnergyBatchRequest|Result
 │   ├── power_demand.py        # PowerDemandSeries（唯一母线需求工件）
 │   └── speed_optimization.py  # SpeedOptimizationRequest|Result / ManagementFeedback
-├── demand/builder.py          # 共同需求构建器（Tspeed 负责人交付）
+├── demand/builder.py          # 共同需求构建器（含搜索期等价汇总）
+├── demand/artifact_store.py   # 选定需求的内容寻址持久化
+├── demand/fdp_bridge.py       # 选定需求与来源交给 FDP
 ├── tspeed/
 │   ├── trajectory.py          # 决策向量 → 连续轨迹（部分斜坡/巡航/减速 + 采样）
 │   ├── profile.py             # 搜索期轻量剖面（避免逐点上万对象）
 │   ├── predictor.py           # EnergyPredictor 协议 + 验收用解析后端
 │   ├── lstm_adapter.py        # 正式 LSTM 的薄适配层 + 结构校验 + 一致性自检
+│   ├── tenergy_v2_bridge.py   # 当前 Tenergy v2 工件 API 的真实接线
 │   ├── objective.py           # J = E + λ·Σ(v_i−v_{i+1})²（含量纲处理）
 │   ├── eval.py                # 候选评估：展开 → 批量预测 → 需求 → 硬约束 → 目标值
 │   ├── search.py              # DE/rand/1/bin、边界修复、迭代记录、预算
 │   ├── verification.py        # 独立约束检查器（核验精度复算 + 重采样误差）
 │   └── tool.py                # 公开入口：请求 → 搜索 → 核验 → v2 结果
 ├── migration/v1_to_v2.py      # v1 → v2 显式迁移层（不补齐缺失字段）
-├── tests/                     # 98 项验收测试（可用 pytest 或自带运行器）
+├── workflow.py                # 与既有 v1 主图隔离的研究 LangGraph
+├── tests/                     # Tspeed 验收测试（可用 pytest 或自带运行器）
 └── scripts/run_tspeed_experiments.py   # 验收实验与报告生成
 ```
 
@@ -67,14 +71,14 @@ research/
 
 DE 每代要评估数十个候选，若每次都把上万个区间实例化为 v2 对象，构造与哈希开销会远超数值计算。因此：
 
-* 搜索期使用 `TrajectoryProfile`（标量列）调用 `predict_profile`；
+* 搜索期使用 `TrajectoryProfile`（标量列）调用 `predict_profile`；解析后端用共同转换模型直接累计母线能量和峰值，避免为大量候选构造逐时对象；
 * 核验期使用完整 v2 工件调用 `predict`；
-* 两条路径共用同一个后端实现（`AnalyticPowerPredictor.predict_profile`），并有测试断言两者数值完全一致；
+* 两条路径共用同一个预测与转换配置，并有测试断言两者母线能量和峰值一致；
 * 轨迹 → 区间的转换只有一个来源（`ExpandedTrajectory.ordered_intervals`），等待阶段同时出现在两条路径上（曾因此修掉一个漏算辅助能耗的缺陷）。
 
 ### 3.3 目标函数与量纲
 
-`J = E_pred + λ·Σ(v_i−v_{i+1})²`。`Σ(Δv)²` 的量纲是 (km/h)²，不能直接与 kWh 相加，因此先除以边界数（取平均速度差平方）再乘以尺度系数 `scale`。`λ` 与 `scale` 都是研究参数，须由敏感性实验冻结；导师论文的 `λ=10` 只用于复现实验，代码不预设为默认值。`E_pred` 的口径由 `objective_terms.energy_scope` 如实标注为 `motor` 或 `bus`。
+`J = E_scope + λ·Σ(v_i−v_{i+1})²`。`Σ(Δv)²` 的量纲是 (km/h)²，不能直接与 kWh 相加，因此先除以边界数（取平均速度差平方）再乘以尺度系数 `scale`。`λ` 与 `scale` 都是研究参数，须由敏感性实验冻结；导师论文的 `λ=10` 只用于复现实验，代码不预设为默认值。有母线依据时搜索和最终结果均采用母线电量，`objective_terms.energy_scope=bus`；否则采用电机电量并如实标注。
 
 ## 4. 失败语义
 
@@ -102,6 +106,10 @@ python -m pytest research/tests -q
 # 验收实验（生成 artifacts/tspeed-v2/tspeed_acceptance.json）
 python -m research.scripts.run_tspeed_experiments --output-dir artifacts/tspeed-v2 `
     --population 40 --generations 60
+
+# 独立研究 LangGraph；case 可选 success / missing_conversion /
+# fdp_reject / model_unapproved / model_out_of_domain
+python -m research.scripts.run_three_tool_research --case success
 ```
 
 实验输出包含：小规模与精确 DP 的对照、完整 17 航段求解、多随机种子稳定性、约束场景、滚动重规划、论文配置耗时外推、规则航速基线对照。实测结果见 [Tspeed_DE_实现与验收记录.md](../../docs/协作/Tspeed_DE_实现与验收记录.md)。

@@ -126,7 +126,8 @@ class LSTMEnergyAdapter:
         return self._coerce(payload, request)
 
     def predict_profile(self, profile: TrajectoryProfile, *,
-                        candidate_id: str, grid: EvaluationGrid):
+                        candidate_id: str, grid: EvaluationGrid,
+                        keep_power_points: bool = True):
         """搜索期兜底：把剖面还原为最小 v2 轨迹后再走同一外部接口。
 
         正式接入时应由 Tenergy 侧直接支持剖面批量推理；在冻结之前，
@@ -159,7 +160,7 @@ class LSTMEnergyAdapter:
             raise AdapterContractError("外部预测器未返回该候选的结果")
         from research.tspeed.predictor import PredictionOutcome
 
-        return PredictionOutcome(
+        outcome = PredictionOutcome(
             candidate_id=envelope.candidate_id, outcome_code=envelope.outcome_code,
             motor_energy_kwh=envelope.motor_energy_kwh,
             peak_power_kw=envelope.peak_motor_power_kw,
@@ -169,6 +170,7 @@ class LSTMEnergyAdapter:
             model_version=envelope.model_version, cache_hit=envelope.cache_hit,
             diagnostics=envelope.diagnostics, artifact_ref=envelope.artifact_ref,
             runtime_ms=envelope.runtime_ms)
+        return outcome if keep_power_points else outcome.without_power_points()
 
     # --- 结构校验 -------------------------------------------------------------
     def _coerce(self, payload: object, request: EnergyBatchRequest

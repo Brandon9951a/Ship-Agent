@@ -346,8 +346,8 @@
       "execution_status": "completed",
       "outcome_code": "ok",
       "payload_ref": {
-        "artifact_id": "tmanagement:mode_trajectory:8e01b0d101dc5f68",
-        "sha256": "8e01b0d101dc5f68b3339b79fa2aad9cd6cdd7e9073b68a0bbef372d38d4ee94",
+        "artifact_id": "tmanagement:mode_trajectory:03d02f7a5a265932",
+        "sha256": "03d02f7a5a265932036e88d2bd88a1378b027b4949113e8952eb3f509cffbc13",
         "row_count": 4,
         "schema_version": "research-tools/2.0-draft",
         "name": "mode_trajectory"
@@ -358,36 +358,36 @@
       "payload": {
         "safe": true,
         "mode_trajectory_ref": {
-          "artifact_id": "tmanagement:mode_trajectory:8e01b0d101dc5f68",
-          "sha256": "8e01b0d101dc5f68b3339b79fa2aad9cd6cdd7e9073b68a0bbef372d38d4ee94",
+          "artifact_id": "tmanagement:mode_trajectory:03d02f7a5a265932",
+          "sha256": "03d02f7a5a265932036e88d2bd88a1378b027b4949113e8952eb3f509cffbc13",
           "row_count": 4,
           "schema_version": "research-tools/2.0-draft",
           "name": "mode_trajectory"
         },
         "battery_1_power_ref": {
-          "artifact_id": "tmanagement:battery_1_power:155f7d5794fe5f5e",
-          "sha256": "155f7d5794fe5f5e3f07d9b923af96826dd8d0b0a8649b939b48879eff9f72eb",
+          "artifact_id": "tmanagement:battery_1_power:830c405430164cb3",
+          "sha256": "830c405430164cb3cae1dd42f3351533f426fc6b70e085d6b8539a850fe9e098",
           "row_count": 4,
           "schema_version": "research-tools/2.0-draft",
           "name": "battery_1_power"
         },
         "battery_2_power_ref": {
-          "artifact_id": "tmanagement:battery_2_power:6c1c407bd7bca820",
-          "sha256": "6c1c407bd7bca8208db346b823e98ee678950a3c3f3caa5539a2025670489908",
+          "artifact_id": "tmanagement:battery_2_power:a5b4ad5abdbccbd0",
+          "sha256": "a5b4ad5abdbccbd0abc28dae5adf158495170ecaf6010f215f7a7d5bd9c0c64b",
           "row_count": 4,
           "schema_version": "research-tools/2.0-draft",
           "name": "battery_2_power"
         },
         "battery_1_soc_ref": {
-          "artifact_id": "tmanagement:battery_1_soc:73f55b1dcfa67e9c",
-          "sha256": "73f55b1dcfa67e9cff3d898af2373e37cd316ae241e1672153dab2f3ef814aec",
+          "artifact_id": "tmanagement:battery_1_soc:a68d026db3f28011",
+          "sha256": "a68d026db3f280110d346719be03deadf92915549a1a33fa7e6d82b6f2e14d4d",
           "row_count": 4,
           "schema_version": "research-tools/2.0-draft",
           "name": "battery_1_soc"
         },
         "battery_2_soc_ref": {
-          "artifact_id": "tmanagement:battery_2_soc:152919cf35bbd16d",
-          "sha256": "152919cf35bbd16d3e1fc3fdfa404e968b5eee7da3940d330c84ae8063655382",
+          "artifact_id": "tmanagement:battery_2_soc:f9fc2a4853210a6a",
+          "sha256": "f9fc2a4853210a6a3ef292c1b818ef76b826cdff4e38e48c349ad19b0c3f6c59",
           "row_count": 4,
           "schema_version": "research-tools/2.0-draft",
           "name": "battery_2_soc"
@@ -582,28 +582,28 @@
             "demand_bus_kw": 80.0,
             "demand_bus_energy_kwh": 80.0,
             "mode": 3,
-            "battery_1_power_kw": 38.70967741935484,
-            "battery_2_power_kw": 41.29032258064516,
+            "battery_1_power_kw": 39.860627177700344,
+            "battery_2_power_kw": 40.13937282229965,
             "soc_1_before": 0.7944444444444445,
             "soc_2_before": 0.8,
-            "soc_1_after": 0.7514336917562725,
-            "soc_2_after": 0.7541218637992833,
+            "soc_1_after": 0.7501548586914442,
+            "soc_2_after": 0.7554006968641116,
             "planning_soc_1_before": 0.75,
             "planning_soc_2_before": 0.8,
-            "planning_soc_1_after": 0.7,
+            "planning_soc_1_after": 0.75,
             "planning_soc_2_after": 0.75,
-            "grid_soc_1_after": 0.7,
+            "grid_soc_1_after": 0.75,
             "grid_soc_2_after": 0.75,
             "motor_energy_kwh": 74.0,
             "propulsion_bus_energy_kwh": 75.0,
             "auxiliary_bus_energy_kwh": 5.0,
             "conversion_delta_kwh": 1.0,
-            "battery_1_bus_energy_kwh": 38.70967741935484,
-            "battery_2_bus_energy_kwh": 41.29032258064516,
-            "battery_1_energy_drawn_kwh": 43.01075268817204,
-            "battery_2_energy_drawn_kwh": 45.878136200716845,
-            "battery_1_discharge_loss_kwh": 4.3010752688172005,
-            "battery_2_discharge_loss_kwh": 4.587813620071685,
+            "battery_1_bus_energy_kwh": 39.860627177700344,
+            "battery_2_bus_energy_kwh": 40.13937282229965,
+            "battery_1_energy_drawn_kwh": 44.28958575300038,
+            "battery_2_energy_drawn_kwh": 44.5993031358885,
+            "battery_1_discharge_loss_kwh": 4.428958575300037,
+            "battery_2_discharge_loss_kwh": 4.459930313588849,
             "input_provenance": {
               "demand_source": {
                 "source_id": "fixture:demand:1",
@@ -749,7 +749,7 @@
               "source_mode": "simulation"
             },
             "cost_terms": {
-              "power": 0.3203329864724246,
+              "power": 0.3200038849567191,
               "switch": 1000.0,
               "soc_balance": 0.030000000000000027,
               "low_load_mode3": 0.0
@@ -765,15 +765,15 @@
             "mode": 3,
             "battery_1_power_kw": 0.0,
             "battery_2_power_kw": 0.0,
-            "soc_1_before": 0.7514336917562725,
-            "soc_2_before": 0.7541218637992833,
-            "soc_1_after": 0.7514336917562725,
-            "soc_2_after": 0.7541218637992833,
-            "planning_soc_1_before": 0.7,
+            "soc_1_before": 0.7501548586914442,
+            "soc_2_before": 0.7554006968641116,
+            "soc_1_after": 0.7501548586914442,
+            "soc_2_after": 0.7554006968641116,
+            "planning_soc_1_before": 0.75,
             "planning_soc_2_before": 0.75,
-            "planning_soc_1_after": 0.7,
+            "planning_soc_1_after": 0.75,
             "planning_soc_2_after": 0.75,
-            "grid_soc_1_after": 0.7,
+            "grid_soc_1_after": 0.75,
             "grid_soc_2_after": 0.75,
             "motor_energy_kwh": 0.0,
             "propulsion_bus_energy_kwh": 0.0,
@@ -932,7 +932,7 @@
             "cost_terms": {
               "power": 0.0,
               "switch": 0.0,
-              "soc_balance": 0.030000000000000027,
+              "soc_balance": 0.0,
               "low_load_mode3": 0.0
             }
           },
@@ -946,15 +946,15 @@
             "mode": 1,
             "battery_1_power_kw": 30.0,
             "battery_2_power_kw": 0.0,
-            "soc_1_before": 0.7514336917562725,
-            "soc_2_before": 0.7541218637992833,
-            "soc_1_after": 0.745878136200717,
-            "soc_2_after": 0.7541218637992833,
-            "planning_soc_1_before": 0.7,
+            "soc_1_before": 0.7501548586914442,
+            "soc_2_before": 0.7554006968641116,
+            "soc_1_after": 0.7445993031358886,
+            "soc_2_after": 0.7554006968641116,
+            "planning_soc_1_before": 0.75,
             "planning_soc_2_before": 0.75,
-            "planning_soc_1_after": 0.65,
+            "planning_soc_1_after": 0.7,
             "planning_soc_2_after": 0.75,
-            "grid_soc_1_after": 0.65,
+            "grid_soc_1_after": 0.7,
             "grid_soc_2_after": 0.75,
             "motor_energy_kwh": 4.0,
             "propulsion_bus_energy_kwh": 4.166666666666666,
@@ -1113,7 +1113,7 @@
             "cost_terms": {
               "power": 0.09000000000000001,
               "switch": 1000.0,
-              "soc_balance": 0.015000000000000013,
+              "soc_balance": 0.0,
               "low_load_mode3": 0.0
             }
           }
@@ -1125,18 +1125,18 @@
           1
         ],
         "cost_terms": {
-          "power": 0.5003329864724246,
+          "power": 0.5000038849567191,
           "switch": 2000.0,
-          "soc_balance": 0.07500000000000007,
+          "soc_balance": 0.030000000000000027,
           "low_load_mode3": 0.0,
-          "total": 2000.5753329864724
+          "total": 2000.5300038849566
         },
         "replayed_cost_terms": {
-          "power": 0.5003329864724246,
+          "power": 0.5000038849567191,
           "switch": 2000.0,
-          "soc_balance": 0.005752688172042997,
+          "soc_balance": 0.008054587688734016,
           "low_load_mode3": 0.0,
-          "total": 2000.5060856746445
+          "total": 2000.5080584726454
         },
         "constraint_checks": [
           {
@@ -1303,8 +1303,8 @@
             "name": "interval[1].battery_power_limits",
             "passed": true,
             "actual": [
-              38.70967741935484,
-              41.29032258064516
+              39.860627177700344,
+              40.13937282229965
             ],
             "limit": [
               [
@@ -1356,8 +1356,8 @@
             "name": "interval[1].soc_transition",
             "passed": true,
             "actual": [
-              0.7514336917562725,
-              0.7541218637992833
+              0.7501548586914442,
+              0.7554006968641116
             ],
             "limit": null,
             "unit": null,
@@ -1367,8 +1367,8 @@
             "name": "interval[1].soc_bounds",
             "passed": true,
             "actual": [
-              0.7514336917562725,
-              0.7541218637992833
+              0.7501548586914442,
+              0.7554006968641116
             ],
             "limit": [
               0.2,
@@ -1381,13 +1381,13 @@
             "name": "interval[1].cost_terms",
             "passed": true,
             "actual": {
-              "power": 0.3203329864724246,
+              "power": 0.3200038849567191,
               "switch": 1000.0,
               "soc_balance": 0.030000000000000027,
               "low_load_mode3": 0.0
             },
             "limit": {
-              "power": 0.3203329864724246,
+              "power": 0.3200038849567191,
               "switch": 1000.0,
               "soc_balance": 0.030000000000000027,
               "low_load_mode3": 0.0
@@ -1400,12 +1400,12 @@
             "passed": true,
             "actual": {
               "demand_bus_energy_kwh": 80.0,
-              "battery_1_bus_energy_kwh": 38.70967741935484,
-              "battery_2_bus_energy_kwh": 41.29032258064516,
-              "battery_1_energy_drawn_kwh": 43.01075268817204,
-              "battery_2_energy_drawn_kwh": 45.878136200716845,
-              "battery_1_discharge_loss_kwh": 4.3010752688172005,
-              "battery_2_discharge_loss_kwh": 4.587813620071685,
+              "battery_1_bus_energy_kwh": 39.860627177700344,
+              "battery_2_bus_energy_kwh": 40.13937282229965,
+              "battery_1_energy_drawn_kwh": 44.28958575300038,
+              "battery_2_energy_drawn_kwh": 44.5993031358885,
+              "battery_1_discharge_loss_kwh": 4.428958575300037,
+              "battery_2_discharge_loss_kwh": 4.459930313588849,
               "motor_energy_kwh": 74.0,
               "propulsion_bus_energy_kwh": 75.0,
               "auxiliary_bus_energy_kwh": 5.0,
@@ -1413,12 +1413,12 @@
             },
             "limit": {
               "demand_bus_energy_kwh": 80.0,
-              "battery_1_bus_energy_kwh": 38.70967741935484,
-              "battery_2_bus_energy_kwh": 41.29032258064516,
-              "battery_1_energy_drawn_kwh": 43.01075268817204,
-              "battery_2_energy_drawn_kwh": 45.878136200716845,
-              "battery_1_discharge_loss_kwh": 4.3010752688172005,
-              "battery_2_discharge_loss_kwh": 4.587813620071685,
+              "battery_1_bus_energy_kwh": 39.860627177700344,
+              "battery_2_bus_energy_kwh": 40.13937282229965,
+              "battery_1_energy_drawn_kwh": 44.28958575300038,
+              "battery_2_energy_drawn_kwh": 44.5993031358885,
+              "battery_1_discharge_loss_kwh": 4.428958575300037,
+              "battery_2_discharge_loss_kwh": 4.459930313588849,
               "motor_energy_kwh": 74.0,
               "propulsion_bus_energy_kwh": 75.0,
               "auxiliary_bus_energy_kwh": 5.0,
@@ -1486,11 +1486,11 @@
             "name": "interval[2].planning_soc_continuity",
             "passed": true,
             "actual": [
-              0.7,
+              0.75,
               0.75
             ],
             "limit": [
-              0.7,
+              0.75,
               0.75
             ],
             "unit": null,
@@ -1500,8 +1500,8 @@
             "name": "interval[2].soc_transition",
             "passed": true,
             "actual": [
-              0.7514336917562725,
-              0.7541218637992833
+              0.7501548586914442,
+              0.7554006968641116
             ],
             "limit": null,
             "unit": null,
@@ -1511,8 +1511,8 @@
             "name": "interval[2].soc_bounds",
             "passed": true,
             "actual": [
-              0.7514336917562725,
-              0.7541218637992833
+              0.7501548586914442,
+              0.7554006968641116
             ],
             "limit": [
               0.2,
@@ -1527,13 +1527,13 @@
             "actual": {
               "power": 0.0,
               "switch": 0.0,
-              "soc_balance": 0.030000000000000027,
+              "soc_balance": 0.0,
               "low_load_mode3": 0.0
             },
             "limit": {
               "power": 0.0,
               "switch": 0.0,
-              "soc_balance": 0.030000000000000027,
+              "soc_balance": 0.0,
               "low_load_mode3": 0.0
             },
             "unit": null,
@@ -1630,11 +1630,11 @@
             "name": "interval[3].planning_soc_continuity",
             "passed": true,
             "actual": [
-              0.7,
+              0.75,
               0.75
             ],
             "limit": [
-              0.7,
+              0.75,
               0.75
             ],
             "unit": null,
@@ -1644,8 +1644,8 @@
             "name": "interval[3].soc_transition",
             "passed": true,
             "actual": [
-              0.745878136200717,
-              0.7541218637992833
+              0.7445993031358886,
+              0.7554006968641116
             ],
             "limit": null,
             "unit": null,
@@ -1655,8 +1655,8 @@
             "name": "interval[3].soc_bounds",
             "passed": true,
             "actual": [
-              0.745878136200717,
-              0.7541218637992833
+              0.7445993031358886,
+              0.7554006968641116
             ],
             "limit": [
               0.2,
@@ -1671,13 +1671,13 @@
             "actual": {
               "power": 0.09000000000000001,
               "switch": 1000.0,
-              "soc_balance": 0.015000000000000013,
+              "soc_balance": 0.0,
               "low_load_mode3": 0.0
             },
             "limit": {
               "power": 0.09000000000000001,
               "switch": 1000.0,
-              "soc_balance": 0.015000000000000013,
+              "soc_balance": 0.0,
               "low_load_mode3": 0.0
             },
             "unit": null,
@@ -1719,16 +1719,16 @@
             "name": "cost_terms.optimized",
             "passed": true,
             "actual": {
-              "power": 0.5003329864724246,
+              "power": 0.5000038849567191,
               "switch": 2000.0,
-              "soc_balance": 0.07500000000000007,
+              "soc_balance": 0.030000000000000027,
               "low_load_mode3": 0.0,
-              "total": 2000.5753329864724
+              "total": 2000.5300038849566
             },
             "limit": {
-              "power": 0.5003329864724246,
+              "power": 0.5000038849567191,
               "switch": 2000.0,
-              "soc_balance": 0.07500000000000007,
+              "soc_balance": 0.030000000000000027,
               "low_load_mode3": 0.0
             },
             "unit": null,
@@ -1780,21 +1780,21 @@
           }
         ],
         "summary": {
-          "final_soc_1": 0.745878136200717,
-          "final_soc_2": 0.7541218637992833,
-          "final_planning_soc_1": 0.65,
+          "final_soc_1": 0.7445993031358886,
+          "final_soc_2": 0.7554006968641116,
+          "final_planning_soc_1": 0.7,
           "final_planning_soc_2": 0.75,
           "demand_bus_energy_kwh": 90.0,
-          "bus_energy_1_kwh": 48.70967741935484,
-          "bus_energy_2_kwh": 41.29032258064516,
-          "battery_energy_drawn_1_kwh": 54.12186379928315,
-          "battery_energy_drawn_2_kwh": 45.878136200716845,
-          "battery_discharge_loss_1_kwh": 5.412186379928311,
-          "battery_discharge_loss_2_kwh": 4.587813620071685,
+          "bus_energy_1_kwh": 49.860627177700344,
+          "bus_energy_2_kwh": 40.13937282229965,
+          "battery_energy_drawn_1_kwh": 55.400696864111495,
+          "battery_energy_drawn_2_kwh": 44.5993031358885,
+          "battery_discharge_loss_1_kwh": 5.540069686411147,
+          "battery_discharge_loss_2_kwh": 4.459930313588849,
           "motor_energy_kwh": 82.0,
-          "propulsion_bus_energy_kwh": 83.33333333333333,
+          "propulsion_bus_energy_kwh": 83.33333333333334,
           "auxiliary_bus_energy_kwh": 6.666666666666666,
-          "conversion_delta_kwh": 1.3333333333333333,
+          "conversion_delta_kwh": 1.3333333333333335,
           "segment_summary": [
             {
               "segment_id": "segment-1",
@@ -1802,14 +1802,14 @@
               "end_offset_s": 4200.0,
               "duration_s": 4200.0,
               "demand_bus_energy_kwh": 85.0,
-              "battery_1_bus_energy_kwh": 43.70967741935484,
-              "battery_2_bus_energy_kwh": 41.29032258064516,
-              "battery_1_energy_drawn_kwh": 48.5663082437276,
-              "battery_2_energy_drawn_kwh": 45.878136200716845,
-              "battery_1_discharge_loss_kwh": 4.856630824372756,
-              "battery_2_discharge_loss_kwh": 4.587813620071685,
-              "final_soc_1": 0.7514336917562725,
-              "final_soc_2": 0.7541218637992833,
+              "battery_1_bus_energy_kwh": 44.860627177700344,
+              "battery_2_bus_energy_kwh": 40.13937282229965,
+              "battery_1_energy_drawn_kwh": 49.84514130855594,
+              "battery_2_energy_drawn_kwh": 44.5993031358885,
+              "battery_1_discharge_loss_kwh": 4.984514130855592,
+              "battery_2_discharge_loss_kwh": 4.459930313588849,
+              "final_soc_1": 0.7501548586914442,
+              "final_soc_2": 0.7554006968641116,
               "phases": [
                 "sailing"
               ],
@@ -1831,8 +1831,8 @@
               "battery_2_energy_drawn_kwh": 0.0,
               "battery_1_discharge_loss_kwh": 0.5555555555555554,
               "battery_2_discharge_loss_kwh": 0.0,
-              "final_soc_1": 0.745878136200717,
-              "final_soc_2": 0.7541218637992833,
+              "final_soc_1": 0.7445993031358886,
+              "final_soc_2": 0.7554006968641116,
               "phases": [
                 "waiting",
                 "sailing"
@@ -1849,8 +1849,8 @@
             "2": 0,
             "3": 2
           },
-          "transitions_seen": 24,
-          "peak_states_per_layer": 9
+          "transitions_seen": 16,
+          "peak_states_per_layer": 3
         }
       }
     }

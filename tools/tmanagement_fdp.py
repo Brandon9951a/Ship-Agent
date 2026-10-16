@@ -628,8 +628,9 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
                              diagnostics=[diagnostic], payload=payload,
                              runtime_ms=(time.perf_counter() - wall_start) * 1000)
 
-    # Planning SOC is snapped down to a finite grid; actual SOC is replayed
-    # separately and must never fall below the conservative planning state.
+    # Quantize accumulated exact SOC for the state key. Never subtract a new
+    # interval from an already-rounded SOC: that would lose up to one grid step
+    # at every interval and falsely exhaust a battery on fine time grids.
     initial_mode = request.previous_mode if request.previous_mode in MODES else None
     initial_grid_soc1 = _floor_to_grid(request.battery_1.initial_soc,
                                        request.battery_1.soc_min, request.grid.soc_step)
@@ -682,26 +683,24 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
                                      diagnostics=[diagnostic], payload=payload,
                                      runtime_ms=(time.perf_counter() - wall_start) * 1000)
                 transition = state_transition(request, point, mode,
-                                              state["soc1"], state["soc2"], state["previous_mode"])
+                                              state["actual_soc1"], state["actual_soc2"],
+                                              state["previous_mode"])
                 if not transition.get("feasible"):
                     continue
+                transition["cost_terms"] = _dp_costs(
+                    request, mode, transition["battery_1_power_kw"],
+                    transition["battery_2_power_kw"], state["soc1"], state["soc2"],
+                    point.demand_bus_kw, state["previous_mode"])
+                actual_after = (transition["soc_1_after"], transition["soc_2_after"])
                 next_grid_soc1 = _floor_to_grid(
-                    transition["soc_1_after"], request.battery_1.soc_min,
+                    actual_after[0], request.battery_1.soc_min,
                     request.grid.soc_step)
                 next_grid_soc2 = _floor_to_grid(
-                    transition["soc_2_after"], request.battery_2.soc_min,
+                    actual_after[1], request.battery_2.soc_min,
                     request.grid.soc_step)
                 if (next_grid_soc1 < request.battery_1.soc_min - EPS
                         or next_grid_soc2 < request.battery_2.soc_min - EPS):
                     continue
-                actual_after = (
-                    state["actual_soc1"] - transition["battery_1_power_kw"]
-                    * point.duration_s / 3600 / (
-                        request.battery_1.discharge_efficiency * request.battery_1.capacity_kwh),
-                    state["actual_soc2"] - transition["battery_2_power_kw"]
-                    * point.duration_s / 3600 / (
-                        request.battery_2.discharge_efficiency * request.battery_2.capacity_kwh),
-                )
                 row = _row(
                     request, point, transition,
                     (state["actual_soc1"], state["actual_soc2"]), actual_after,
@@ -970,8 +969,9 @@ def compare_policies(request: BatteryManagementRequest) -> dict[str, Any]:
     if fdp.get("payload", {}).get("safe"):
         frows = fdp["payload"]["rows"]
         result["fdp"] = _policy_metrics(
-            frows, fdp["payload"]["cost_terms"], initial_mode=request.previous_mode
+            frows, fdp["payload"]["replayed_cost_terms"], initial_mode=request.previous_mode
         )
+        result["fdp"]["grid_objective_cost_terms"] = fdp["payload"]["cost_terms"]
     else:
         result["fdp"] = {"feasible": False, "diagnostics": fdp.get("diagnostics", [])}
     if state["outcome_code"] == "ok" and state.get("safe"):

@@ -15,9 +15,11 @@ from research.contracts import (
     SpeedOptimizationRequest,
 )
 from research.demand import DemandBuildError, DemandBuilderSpec, build_power_demand
+from research.demand.builder import DemandProfileSummary, summarize_analytic_profile
 from research.tspeed.objective import objective_value, speed_difference_penalty
 from research.tspeed.profile import TrajectoryProfile
 from research.tspeed.predictor import (
+    AnalyticPowerPredictor,
     DEFAULT_INTEGRATION_RULE,
     EnergyPredictor,
     EvaluationGrid,
@@ -55,7 +57,7 @@ class CandidateEvaluation:
     energy_kwh: float | None
     peak_motor_power_kw: float | None
     total_duration_s: float
-    demand: PowerDemandSeries | None
+    demand: PowerDemandSeries | DemandProfileSummary | None
     violations: tuple[str, ...]
     constraint_notes: tuple[str, ...]
     from_cache: bool = False
@@ -139,12 +141,15 @@ def evaluate_candidate(speed_vector, *, context: DEEvaluationContext,
     for violation in expanded.violations:
         violations.setdefault(violation.code, violation.detail)
 
-    # 搜索期走轻量剖面，且不保留逐时工件：轨迹由速度向量确定性生成，
-    # 核验阶段才实例化完整 v2 工件并重算。
+    # 需要检查母线约束时必须保留逐时功率；否则需求构建器会得到空序列，
+    # 使搜索期的功率/电量上限失效。无需求构建器时仍释放逐时点以节省内存。
     profile = TrajectoryProfile.from_expansion(expanded)
+    fast_analytic_demand = (context.spec.demand_spec is not None
+                            and isinstance(context.predictor, AnalyticPowerPredictor))
     outcome = context.predictor.predict_profile(profile, candidate_id=candidate_id,
                                                 grid=context.grid,
-                                                keep_power_points=False)
+                                                keep_power_points=(context.spec.demand_spec is not None
+                                                                   and not fast_analytic_demand))
     context.batches += 1
     context.predictions += 1
     if not outcome.ok:
@@ -173,14 +178,19 @@ def evaluate_candidate(speed_vector, *, context: DEEvaluationContext,
                 "battery_budget_exceeded",
                 f"预测电机侧 {energy:.3f}kWh 超过可用电量 {request.battery_budget_kwh}kWh")
 
-    demand_series: PowerDemandSeries | None = None
+    demand_series: PowerDemandSeries | DemandProfileSummary | None = None
     if context.spec.demand_spec is not None:
         try:
-            demand_series = build_power_demand(
-                outcome.to_envelope(), spec=context.spec.demand_spec,
-                series_id=f"demand-{candidate_id}",
-                input_energy_ref=(outcome.artifact_ref.artifact_id
-                                  if outcome.artifact_ref else None))
+            if fast_analytic_demand and outcome.ok:
+                demand_series = summarize_analytic_profile(
+                    profile, power_at_speed=context.predictor.power_kw,
+                    spec=context.spec.demand_spec)
+            else:
+                demand_series = build_power_demand(
+                    outcome.to_envelope(), spec=context.spec.demand_spec,
+                    series_id=f"demand-{candidate_id}",
+                    input_energy_ref=(outcome.artifact_ref.artifact_id
+                                      if outcome.artifact_ref else None))
         except DemandBuildError as exc:
             violations.setdefault(f"demand_{exc.code}", str(exc))
         if demand_series is not None:
@@ -206,7 +216,10 @@ def evaluate_candidate(speed_vector, *, context: DEEvaluationContext,
                         f"{context.spec.energy_budget_kwh}kWh")
 
     penalty = speed_difference_penalty(vector)
-    objective = objective_value(energy_kwh=energy,
+    objective_energy = (demand_series.demand_energy_kwh()
+                        if demand_series is not None and demand_series.bus_side_available
+                        else energy)
+    objective = objective_value(energy_kwh=objective_energy,
                                 penalty=penalty,
                                 lambda_value=float(request.speed_penalty_lambda))
     evaluation = CandidateEvaluation(

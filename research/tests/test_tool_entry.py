@@ -115,6 +115,16 @@ def test_unsupported_objective_returns_not_supported():
     assert {item.code for item in run.diagnostics} >= {"objective_not_supported"}
 
 
+def test_min_time_is_not_mislabeled_as_energy_optimization():
+    request = _small_request(objective="min_time")
+    run, result = run_speed_optimization(
+        request, scenario=_scenario(),
+        config=DEConfig(population=8, max_generations=2, seeds=(109,)))
+    assert run.outcome is OutcomeCode.NOT_SUPPORTED
+    assert result.selected_candidate_id is None
+    assert result.search_status == "input_invalid"
+
+
 def test_deadline_failure_returns_search_unresolved():
     request = _small_request(remaining_time_s=900.0)
     config = DEConfig(population=12, max_generations=5, seeds=(113,))

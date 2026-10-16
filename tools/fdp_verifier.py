@@ -119,12 +119,12 @@ def verify_trajectory(
             mode_ok = isclose(p2, demand, rel_tol=1e-9, abs_tol=TOL) and p1 <= TOL
         elif mode == 3:
             mode_ok = isclose(p1 + p2, demand, rel_tol=1e-9, abs_tol=TOL)
-            denominator = planned_before[0] + planned_before[1]
+            denominator = actual_before[0] + actual_before[1]
             if denominator <= TOL:
                 mode_ok = False
             else:
                 mode_ok = mode_ok and isclose(
-                    p1 / demand, planned_before[0] / denominator,
+                    p1 / demand, actual_before[0] / denominator,
                     rel_tol=1e-8, abs_tol=TOL,
                 )
         else:
@@ -156,13 +156,13 @@ def verify_trajectory(
                 battery.soc_min - TOL <= actual_after[i] <= 1.0 + TOL
             )
             if conservative_grid:
-                planned_expected = planned_before[i] - (
-                    power * duration_h / (battery.discharge_efficiency * battery.capacity_kwh)
-                )
+                planned_expected = battery.soc_min + int(
+                    (expected_soc - battery.soc_min + TOL) / request.grid.soc_step
+                ) * request.grid.soc_step
                 planned_soc_ok = (
                     planned_before[i] <= actual_before[i] + TOL
-                    and planned_after[i] <= planned_expected + TOL
-                    and planned_expected - planned_after[i] <= request.grid.soc_step + TOL
+                    and isclose(planned_after[i], planned_expected,
+                                rel_tol=1e-8, abs_tol=TOL)
                     and planned_after[i] <= actual_after[i] + TOL
                     and isclose(
                         (planned_after[i] - battery.soc_min) / request.grid.soc_step,
