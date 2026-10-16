@@ -20,7 +20,7 @@ from .envelope import (
 
 SPEED_OPTIMIZATION_SCHEMA_VERSION = "research-tools/2.0-draft/speed-optimization"
 
-# 契约可识别的目标类型；工具目前只实现 min_energy，min_time 明确返回不支持。
+# 契约可识别且 Tspeed 已实现的目标类型。
 SUPPORTED_OBJECTIVES = ("min_energy", "min_time")
 
 FAILURE_SCOPES = ("specific_interval", "power_upper_bound_provable",

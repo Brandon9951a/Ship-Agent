@@ -225,11 +225,18 @@ def run_speed_optimization(request: SpeedOptimizationRequest, *,
         return finish_run(envelope, outcome=outcome, diagnostics=diagnostics,
                           payload=result.to_dict()), result
 
-    if request.objective != "min_energy":
+    if request.objective not in ("min_energy", "min_time"):
         diagnostics.append(Diagnostic(
             stage="input", code="objective_not_supported",
             detail=f"目标类型 {request.objective} 未实现，不能悄悄改用其他目标",
             field_ref="objective", observed=request.objective, retryable=False))
+        return bail(OutcomeCode.NOT_SUPPORTED)
+    if request.objective == "min_time" and request.speed_penalty_lambda != 0:
+        diagnostics.append(Diagnostic(
+            stage="input", code="time_penalty_not_supported",
+            detail="最短航时目标以秒排序；原能耗口径的速度差惩罚不能直接相加",
+            field_ref="speed_penalty_lambda", observed=request.speed_penalty_lambda,
+            retryable=False))
         return bail(OutcomeCode.NOT_SUPPORTED)
 
     feedback_assumptions: tuple[str, ...] = ()
@@ -303,7 +310,8 @@ def run_speed_optimization(request: SpeedOptimizationRequest, *,
         speed_vector=best.speed_vector,
         energy_kwh=(verification.demand_energy_kwh if bus_available
                     else verification.energy_kwh),
-        request=request, energy_scope="bus" if bus_available else "motor")
+        request=request, energy_scope="bus" if bus_available else "motor",
+        duration_s=verification.total_duration_s)
     collected = list(base_assumptions) + list(feedback_assumptions)
     if not bus_available:
         collected.append("母线侧无依据：本次仅为电机侧对照实验，不构成 SOC 安全结论")

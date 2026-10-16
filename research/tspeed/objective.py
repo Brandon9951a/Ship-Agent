@@ -1,4 +1,6 @@
-"""目标函数分项：``J = E_pred + λ·Σ(v_i - v_(i+1))²``。
+"""航速搜索目标：最低能耗或最短航时。
+
+最低能耗目标为 ``J = E_pred + λ·Σ(v_i - v_(i+1))²``；最短航时按秒排序。
 
 量纲处理（任务书第 2 节要求"惩罚项需先做量纲/尺度处理"）：
 ``Σ(Δv)²`` 的量纲是 (km/h)²，不能与 kWh 直接相加，因此先除以航段数得到
@@ -33,11 +35,19 @@ def speed_difference_penalty(speed_vector, *, scale: float = DEFAULT_PENALTY_SCA
 
 
 def objective_terms(*, speed_vector, energy_kwh: float | None, request: SpeedOptimizationRequest,
-                    energy_scope: str = "motor", scale: float = DEFAULT_PENALTY_SCALE
+                    energy_scope: str = "motor", scale: float = DEFAULT_PENALTY_SCALE,
+                    duration_s: float | None = None
                     ) -> ObjectiveTerms:
     """组装目标函数分项，并如实记录能量口径与量纲处理方式。"""
     if energy_scope not in ("motor", "bus"):
         raise ValueError("energy_scope 只允许 motor 或 bus")
+    if request.objective == "min_time":
+        return ObjectiveTerms(
+            energy_kwh=energy_kwh, penalty=0.0, lambda_value=0.0,
+            total=duration_s, energy_scope=energy_scope,
+            penalty_definition="J = total_duration_s；能耗另行记录，功率等硬边界独立校验",
+            penalty_scale_note="时间目标单位为 s；不与 kWh 惩罚项混加",
+        )
     penalty = speed_difference_penalty(speed_vector, scale=scale)
     lambda_value = float(request.speed_penalty_lambda)
     total = None if energy_kwh is None else energy_kwh + lambda_value * penalty
@@ -52,8 +62,13 @@ def objective_terms(*, speed_vector, energy_kwh: float | None, request: SpeedOpt
     )
 
 
-def objective_value(*, energy_kwh: float | None, penalty: float, lambda_value: float
+def objective_value(*, energy_kwh: float | None, penalty: float, lambda_value: float,
+                    objective: str = "min_energy", duration_s: float | None = None
                     ) -> float | None:
+    if objective == "min_time":
+        return duration_s if duration_s is not None and math.isfinite(duration_s) else None
+    if objective != "min_energy":
+        raise ValueError("unsupported_objective")
     if energy_kwh is None:
         return None
     if not math.isfinite(energy_kwh):

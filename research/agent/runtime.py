@@ -386,7 +386,24 @@ class AgentRuntime:
                 else:
                     messages.append({"role":"user","content":feedback})
         if status!="accepted":
-            body="模型答复未通过或不可用。以下为工具摘要：\n"+json.dumps({"outcome_code":evidence["outcome_code"],"metrics":metrics},ensure_ascii=False,indent=2)
+            def measured(key, unit=None):
+                record=metrics.get(key)
+                if not record:
+                    return None
+                number=record.get("value")
+                if type(number) not in (int,float):
+                    return None
+                suffix=unit or record.get("unit", "")
+                return f"{number:.6g} {suffix}".strip()
+            if evidence["outcome_code"]=="research_feasible":
+                parts=[f"航程 {measured('distance_km')}，历时 {measured('duration_s')}，母线能耗 {measured('bus_energy_kwh')}。"]
+                if measured("motor_energy_kwh"):
+                    parts.append(f"电机能耗 {measured('motor_energy_kwh')}。")
+                if measured("final_soc_1") and measured("final_soc_2"):
+                    parts.append(f"末端电池 SOC：甲组 {metrics['final_soc_1']['value']*100:.3g}%，乙组 {metrics['final_soc_2']['value']*100:.3g}%。")
+                body="研究仿真方案已通过工具复核。"+"".join(parts)+"船态与功率参数为具名仿真假设，不构成实船航行批准。模型正文未通过数值核验；展开原始响应可查看模型实际输出。"
+            else:
+                body=f"工具结果：{evidence['outcome_code']}。模型正文未通过核验或暂不可用；展开原始响应可查看模型实际输出与工具诊断。"
         hits=[hit for obs in s["observations"] if obs["tool"]=="search_project_docs" for hit in obs.get("results",[])]
         sources=[];seen=set()
         for hit in sorted(hits,key=lambda item:item.get("score",0),reverse=True):

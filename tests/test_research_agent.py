@@ -17,9 +17,11 @@ class ScriptedModel:
     """Only automated tests use this model. Every solver below is real."""
     config = SimpleNamespace(enabled=True, model="scripted-test")
 
-    def __init__(self, *, missing=False, malicious=False):
+    def __init__(self, *, missing=False, malicious=False, invalid_answer=False, objective="min_energy"):
         self.missing = missing
         self.malicious = malicious
+        self.invalid_answer = invalid_answer
+        self.objective = objective
         self.calls = []
 
     def complete_chat(self, messages, *, tools, **kwargs):
@@ -27,11 +29,12 @@ class ScriptedModel:
         if names == ["submit_request"]:
             self.calls.append("parse")
             destination = None if self.missing and self.calls.count("parse") == 1 else "漯河港"
-            args = {"task_type": "planning", "origin": "漯河船闸", "destination": destination}
+            args = {"task_type": "planning", "origin": "漯河船闸", "destination": destination,
+                    "objective": self.objective}
             name = "submit_request"
         elif names == ["submit_answer"]:
             name = "submit_answer"
-            args = {"answer_markdown": "研究工具已执行，结果请结合仿真假设验收。", "claims": []}
+            args = {"answer_markdown": "航程 999 km 已获批准。" if self.invalid_answer else "研究工具已执行，结果请结合仿真假设验收。", "claims": []}
         else:
             context = json.loads(messages[-1]["content"].split("：",1)[1])
             name = next((n for n in ["Tdata","ask_clarification","Tseg","Tspeed","Tmanagement",
@@ -61,6 +64,34 @@ def test_actual_solver_loop_and_persisted_evidence(tmp_path):
         events = runtime.store.events(result["task_id"])
         assert any(e["type"] == "plan_verified" for e in events)
         assert any(e.get("parent_call_id") and e.get("tool") == "Tenergy" for e in events)
+    finally:
+        runtime.close()
+
+
+def test_invalid_model_numbers_keep_human_readable_verified_summary(tmp_path):
+    runtime = AgentRuntime(tmp_path, ScriptedModel(invalid_answer=True))
+    try:
+        result = runtime.start("从漯河船闸到漯河港", background=False)
+        assert result["outcome_code"] == "research_feasible"
+        assert result["answer_status"] == "rejected"
+        assert "研究仿真方案已通过工具复核" in result["final_answer"]
+        assert "999" not in result["final_answer"]
+        assert "source_ref" not in result["final_answer"]
+        assert any(event["type"] == "model_completed" for event in runtime.store.events(result["task_id"]))
+    finally:
+        runtime.close()
+
+
+def test_min_time_objective_reoptimizes_and_passes_fdp(tmp_path):
+    runtime = AgentRuntime(tmp_path, ScriptedModel(objective="min_time"))
+    try:
+        result = runtime.start("从漯河船闸到漯河港，优先最短航时", background=False)
+        assert result["outcome_code"] == "research_feasible"
+        assert result["request"]["objective"] == "min_time"
+        speed = runtime.store.read(result["task_id"], result["result_refs"]["Tspeed"])["payload"]
+        assert speed["result"]["objective_terms"]["total"] == pytest.approx(speed["summary"]["duration_s"])
+        assert speed["summary"]["speed_vector_kmh"]
+        assert result["metrics"]["final_soc_1"]["value"] > .2
     finally:
         runtime.close()
 

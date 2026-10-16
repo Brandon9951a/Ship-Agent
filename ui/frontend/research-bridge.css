@@ -1,0 +1,10 @@
+.agent-decision-list { padding: 0.8rem 1.2rem 1.2rem; overflow-wrap: anywhere; }
+.agent-decision-list h4 { margin: 0 0 0.5rem; font-size: 0.9rem; }
+.agent-decision-list ol { margin: 0; padding-left: 1.4rem; }
+.agent-decision-list li { margin: 0.7rem 0; line-height: 1.6; }
+.agent-decision-list p { margin: 0.2rem 0; }
+.agent-decision-list .agent-raw-answer { white-space: pre-wrap; }
+.agent-decision-list small { color: #687987; }
+.agent-decision-list details { margin-top: 1rem; }
+.agent-decision-list details > summary { cursor: pointer; }
+.agent-decision-list pre { max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #eef3f5; padding: 0.7rem; border-radius: 0.4rem; font-size: 0.75rem; }

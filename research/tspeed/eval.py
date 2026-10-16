@@ -221,7 +221,8 @@ def evaluate_candidate(speed_vector, *, context: DEEvaluationContext,
                         else energy)
     objective = objective_value(energy_kwh=objective_energy,
                                 penalty=penalty,
-                                lambda_value=float(request.speed_penalty_lambda))
+                                lambda_value=float(request.speed_penalty_lambda),
+                                objective=request.objective, duration_s=duration)
     evaluation = CandidateEvaluation(
         candidate_id=candidate_id,
         speed_vector=vector,

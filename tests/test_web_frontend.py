@@ -61,36 +61,35 @@ def _client(*, llm_mode="disabled", speech_manager=None, llm_client=None):
 def test_frontend_assets_exist_and_have_core_surfaces():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     css = STYLESHEET.read_text(encoding="utf-8")
-    agent_css = (ROOT / "unified-agent.css").read_text(encoding="utf-8")
-    js = (ROOT / "unified-agent.js").read_text(encoding="utf-8")
+    js = (ROOT / "app.js").read_text(encoding="utf-8")
+    bridge = (ROOT / "research-bridge.js").read_text(encoding="utf-8")
     for label in (
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
-        "登录船舶能效决策系统", "任务描述", "仿真情景", "任务类型",
-        "快捷填写航次条件", "应用到任务描述", "本次答复",
-        "五工具执行状态", "工具调用过程与模型公开决策依据",
-        "展开模型原始响应", "需要补充信息", "最近任务",
-        'id="mission-input"', 'id="run-button"', 'id="answer-text"',
-        'id="event-list"', 'id="raw-list"',
+        "登录船舶能效决策系统", "应用到任务描述", "智能航行提示",
+        "工具调用过程", "模型公开决策过程", "航线与分段方案",
+        "航段能耗与速度", "船舶三维运行态势", "已保存的方案",
+        'id="mission-input"', 'id="run-button"', 'id="trace-list"',
+        'id="agent-decision-list"', 'id="vessel-canvas"',
     ):
         assert label in html
     assert "@media" in css
-    assert "overflow-y: auto !important" in agent_css
-    assert '<script src="/static/unified-agent.js" defer></script>' in html
-    assert "/static/research-agent.js" not in html
-    assert "/static/app.js" not in html
+    assert '<script src="/static/app.js"></script>' in html
+    assert '<script src="/static/research-bridge.js"></script>' in html
     assert "vessel-ocean-background.jpg" in css
     assert BACKGROUND.is_file()
     for marker in (
         "/api/auth/login", "/api/auth/me", "/api/auth/logout",
-        "X-CSRF-Token", "/api/research/config", "workflow_mode: \"research_agent\"",
-        "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text",
-        "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
-        "action_requested", "public_rationale", "artifact_ref", "model_completed",
-        "answer_status", "final_answer", "waiting_human", "resumeTask",
-        "credentials: \"same-origin\"", "renderChain", "renderMetrics",
+        "X-CSRF-Token", "ResearchBridge.submit", "ResearchBridge.resume",
+        "/api/runs/", "/healthz",
     ):
         assert marker in js
-    assert "research-panel" not in html
+    for marker in (
+        "workflow_mode: \"research_agent\"", "/api/run", "/api/resume", "/api/runs/",
+        "Tdata", "Tseg", "Tspeed", "Tmanagement",
+        "action_requested", "public_rationale", "artifact_ref", "model_completed",
+        "answer_status", "final_answer", "waiting_human", "renderDetails",
+    ):
+        assert marker in bridge
 
 
 def test_plan_comparison_matches_full_recalculation():
@@ -118,6 +117,8 @@ def test_index_health_static_and_security_headers():
         assert "智行合一" in index.text
         assert index.headers["x-frame-options"] == "DENY"
         assert client.get("/static/app.js").status_code == 200
+        assert client.get("/static/research-bridge.js").status_code == 200
+        assert client.get("/static/research-bridge.css").status_code == 200
         assert client.get("/static/interaction.css").status_code == 200
         assert client.get("/static/ship-3d.js").status_code == 200
         for name in (
