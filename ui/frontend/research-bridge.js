@@ -30,26 +30,47 @@ const ResearchBridge = (() => {
   async function wait(taskId, onProgress = () => {}, signal = null) {
     let task;
     let events = [];
-    for (let attempt = 0; attempt < 360; attempt += 1) {
+    let transientFailures = 0;
+    // 服务重启或短暂断线不应让页面直接判失败：保留任务标识继续轮询。
+    // 30 分钟仍无终态时抛出可恢复错误，刷新页面后仍可继续查看同一任务。
+    for (let attempt = 0; attempt < 1800; attempt += 1) {
       if (signal?.aborted) {
         const error = new Error("cancelled"); error.name = "AbortError"; throw error;
       }
-      task = await json(`/api/runs/${encodeURIComponent(taskId)}`, { signal });
-      events = [];
-      let afterSeq = 0;
-      while (true) {
-        const page = await json(`/api/runs/${encodeURIComponent(taskId)}/events?after_seq=${afterSeq}`, { signal });
-        const batch = page.events || [];
-        events.push(...batch);
-        if (batch.length < 200) break;
-        afterSeq = batch.at(-1).seq;
+      try {
+        task = await json(`/api/runs/${encodeURIComponent(taskId)}`, { signal });
+        events = [];
+        let afterSeq = 0;
+        while (true) {
+          const page = await json(`/api/runs/${encodeURIComponent(taskId)}/events?after_seq=${afterSeq}`, { signal });
+          const batch = page.events || [];
+          events.push(...batch);
+          if (batch.length < 200) break;
+          afterSeq = batch.at(-1).seq;
+        }
+        transientFailures = 0;
+      } catch (error) {
+        if (error.name === "AbortError") throw error;
+        transientFailures += 1;
+        if (transientFailures > 60) throw error;
+        onProgress({ status: "reconnecting", phase: "服务暂时不可用" }, []);
+        await sleep(Math.min(1000 * transientFailures, 5000));
+        continue;
       }
       onProgress(task, events);
-      if (["completed", "failed", "waiting_human"].includes(task.status)) break;
+      if (["completed", "failed", "waiting_human", "cancelled"].includes(task.status)) break;
       await sleep(1000);
     }
-    if (!["completed", "failed", "waiting_human"].includes(task?.status)) {
-      throw new Error("任务仍在计算，可刷新页面继续查看。");
+    if (!task) {
+      const error = new Error("服务暂时不可用，恢复标识已保留；请稍后刷新重试。");
+      error.taskId = taskId;
+      throw error;
+    }
+    if (!["completed", "failed", "waiting_human", "cancelled"].includes(task.status)) {
+      const error = new Error("任务仍在计算；页面刷新后可继续查看同一任务。");
+      error.name = "TaskStillRunning";
+      error.taskId = taskId;
+      throw error;
     }
     return project(task, events);
   }
@@ -80,6 +101,20 @@ const ResearchBridge = (() => {
 
   async function load(taskId, onProgress) {
     return wait(taskId, onProgress);
+  }
+
+  async function cancel(taskId) {
+    const body = await json(`/api/runs/${encodeURIComponent(taskId)}/cancel`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+    });
+    return body;
+  }
+
+  async function retry(taskId, onProgress, signal = null) {
+    const body = await json(`/api/runs/${encodeURIComponent(taskId)}/retry`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: "{}", signal,
+    });
+    return wait(body.thread_id || taskId, onProgress, signal);
   }
 
   async function artifact(taskId, reference) {
@@ -121,9 +156,20 @@ const ResearchBridge = (() => {
     });
     const ok = task.status === "completed" && task.outcome_code === "research_feasible";
     const pending = task.status === "waiting_human" ? task.pending : null;
-    const executionFailure = task.status === "failed" || ["not_supported", "tool_error", "model_unavailable",
-      "process_interrupted", "agent_budget_exhausted"].includes(task.outcome_code);
+    const retryableCodes = ["process_interrupted", "model_unavailable", "tool_error",
+      "task_timeout", "queue_timeout", "recovery_exhausted", "agent_budget_exhausted"];
+    const cancelled = task.status === "cancelled" || ["task_cancelled", "task_timeout"].includes(task.outcome_code);
+    const executionFailure = task.status === "failed" || cancelled || ["not_supported", "tool_error",
+      "model_unavailable", "process_interrupted", "agent_budget_exhausted", "task_cancelled",
+      "task_timeout", "queue_timeout", "recovery_exhausted"].includes(task.outcome_code);
     const status = ok ? "ok" : pending ? "need_clarification" : executionFailure ? "failed" : "infeasible";
+    const canRetry = (task.status === "failed" || task.status === "cancelled") && retryableCodes.includes(task.outcome_code);
+    const canCancel = ["queued", "running", "waiting_human"].includes(task.status);
+    const stage = task.status === "queued" ? "排队中"
+      : task.status === "running" ? `计算中${task.phase ? ` · ${task.phase}` : ""}`
+      : task.cancel_requested ? "正在取消"
+      : task.status === "waiting_human" ? "等待补充信息"
+      : task.recovery_attempts ? `恢复第 ${task.recovery_attempts} 次` : "";
     const observations = events.filter(event => event.type === "tool_completed" || event.type === "tool_failed");
     const trace = observations.map(event => ({
       node: event.tool, status: event.outcome_code === "ok" || event.type === "tool_completed" ? "ok" : "failed",
@@ -160,6 +206,11 @@ const ResearchBridge = (() => {
       answer_status: task.answer_status, final_answer: finalAnswer || (pending ? reason : ""), research_pending: pending,
       research_events: events, research_metrics: task.metrics || {},
       research_soc: { battery_1: soc1, battery_2: soc2 },
+      research_runtime: {
+        task_status: task.status, phase: task.phase || null, stage,
+        recovery_attempts: task.recovery_attempts || 0, recovery_path: task.recovery_path || null,
+        cancel_requested: Boolean(task.cancel_requested), can_retry: canRetry, can_cancel: canCancel,
+      },
       request: { origin, destination, departure_at: request.departure_at,
         max_duration_h: request.remaining_time_s == null ? null : request.remaining_time_s / 3600,
         soc_initial: initial1,
@@ -232,5 +283,5 @@ const ResearchBridge = (() => {
     $("#agent-decision-meta").textContent = `${models.length} 次模型响应 · ${actions.length} 次动作`;
   }
 
-  return { submit, resume, load, wait, renderDetails, structuredText };
+  return { submit, resume, load, wait, cancel, retry, renderDetails, structuredText };
 })();

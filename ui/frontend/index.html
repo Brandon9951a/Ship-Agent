@@ -143,6 +143,12 @@
             <div class="decision-status idle" id="decision-status"><span></span>待命</div>
           </section>
 
+          <div class="task-controls" id="task-controls" hidden>
+            <span class="task-stage" id="task-stage" role="status"></span>
+            <button class="secondary-action" id="cancel-task" type="button" hidden><i data-lucide="square"></i> 取消任务</button>
+            <button class="secondary-action" id="retry-task" type="button" hidden><i data-lucide="refresh-cw"></i> 重试任务</button>
+          </div>
+
           <div class="result-stale" id="result-stale" role="status" hidden></div>
           <section class="progress-track" id="progress-track">
             <div class="progress-labels" id="progress-labels">
