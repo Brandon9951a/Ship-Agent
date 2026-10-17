@@ -146,6 +146,46 @@ def test_failures_never_publish_plan(tmp_path,scenario,expected):
         runtime.close()
 
 
+def test_fdp_grid_budget_ends_as_solver_unresolved_without_model_budget_exhaustion(tmp_path):
+    runtime = AgentRuntime(tmp_path, ScriptedModel())
+    try:
+        runtime.store.create("task-grid-unresolved", "local", {"status": "running"})
+        state = {
+            "task_id": "task-grid-unresolved",
+            "scenario_id": "route_success",
+            "outcomes": {"Tdata": "ok", "Tseg": "ok", "Tspeed": "ok",
+                         "Tmanagement": "grid_unresolved"},
+            "steps": 0, "invalid_actions": 0, "task_type": "planning",
+            "request": {"origin": "漯河船闸", "destination": "漯河港"},
+            "observations": [],
+        }
+        decision = runtime._reconcile(state)
+        assert decision == {"route": "finish", "outcome_code": "solver_unresolved"}
+        events = runtime.store.events("task-grid-unresolved")
+        assert events[-1]["type"] == "solver_unresolved"
+    finally:
+        runtime.close()
+
+
+def test_tspeed_search_unresolved_ends_as_solver_unresolved(tmp_path):
+    runtime = AgentRuntime(tmp_path, ScriptedModel())
+    try:
+        runtime.store.create("task-search-unresolved", "local", {"status": "running"})
+        state = {
+            "task_id": "task-search-unresolved",
+            "scenario_id": "route_success",
+            "outcomes": {"Tdata": "ok", "Tseg": "ok", "Tspeed": "search_unresolved"},
+            "steps": 0, "invalid_actions": 0, "task_type": "planning",
+            "request": {"origin": "漯河船闸", "destination": "漯河港"},
+            "observations": [],
+        }
+        decision = runtime._reconcile(state)
+        assert decision == {"route": "finish", "outcome_code": "solver_unresolved"}
+        assert runtime.store.events("task-search-unresolved")[-1]["source_outcome"] == "search_unresolved"
+    finally:
+        runtime.close()
+
+
 def test_artifacts_scope_hash_and_revision(tmp_path):
     store=Store(tmp_path)
     store.create("a","alice",{});store.create("b","bob",{})

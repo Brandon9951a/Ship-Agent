@@ -31,7 +31,8 @@ PRO={"Tdata","Tseg","Tenergy","Tspeed","Tmanagement"}
 TERMINAL={"completed","failed","cancelled"}
 # 可由用户显式重试的终态结果码；真实不可行与缺参不在其中。
 RETRYABLE_CODES={"process_interrupted","model_unavailable","tool_error","task_timeout",
-                 "queue_timeout","recovery_exhausted","agent_budget_exhausted"}
+                 "queue_timeout","recovery_exhausted","agent_budget_exhausted",
+                 "solver_unresolved"}
 _STOPPED_WORKERS=set()
 _STOPPED_LOCK=threading.Lock()
 
@@ -359,6 +360,16 @@ class AgentRuntime:
             code="task_timeout" if reason=="task_timeout" else "task_cancelled"
             self.store.event(s["task_id"],"run_cancelled",reason=reason)
             return {"route":"finish","outcome_code":code}
+        # A bounded FDP search miss is a diagnostic, not an infeasibility
+        # proof; terminate before another model action can hide that outcome.
+        if s["outcomes"].get("Tmanagement") == "grid_unresolved":
+            self.store.event(s["task_id"],"solver_unresolved",
+                             source_outcome="grid_unresolved")
+            return {"route":"finish","outcome_code":"solver_unresolved"}
+        if s["outcomes"].get("Tspeed") == "search_unresolved":
+            self.store.event(s["task_id"],"solver_unresolved",
+                             source_outcome="search_unresolved")
+            return {"route":"finish","outcome_code":"solver_unresolved"}
         budget=configuration(s["scenario_id"])["budgets"]
         if s["steps"]>=budget["agent_steps"] or s["invalid_actions"]>=budget["invalid_actions"]:
             return {"route":"finish","outcome_code":"agent_budget_exhausted"}
@@ -478,6 +489,8 @@ class AgentRuntime:
                 code=next((o["outcome_code"] for o in reversed(s["observations"])
                     if o["tool"] in PRO and o["outcome_code"] not in ("ok","not_found")),
                     next((v for v in reversed(list(s["outcomes"].values())) if v not in ("ok","not_found")),"no_usable_plan"))
+                if code in ("grid_unresolved", "search_unresolved"):
+                    code = "solver_unresolved"
                 summary={}
             metrics=self._metrics(s,summary)
             return {"route":"finish","outcome_code":code,"metrics":metrics}

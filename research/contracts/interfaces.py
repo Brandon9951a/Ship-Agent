@@ -36,6 +36,7 @@ class OutcomeCode(str, Enum):
     INFEASIBLE_UNDER_ASSUMPTIONS = "infeasible_under_assumptions"
     TOOL_ERROR = "tool_error"
     GRID_UNRESOLVED = "grid_unresolved"          # Tmanagement/FDP 专用
+    SOLVER_UNRESOLVED = "solver_unresolved"      # 上层保留预算/中断未完成语义
     NOT_SUPPORTED = "not_supported"              # 未实现目标/补能试算等显式不支持
 
 
@@ -66,6 +67,7 @@ _OUTCOME_TO_EXECUTION = {
     OutcomeCode.SEARCH_UNRESOLVED: ExecutionStatus.COMPLETED,
     OutcomeCode.INFEASIBLE_UNDER_ASSUMPTIONS: ExecutionStatus.COMPLETED,
     OutcomeCode.GRID_UNRESOLVED: ExecutionStatus.COMPLETED,
+    OutcomeCode.SOLVER_UNRESOLVED: ExecutionStatus.COMPLETED,
     OutcomeCode.NEEDS_INPUT: ExecutionStatus.COMPLETED,
     OutcomeCode.INVALID_INPUT: ExecutionStatus.COMPLETED,
     OutcomeCode.NOT_SUPPORTED: ExecutionStatus.COMPLETED,
@@ -77,6 +79,7 @@ _OUTCOME_TO_SEARCH_STATUS = {
     OutcomeCode.OK: SearchStatus.CANDIDATE_FOUND,
     OutcomeCode.SEARCH_UNRESOLVED: SearchStatus.SEARCH_UNRESOLVED,
     OutcomeCode.INFEASIBLE_UNDER_ASSUMPTIONS: SearchStatus.SEARCH_UNRESOLVED,
+    OutcomeCode.SOLVER_UNRESOLVED: SearchStatus.SEARCH_UNRESOLVED,
     OutcomeCode.INVALID_INPUT: SearchStatus.INPUT_INVALID,
     OutcomeCode.NEEDS_INPUT: SearchStatus.INPUT_INVALID,
     OutcomeCode.MODEL_OUT_OF_DOMAIN: SearchStatus.MODEL_OUT_OF_DOMAIN,
