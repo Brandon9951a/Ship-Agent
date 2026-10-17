@@ -1,0 +1,738 @@
+{
+  "started_at": "2026-10-17T10:04:27.878148+00:00",
+  "scope": "actual_tool_calls_only; live DeepSeek acceptance is a separate gate",
+  "chat_model": null,
+  "cases": [
+    {
+      "case": "analytic",
+      "task_id": "6dbd4adb-c803-4954-876c-cb2a5c54f018",
+      "request": {
+        "origin": "漯河船闸",
+        "destination": "漯河港"
+      },
+      "tool_calls": [
+        {
+          "tool": "Tdata",
+          "call_id": "264d330c-0ffe-4340-be6b-5a0b23569eb2",
+          "outcome_code": "ok",
+          "artifact_ref": "c163a0c3359369ebe74f02a5a3c0e7d72ecb47c934cf7e2b6751a42843821773",
+          "summary": {
+            "snapshot_id": "561d3d6c27f561e1a64c95b511534b3037b2bda6eefa711d33a078ba5a04bec4",
+            "batteries": {
+              "battery_1": {
+                "capacity_kwh": 1000.0,
+                "initial_soc": 0.8,
+                "soc_min": 0.2,
+                "min_power_kw": 5.0,
+                "max_power_kw": 50.0,
+                "discharge_efficiency": 0.9,
+                "sources": {
+                  "capacity_kwh": {
+                    "source_id": "simulation:battery_1.capacity_kwh",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "initial_soc": {
+                    "source_id": "simulation:battery_1.initial_soc",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "soc_min": {
+                    "source_id": "simulation:battery_1.soc_min",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "min_power_kw": {
+                    "source_id": "simulation:battery_1.min_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "max_power_kw": {
+                    "source_id": "simulation:battery_1.max_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "discharge_efficiency": {
+                    "source_id": "simulation:battery_1.discharge_efficiency",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  }
+                }
+              },
+              "battery_2": {
+                "capacity_kwh": 1000.0,
+                "initial_soc": 0.8,
+                "soc_min": 0.2,
+                "min_power_kw": 5.0,
+                "max_power_kw": 50.0,
+                "discharge_efficiency": 0.9,
+                "sources": {
+                  "capacity_kwh": {
+                    "source_id": "simulation:battery_2.capacity_kwh",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "initial_soc": {
+                    "source_id": "simulation:battery_2.initial_soc",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "soc_min": {
+                    "source_id": "simulation:battery_2.soc_min",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "min_power_kw": {
+                    "source_id": "simulation:battery_2.min_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "max_power_kw": {
+                    "source_id": "simulation:battery_2.max_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "discharge_efficiency": {
+                    "source_id": "simulation:battery_2.discharge_efficiency",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  }
+                }
+              }
+            },
+            "source_mode": "simulation",
+            "assumptions": [
+              "以下状态、功率、效率、速度和等待值均为具名软件仿真假设；距离另附资料来源。"
+            ],
+            "current_speed_kmh": 7.0,
+            "environment": {
+              "scenario": "named-still-water",
+              "current_mps": 0.0,
+              "wind_mps": 0.0,
+              "model_scope": "解析立方功率假设；未显式建模环境修正"
+            },
+            "conversion_efficiency": 0.94,
+            "auxiliary_kw": 5.0,
+            "field_sources": {
+              "current_speed_kmh": {
+                "source_id": "simulation:current_speed_kmh",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "environment": {
+                "source_id": "simulation:environment",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "conversion_efficiency": {
+                "source_id": "simulation:conversion_efficiency",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "auxiliary_kw": {
+                "source_id": "simulation:auxiliary_kw",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "coefficient": {
+                "source_id": "simulation:coefficient",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              }
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "tool": "Tenergy",
+          "call_id": "8c9a7cbe-9a43-4bf0-9ea5-4871af935874",
+          "outcome_code": "ok",
+          "artifact_ref": "f7ab527671c3ae5956e4e44a3f94fc767475e0f44fb80a1a163d4edbe01f8869",
+          "backend": "analytic",
+          "summary": {
+            "backend": "analytic",
+            "model_version": "analytic-cubic/1.0",
+            "duration_s": 354.4420634920635,
+            "distance_km": 0.689,
+            "motor_energy_kwh": 1.8559240104166637,
+            "bus_energy_kwh": 2.4666678888630895,
+            "usage": "simulation_prediction_only"
+          },
+          "diagnostics": [
+            {
+              "stage": "demand_build",
+              "code": "conversion_is_named_assumption",
+              "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "conversion_model_ref",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [
+                {
+                  "source_id": "simulation:conversion",
+                  "kind": "assumption",
+                  "locator": "configs/research_agent.json",
+                  "confirmed": false,
+                  "note": "具名软件仿真值",
+                  "mode": "simulation"
+                }
+              ],
+              "retryable": false
+            }
+          ]
+        }
+      ],
+      "backend": "analytic",
+      "outcome_code": "ok",
+      "verified_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 2.4666678888630895,
+        "distance_km": 0.689,
+        "duration_s": 354.4420634920635,
+        "model_version": "analytic-cubic/1.0",
+        "motor_energy_kwh": 1.8559240104166637,
+        "usage": "simulation_prediction_only"
+      },
+      "artifact_refs": {
+        "Tdata": "c163a0c3359369ebe74f02a5a3c0e7d72ecb47c934cf7e2b6751a42843821773",
+        "Tenergy": "f7ab527671c3ae5956e4e44a3f94fc767475e0f44fb80a1a163d4edbe01f8869"
+      },
+      "exported_artifacts": {
+        "c163a0c3359369ebe74f02a5a3c0e7d72ecb47c934cf7e2b6751a42843821773": "Tdata",
+        "a029e743ee814f23da669750e49a1a2409314b956543bc2d0be2235bdedf37af": "Tseg",
+        "96b12d5938061e6927596786ca194f68043dd9b0b9d6db4c336247b29f582591": "prediction_environment",
+        "46ebb2adfb8f7d8268daa8fbbc21d8d681fc37ce70946102afd6c879feab7f68": "prediction_power_series",
+        "69e95663b24ef9cb7bd4115e76f60d9ba976dfeba8e2e933b2e71e7187cbe733": "prediction_demand",
+        "f7ab527671c3ae5956e4e44a3f94fc767475e0f44fb80a1a163d4edbe01f8869": "Tenergy"
+      }
+    },
+    {
+      "case": "lstm20",
+      "task_id": "9893ac4a-afb6-4512-b158-79467d6d5040",
+      "request": {
+        "prediction_backend": "lstm",
+        "prediction_duration_s": 20
+      },
+      "tool_calls": [
+        {
+          "tool": "Tdata",
+          "call_id": "acb3275b-ba8e-46d4-b9b3-42116dd754cd",
+          "outcome_code": "ok",
+          "artifact_ref": "de402e433b8b1c10ca79d0005f5c0ac0d4aab5a10d6602fc45d9a390965931b4",
+          "summary": {
+            "snapshot_id": "725514bda67e0fd0bd6b4db71c94e9ce0ac1e556e43fda5344aa7a9c547b0000",
+            "batteries": {
+              "battery_1": {
+                "capacity_kwh": 1000.0,
+                "initial_soc": 0.8,
+                "soc_min": 0.2,
+                "min_power_kw": 5.0,
+                "max_power_kw": 50.0,
+                "discharge_efficiency": 0.9,
+                "sources": {
+                  "capacity_kwh": {
+                    "source_id": "simulation:battery_1.capacity_kwh",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "initial_soc": {
+                    "source_id": "simulation:battery_1.initial_soc",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "soc_min": {
+                    "source_id": "simulation:battery_1.soc_min",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "min_power_kw": {
+                    "source_id": "simulation:battery_1.min_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "max_power_kw": {
+                    "source_id": "simulation:battery_1.max_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "discharge_efficiency": {
+                    "source_id": "simulation:battery_1.discharge_efficiency",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  }
+                }
+              },
+              "battery_2": {
+                "capacity_kwh": 1000.0,
+                "initial_soc": 0.8,
+                "soc_min": 0.2,
+                "min_power_kw": 5.0,
+                "max_power_kw": 50.0,
+                "discharge_efficiency": 0.9,
+                "sources": {
+                  "capacity_kwh": {
+                    "source_id": "simulation:battery_2.capacity_kwh",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "initial_soc": {
+                    "source_id": "simulation:battery_2.initial_soc",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "soc_min": {
+                    "source_id": "simulation:battery_2.soc_min",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "min_power_kw": {
+                    "source_id": "simulation:battery_2.min_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "max_power_kw": {
+                    "source_id": "simulation:battery_2.max_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "discharge_efficiency": {
+                    "source_id": "simulation:battery_2.discharge_efficiency",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  }
+                }
+              }
+            },
+            "source_mode": "simulation",
+            "assumptions": [
+              "以下状态、功率、效率、速度和等待值均为具名软件仿真假设；距离另附资料来源。"
+            ],
+            "current_speed_kmh": 7.0,
+            "environment": {
+              "scenario": "named-still-water",
+              "current_mps": 0.0,
+              "wind_mps": 0.0,
+              "model_scope": "解析立方功率假设；未显式建模环境修正"
+            },
+            "conversion_efficiency": 0.94,
+            "auxiliary_kw": 5.0,
+            "field_sources": {
+              "current_speed_kmh": {
+                "source_id": "simulation:current_speed_kmh",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "environment": {
+                "source_id": "simulation:environment",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "conversion_efficiency": {
+                "source_id": "simulation:conversion_efficiency",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "auxiliary_kw": {
+                "source_id": "simulation:auxiliary_kw",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "coefficient": {
+                "source_id": "simulation:coefficient",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              }
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "tool": "Tenergy",
+          "call_id": "2ab1abe5-4782-4263-ad63-ef0eae4c2541",
+          "outcome_code": "ok",
+          "artifact_ref": "133b324ecb825b6f9fb4175cd259340da9115fe8b01639612f9eb8e4a6617ebc",
+          "backend": "lstm",
+          "summary": {
+            "backend": "lstm",
+            "model_version": "tenergy-lstm-v5",
+            "duration_s": 20,
+            "usage": "research_only",
+            "motor_energy_kwh": 0.33360385894775385,
+            "bus_energy_kwh": 0.3826755000626223,
+            "tspeed_handoff_verified": true
+          },
+          "diagnostics": []
+        }
+      ],
+      "backend": "lstm",
+      "outcome_code": "ok",
+      "verified_summary": {
+        "backend": "lstm",
+        "bus_energy_kwh": 0.3826755000626223,
+        "duration_s": 20,
+        "model_version": "tenergy-lstm-v5",
+        "motor_energy_kwh": 0.33360385894775385,
+        "tspeed_handoff_verified": true,
+        "usage": "research_only"
+      },
+      "artifact_refs": {
+        "Tdata": "de402e433b8b1c10ca79d0005f5c0ac0d4aab5a10d6602fc45d9a390965931b4",
+        "Tenergy": "133b324ecb825b6f9fb4175cd259340da9115fe8b01639612f9eb8e4a6617ebc"
+      },
+      "exported_artifacts": {
+        "de402e433b8b1c10ca79d0005f5c0ac0d4aab5a10d6602fc45d9a390965931b4": "Tdata",
+        "642eb5c79880b64ca3087740523d32b179eac62e0de4315f2e60de69bfecf965": "prediction_history",
+        "5dee2555e00b1f5a4015c96db94272ff7a32671558538166e2e2241dd52db5cc": "prediction_power_series",
+        "133b324ecb825b6f9fb4175cd259340da9115fe8b01639612f9eb8e4a6617ebc": "Tenergy",
+        "1d6edd8066f5a2296ee9cfde74204dd6721f91af2c801bd31029c0e6426a7f47": "TenergyV2:history",
+        "2caef351245fa6b59570ac46ad29342d853a3b99ad4bdfa1745a19d7d46d15ba": "TenergyV2:energy_batch_request",
+        "442997b96b4040c276f1ceabaf60c5c66bb5377ab193657457df5f9cff99d1af": "TenergyV2:power_series",
+        "9f8d50cc7378e6101791ef6673688c8af7587bb0f01af60eaac06edfae1f6a7c": "TenergyV2:energy_batch_result",
+        "b641faa71d0f2b6cc1f6fdd23865ac6ce3418cecd05044e877b7ad6817420df0": "TenergyV2:energy_batch_result",
+        "bd8e7755f7a9910663148d959285b550dfd6de53d002f5f9f0a906b65bb505ee": "TenergyV2:power_series",
+        "e451cda27f67c1b6bfd22d14aa7aa5e4e8d074094cf64de9f93e42c60aa20433": "TenergyV2:energy_batch_request"
+      }
+    },
+    {
+      "case": "lstm40",
+      "task_id": "5d028daa-85a7-4081-bd7e-a88a0ff5c455",
+      "request": {
+        "prediction_backend": "lstm",
+        "prediction_duration_s": 40
+      },
+      "tool_calls": [
+        {
+          "tool": "Tdata",
+          "call_id": "2cf7987e-3483-4684-8d72-592f9f4ec9b5",
+          "outcome_code": "ok",
+          "artifact_ref": "f5f566d0595c46701c7a2ff212c71058fbad5b01c3d6e214bd8c49676f3af9c0",
+          "summary": {
+            "snapshot_id": "399403e0b06dd2cc6995b00127666a320ddef1b9d4d394c3a109395ba0d96990",
+            "batteries": {
+              "battery_1": {
+                "capacity_kwh": 1000.0,
+                "initial_soc": 0.8,
+                "soc_min": 0.2,
+                "min_power_kw": 5.0,
+                "max_power_kw": 50.0,
+                "discharge_efficiency": 0.9,
+                "sources": {
+                  "capacity_kwh": {
+                    "source_id": "simulation:battery_1.capacity_kwh",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "initial_soc": {
+                    "source_id": "simulation:battery_1.initial_soc",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "soc_min": {
+                    "source_id": "simulation:battery_1.soc_min",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "min_power_kw": {
+                    "source_id": "simulation:battery_1.min_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "max_power_kw": {
+                    "source_id": "simulation:battery_1.max_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "discharge_efficiency": {
+                    "source_id": "simulation:battery_1.discharge_efficiency",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  }
+                }
+              },
+              "battery_2": {
+                "capacity_kwh": 1000.0,
+                "initial_soc": 0.8,
+                "soc_min": 0.2,
+                "min_power_kw": 5.0,
+                "max_power_kw": 50.0,
+                "discharge_efficiency": 0.9,
+                "sources": {
+                  "capacity_kwh": {
+                    "source_id": "simulation:battery_2.capacity_kwh",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "initial_soc": {
+                    "source_id": "simulation:battery_2.initial_soc",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "soc_min": {
+                    "source_id": "simulation:battery_2.soc_min",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "min_power_kw": {
+                    "source_id": "simulation:battery_2.min_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "max_power_kw": {
+                    "source_id": "simulation:battery_2.max_power_kw",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  },
+                  "discharge_efficiency": {
+                    "source_id": "simulation:battery_2.discharge_efficiency",
+                    "kind": "assumption",
+                    "locator": "configs/research_agent.json",
+                    "confirmed": false,
+                    "note": "具名软件仿真值",
+                    "mode": "simulation"
+                  }
+                }
+              }
+            },
+            "source_mode": "simulation",
+            "assumptions": [
+              "以下状态、功率、效率、速度和等待值均为具名软件仿真假设；距离另附资料来源。"
+            ],
+            "current_speed_kmh": 7.0,
+            "environment": {
+              "scenario": "named-still-water",
+              "current_mps": 0.0,
+              "wind_mps": 0.0,
+              "model_scope": "解析立方功率假设；未显式建模环境修正"
+            },
+            "conversion_efficiency": 0.94,
+            "auxiliary_kw": 5.0,
+            "field_sources": {
+              "current_speed_kmh": {
+                "source_id": "simulation:current_speed_kmh",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "environment": {
+                "source_id": "simulation:environment",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "conversion_efficiency": {
+                "source_id": "simulation:conversion_efficiency",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "auxiliary_kw": {
+                "source_id": "simulation:auxiliary_kw",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              },
+              "coefficient": {
+                "source_id": "simulation:coefficient",
+                "kind": "assumption",
+                "locator": "configs/research_agent.json",
+                "confirmed": false,
+                "note": "具名软件仿真值",
+                "mode": "simulation"
+              }
+            }
+          },
+          "diagnostics": []
+        },
+        {
+          "tool": "Tenergy",
+          "call_id": "fbf7b089-8058-45fe-9206-a59c7de413c6",
+          "outcome_code": "model_out_of_domain",
+          "artifact_ref": "e3727a67e743603f584be42c3d0bbc0d1979367299621052e34ba52a6f047577",
+          "backend": "lstm",
+          "summary": {
+            "backend": "lstm",
+            "model_version": "tenergy-lstm-v5",
+            "duration_s": 40,
+            "usage": "research_only"
+          },
+          "diagnostics": [
+            {
+              "code": "forecast_horizon_unvalidated",
+              "detail": "",
+              "field_ref": null,
+              "limit": 5,
+              "observed": 8,
+              "retryable": false,
+              "source_refs": [],
+              "stage": "Tenergy",
+              "time_interval_or_segment_id": null,
+              "unit": null
+            }
+          ]
+        }
+      ],
+      "backend": "lstm",
+      "outcome_code": "model_out_of_domain",
+      "verified_summary": null,
+      "artifact_refs": {
+        "Tdata": "f5f566d0595c46701c7a2ff212c71058fbad5b01c3d6e214bd8c49676f3af9c0",
+        "Tenergy": "e3727a67e743603f584be42c3d0bbc0d1979367299621052e34ba52a6f047577"
+      },
+      "exported_artifacts": {
+        "f5f566d0595c46701c7a2ff212c71058fbad5b01c3d6e214bd8c49676f3af9c0": "Tdata",
+        "c25bf40c43e97b40d40bcef6555033986fef902f1d1c35358f0358a2db7c686d": "prediction_history",
+        "e3727a67e743603f584be42c3d0bbc0d1979367299621052e34ba52a6f047577": "Tenergy",
+        "32dc9ddc4a6598dba63e9929782a72161e7703f3007c66c2a135664b72047897": "TenergyV2:history",
+        "6b294d79b3007c2c66e68edc194093d221a8a63e895e4c5fa30d12c2fe663d8f": "TenergyV2:energy_batch_request",
+        "81637cc0113570da611c897df5feaa1716ec55ed05cfa0bf6c1dd24ed8e48f69": "TenergyV2:energy_batch_result"
+      }
+    }
+  ],
+  "finished_at": "2026-10-17T10:04:32.004063+00:00",
+  "passed": true
+}

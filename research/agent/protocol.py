@@ -22,6 +22,14 @@ REQUEST_TOOL=tool("submit_request","提取任务；缺失字段填 null，不推
     "initial_soc_2":{"type":["number","null"]},"current_speed_kmh":{"type":["number","null"]},
     "load_state":{"type":["string","null"],"enum":["空载","半载","满载",None]},
     "departure_at":{"type":["string","null"]},
+    "prediction_backend":{"type":["string","null"],"enum":["analytic","lstm",None]},
+    "prediction_duration_s":{"type":["number","null"]},
+    "trajectory":{"type":["array","null"],"minItems":1,"maxItems":10000,"items":{
+        "type":"object","properties":{"segment_id":S,
+            "phase":{"type":"string","enum":["sailing","waiting","berthing"]},
+            "start_offset_s":N,"duration_s":N,"planned_speed_kmh":{"type":["number","null"]}},
+        "required":["segment_id","phase","start_offset_s","duration_s","planned_speed_kmh"],
+        "additionalProperties":False}},
     "objective":{"type":["string","null"],"enum":["min_energy","min_time",None]}},("task_type",),False)
 
 OPERAND={"anyOf":[N,{"type":"object","properties":{"task_id":S,"artifact_ref":S,"field_path":S},
@@ -30,7 +38,7 @@ OPERAND={"anyOf":[N,{"type":"object","properties":{"task_id":S,"artifact_ref":S,
 TOOLS={item["function"]["name"]:item for item in [
     tool("Tdata","读取选定具名仿真情景、双电池初态和来源。"),
     tool("Tseg","按已确认起终点生成连续航段和仿真速度、等待约束。"),
-    tool("Tenergy","执行选定 LSTM 短轨迹测试，包括 Tspeed 评价交接；不作长时外推。"),
+    tool("Tenergy","独立预测：默认解析后端，按显式轨迹或已确认起终点与情景航速生成轨迹并计算功率和能量。显式 LSTM 使用短轨迹，超窗口报域外；不自动换后端。"),
     tool("Tspeed","运行真实 DE 搜索；内部调用解析 Tenergy。仅允许有证据的 FDP 反馈重搜。"),
     tool("Tmanagement","对已选定需求运行真实双电池 FDP。"),
     tool("search_project_docs","检索项目资料，返回原文片段与来源。不能用检索内容改写情景参数。",{"query":S},("query",)),
