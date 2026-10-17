@@ -1021,7 +1021,7 @@ function renderHistory() {
     lastDate = date;
     const time = new Date(item.updatedAt || item.createdAt);
     const timeText = Number.isNaN(time.getTime()) ? "--:--" : time.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false });
-    const statusText = { ok: "方案已生成", awaiting_choice: "等待确认", infeasible: "不可行", need_clarification: "需补充", failed: "失败" }[item.status] || "已记录";
+    const statusText = { ok: "方案已生成", prediction_completed: "预测完成", awaiting_choice: "等待确认", infeasible: "不可行", need_clarification: "需补充", failed: "失败" }[item.status] || "已记录";
     const active = state.lastResult?.thread_id === item.threadId ? " active" : "";
     return `${heading}<button class="history-entry${active}" type="button" data-history-id="${escapeHtml(item.threadId)}" title="${escapeHtml(item.title || "未命名任务")}"><strong>${escapeHtml(item.title || "未命名任务")}</strong><span><time>${escapeHtml(timeText)}</time><small>${escapeHtml(statusText)}</small></span></button>`;
   }).join("");
@@ -1268,9 +1268,10 @@ function renderResult(result) {
   state.resultStale = false;
   $("#result-stale").hidden = true;
   const okay = result.status === "ok";
+  const predicted = result.status === "prediction_completed";
   const infeasible = result.status === "infeasible";
   const awaiting = result.status === "awaiting_choice";
-  if (okay) {
+  if (okay || predicted) {
     // Clear the previous decision panel before rendering any new result data.
     $("#infeasible-alert").hidden = true;
     $("#infeasible-alert").setAttribute("aria-hidden", "true");
@@ -1283,9 +1284,9 @@ function renderResult(result) {
   const checks = result.report?.checks || result.tspeed?.payload?.checks || [];
   const warnings = result.report?.warnings || result.tmanagement?.payload?.warnings || [];
 
-  updateStatus(okay ? "success" : awaiting ? "running" : "error", okay ? "仿真方案已生成" : awaiting ? "等待确认" : infeasible ? "航次不可行" : result.status === "failed" ? "执行未完成" : "需要补充");
-  $("#mission-title").textContent = route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "仿真方案已生成" : "任务未完成");
-  $("#mission-subtitle").textContent = okay
+  updateStatus(okay || predicted ? "success" : awaiting ? "running" : "error", predicted ? "能耗预测完成" : okay ? "仿真方案已生成" : awaiting ? "等待确认" : infeasible ? "航次不可行" : result.status === "failed" ? "执行未完成" : "需要补充");
+  $("#mission-title").textContent = predicted ? "独立能耗预测完成" : route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "仿真方案已生成" : "任务未完成");
+  $("#mission-subtitle").textContent = predicted ? "工具已计算功率与能量；来源、后端和诊断见下方。此结果不代表航次可行。" : okay
     ? "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。"
     : awaiting
       ? "当前任务不满足执行条件，请选择下方调整方案。"
@@ -1323,6 +1324,14 @@ function renderResult(result) {
     renderTaskReview(result.request || {});
     renderPlanComparison(result);
     $("#result-actions").hidden = false;
+  } else if (predicted) {
+    $("#metric-energy").textContent = formatNumber(result.research_metrics?.motor_energy_kwh?.value, " kWh（电机侧）");
+    $("#metric-time").textContent = formatHours((result.research_metrics?.duration_s?.value ?? 0) / 3600);
+    $("#metric-eta").textContent = "--";
+    $("#metric-soc").textContent = "--";
+    ["#evidence-panel", "#result-scope-banner", "#task-review", "#plan-comparison", "#result-actions"].forEach(id => { $(id).hidden = true; });
+    renderEnergyChart([]); renderTable([]); renderSafety([], []);
+    updateVesselView("incomplete", { message: "独立预测已完成，未生成航行方案或回放。" });
   } else {
     $("#evidence-panel").hidden = true;
     $("#result-scope-banner").hidden = true;
