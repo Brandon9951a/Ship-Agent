@@ -273,6 +273,38 @@ def create_app(
             ),
         }
 
+    @app.get("/api/admin/research-runtime", include_in_schema=False)
+    async def research_runtime_status(request: Request):
+        """队列、恢复与超时边界；供管理员定位“任务卡住/服务重启”类问题。"""
+        if request.state.session["role"] != "admin":
+            return _auth_error(403, "forbidden")
+        research = app.state.research_runtime
+        try:
+            queue = {
+                "queued": research.store.count_status("queued"),
+                "running": research.store.count_status("running"),
+                "waiting_human": research.store.count_status("waiting_human"),
+                "failed": research.store.count_status("failed"),
+            }
+        except Exception:
+            queue = None
+        return {
+            "status": "ok",
+            "queue": queue,
+            "limits": {
+                "max_active_tasks": research.limits.max_active_tasks,
+                "task_timeout_s": research.limits.task_timeout_s,
+                "queue_timeout_s": research.limits.queue_timeout_s,
+                "max_recovery_attempts": research.limits.max_recovery_attempts,
+            },
+            "last_recovery": {
+                "recovered_at": research.recovery.get("recovered_at"),
+                "resumed_from_checkpoint": len(research.recovery.get("resumed_from_checkpoint") or []),
+                "restarted_from_input": len(research.recovery.get("restarted_from_input") or []),
+                "exhausted": len(research.recovery.get("exhausted") or []),
+            },
+        }
+
     @app.post("/api/auth/login", include_in_schema=False)
     async def login(request: Request):
         body = await request.body()
@@ -464,11 +496,18 @@ def create_app(
         if not isinstance(payload, dict):
             return _error(400, "request_must_be_object")
         if payload.get("workflow_mode") == "research_agent":
+            from research.agent.runtime import RuntimeQueueFull
             try:
                 result = await run_in_threadpool(app.state.research_runtime.start, payload.get("task_text"),
                     owner=request.state.session["id"], scenario_id=payload.get("scenario_id", "route_success"),
                     task_type=payload.get("task_type", "auto"))
                 return JSONResponse(result, status_code=202)
+            except RuntimeQueueFull as exc:
+                return JSONResponse(status_code=429, content={
+                    "error": "research_queue_full", "limit": exc.limit,
+                    "active": exc.active, "retry_after_s": 5,
+                    "detail": "活跃任务已达上限，请等待已有任务结束或取消后重试。",
+                })
             except (KeyError, TypeError, ValueError):
                 return _error(400, "invalid_research_request")
         # Bind before invoking the graph so a created checkpoint is never
@@ -602,6 +641,38 @@ def create_app(
             return _workflow_error(404, "artifact_not_found")
         except (ValueError, OSError):
             return _workflow_error(409, "artifact_integrity_failed")
+
+    @app.post("/api/runs/{thread_id}/cancel", include_in_schema=False)
+    async def research_cancel(thread_id: str, request: Request):
+        """取消排队/运行中/等待补充的任务；不发布未复核方案。"""
+        try:
+            thread_id = validate_thread_id(thread_id)
+        except ValueError:
+            return _workflow_error(400, "invalid_resume_request")
+        try:
+            task = await run_in_threadpool(app.state.research_runtime.cancel, thread_id,
+                                           request.state.session["id"])
+        except LookupError:
+            return _workflow_error(404, "workflow_not_found")
+        return task
+
+    @app.post("/api/runs/{thread_id}/retry", include_in_schema=False)
+    async def research_retry(thread_id: str, request: Request):
+        """从检查点续跑或从输入快照重试；已完成的答复不会被重复发布。"""
+        try:
+            thread_id = validate_thread_id(thread_id)
+        except ValueError:
+            return _workflow_error(400, "invalid_resume_request")
+        try:
+            task = await run_in_threadpool(app.state.research_runtime.retry, thread_id,
+                                           request.state.session["id"])
+            return JSONResponse(task, status_code=202)
+        except LookupError:
+            return _workflow_error(404, "workflow_not_found")
+        except ValueError as exc:
+            return _workflow_error(409, str(exc) or "task_not_retryable")
+        except Exception:
+            return _workflow_error(503, "retry_unavailable")
 
     return app
 

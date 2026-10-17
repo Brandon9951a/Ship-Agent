@@ -61,6 +61,42 @@ class Store:
             body = {**self.get(task), **changes, "updated_at": now()}
             self.db.execute("UPDATE tasks SET body=? WHERE id=?", (canonical(body).decode(), task))
 
+    def transition(self, task, expected, **changes):
+        """Compare-and-set the task status; returns False when another worker won.
+
+        Read and write happen inside one IMMEDIATE transaction so two processes
+        sharing the SQLite file cannot both claim the same task. Callers use the
+        return value to decide whether to run, so a recovered task is never
+        executed twice.
+        """
+        allowed = {expected} if isinstance(expected, str) else set(expected)
+        with self.lock:
+            try:
+                self.db.execute("BEGIN IMMEDIATE")
+                row = self.db.execute("SELECT body FROM tasks WHERE id=?", (task,)).fetchone()
+                if row is None:
+                    self.db.rollback()
+                    raise LookupError("task_not_found")
+                body = json.loads(row[0])
+                if body.get("status") not in allowed:
+                    self.db.rollback()
+                    return False
+                next_body = {**body, **changes, "updated_at": now()}
+                self.db.execute("UPDATE tasks SET body=? WHERE id=?",
+                                (canonical(next_body).decode(), task))
+                self.db.commit()
+                return True
+            except sqlite3.OperationalError:
+                self.db.rollback()
+                return False
+
+    def count_status(self, statuses):
+        """Number of tasks in the given statuses (used for queue bounds)."""
+        wanted = {statuses} if isinstance(statuses, str) else set(statuses)
+        with self.lock:
+            rows = self.db.execute("SELECT body FROM tasks").fetchall()
+        return sum(1 for row in rows if json.loads(row[0]).get("status") in wanted)
+
     def event(self, task, event_type, **fields):
         with self.lock, self.db:
             seq = self.db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM events WHERE task=?",

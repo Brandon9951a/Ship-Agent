@@ -8,3 +8,9 @@
 .agent-decision-list details { margin-top: 1rem; }
 .agent-decision-list details > summary { cursor: pointer; }
 .agent-decision-list pre { max-height: 18rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; background: #eef3f5; padding: 0.7rem; border-radius: 0.4rem; font-size: 0.75rem; }
+.task-controls { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin: 0.4rem 0 0.8rem; }
+.task-controls[hidden] { display: none; }
+.task-stage { color: #687987; font-size: 0.82rem; }
+.task-stage:empty { display: none; }
+.task-controls .secondary-action { padding: 0.3rem 0.7rem; font-size: 0.82rem; }
+.task-controls .secondary-action[hidden] { display: none; }

@@ -7,6 +7,13 @@ dist/
 build/
 *.egg-info/
 
+# Pytest tmp dirs and local temp DBs created when the workspace is the temp root
+pytest-of-*/
+tmp*/
+.pipcache/
+task3-evidence-*/
+jieba.cache
+
 # Local credentials
 .env
 .env.*

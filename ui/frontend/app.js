@@ -1258,6 +1258,29 @@ function primeActiveTaskFromStorage() {
   $("#mission-subtitle").textContent = "正在恢复上次任务状态…";
 }
 
+function renderRuntimeControls(result) {
+  const runtime = result?.research_runtime || null;
+  const wrap = $("#task-controls");
+  const stage = $("#task-stage");
+  const cancel = $("#cancel-task");
+  const retry = $("#retry-task");
+  if (!wrap) return;
+  if (!runtime) {
+    wrap.hidden = true;
+    if (stage) stage.textContent = "";
+    if (cancel) cancel.hidden = true;
+    if (retry) retry.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  if (stage) {
+    const attempts = runtime.recovery_attempts ? ` · 已恢复 ${runtime.recovery_attempts} 次` : "";
+    stage.textContent = `${runtime.stage || ""}${runtime.cancel_requested ? " · 正在取消" : ""}${attempts}`;
+  }
+  if (cancel) { cancel.hidden = !runtime.can_cancel; cancel.dataset.threadId = result.thread_id || ""; }
+  if (retry) { retry.hidden = !runtime.can_retry; retry.dataset.threadId = result.thread_id || ""; }
+}
+
 function renderResult(result) {
   if (requestCompleteForForm(result.request)) {
     syncCorrectionToTask(result.request, { rewriteDescription: false });
@@ -1299,6 +1322,7 @@ function renderResult(result) {
   renderModel(result);
   renderTrace(result.trace || []);
   if (result.workflow_mode === "research_agent") ResearchBridge.renderDetails(result);
+  renderRuntimeControls(result);
   renderRecommendations(result);
 
   if (okay) {
@@ -1555,6 +1579,17 @@ async function runInference(payloadOverride = null) {
       const trace = events.filter(event => event.type === "tool_completed").map(event => ({ node: event.tool, status: event.outcome_code === "ok" ? "ok" : "failed" }));
       renderProgress(trace, true);
       renderTrace(trace);
+      if (task?.status === "reconnecting") {
+        $("#mission-subtitle").textContent = "服务暂时不可用，正在等待恢复；任务标识已保留。";
+        return;
+      }
+      const stage = task?.status === "queued" ? "排队中"
+        : task?.status === "running" ? `计算中${task?.phase ? ` · ${task.phase}` : ""}`
+        : task?.status === "waiting_human" ? "等待补充信息" : "";
+      $("#task-controls").hidden = false;
+      $("#task-stage").textContent = task?.recovery_attempts ? `${stage} · 已恢复 ${task.recovery_attempts} 次` : stage;
+      $("#cancel-task").hidden = !["queued", "running", "waiting_human"].includes(task?.status);
+      $("#retry-task").hidden = true;
       $("#mission-subtitle").textContent = `真实模型与工具正在执行 · ${events.filter(event => event.type === "model_completed").length} 次模型响应 · ${trace.length} 次工具完成`;
     };
     const result = pendingResearch
@@ -1569,6 +1604,18 @@ async function runInference(payloadOverride = null) {
     rememberHistoryResult(result, submittedText);
   } catch (error) {
     if (!isCurrentRequest() || error.name === "AbortError") return;
+    if (error.name === "TaskStillRunning") {
+      // 长任务超出页面等待窗口：保留任务标识，刷新后可继续查看同一任务，
+      // 不把“仍在计算”显示成执行失败，也不重复发布结果。
+      updateStatus("running", "仍在计算");
+      $("#mission-title").textContent = "任务仍在后台计算";
+      $("#mission-subtitle").textContent = "服务仍在执行同一任务；刷新页面可继续查看，结果只会发布一次。";
+      $("#task-controls").hidden = false;
+      $("#task-stage").textContent = "仍在计算 · 可刷新继续查看";
+      $("#cancel-task").hidden = false;
+      $("#cancel-task").dataset.threadId = error.taskId || "";
+      return;
+    }
     updateStatus("error", "计算失败");
     $("#mission-title").textContent = "任务执行失败";
     $("#mission-subtitle").textContent = error.message;
@@ -1796,8 +1843,49 @@ async function restorePendingRun() {
     if (restored.status === "awaiting_choice") {
       $("#correction-feedback").textContent = "已恢复上次等待确认的任务。";
     }
-  } catch (_error) {
+  } catch (error) {
+    if (error.name === "TaskStillRunning") {
+      $("#mission-subtitle").textContent = "上次任务仍在后台计算；刷新页面可继续查看，结果只会发布一次。";
+      $("#task-controls").hidden = false;
+      $("#task-stage").textContent = "仍在计算";
+      $("#cancel-task").hidden = false;
+      $("#cancel-task").dataset.threadId = threadId;
+      return;
+    }
     $("#mission-subtitle").textContent = "网络暂时不可用，恢复标识已保留；请稍后刷新重试。";
+  }
+}
+
+async function cancelTaskById(threadId) {
+  if (!threadId) return;
+  try {
+    $("#task-stage").textContent = "正在取消…";
+    await ResearchBridge.cancel(threadId);
+    const result = await ResearchBridge.load(threadId, task => {
+      $("#task-stage").textContent = `正在取消 · ${task.status || ""}`;
+    });
+    renderResult(result);
+  } catch (error) {
+    $("#mission-subtitle").textContent = `取消失败：${error.message}`;
+  }
+}
+
+async function retryTaskById(threadId) {
+  if (!threadId) return;
+  state.running = true;
+  $("#run-button").disabled = true;
+  try {
+    $("#task-stage").textContent = "正在重试…";
+    const result = await ResearchBridge.retry(threadId, task => {
+      $("#task-stage").textContent = `重试中 · ${task.status || ""}${task.phase ? ` · ${task.phase}` : ""}`;
+    });
+    renderResult(result);
+    rememberHistoryResult(result, $("#mission-input").value, { touch: false });
+  } catch (error) {
+    $("#mission-subtitle").textContent = `重试失败：${error.message}`;
+  } finally {
+    state.running = false;
+    $("#run-button").disabled = false;
   }
 }
 
@@ -1858,6 +1946,8 @@ function bindControls() {
     if (button) openSavedPlan(Number(button.dataset.savedIndex));
   });
   $("#run-button").addEventListener("click", () => runInference());
+  $("#cancel-task").addEventListener("click", () => cancelTaskById($("#cancel-task").dataset.threadId));
+  $("#retry-task").addEventListener("click", () => retryTaskById($("#retry-task").dataset.threadId));
   attachSpeechInput();
   $("#mission-input").addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") runInference();
