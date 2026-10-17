@@ -1,0 +1,212 @@
+{
+  "candidate_count": 500,
+  "candidate_duration_s": [
+    5,
+    25
+  ],
+  "outcome_code": "ok",
+  "method": "cProfile warmed repeat; overhead included, not used as benchmark timing",
+  "total_profile_seconds": 1.8960844000000001,
+  "top_cumulative_functions": [
+    {
+      "file": "grad_mode.py",
+      "line": 294,
+      "function": "__exit__",
+      "calls": 500,
+      "self_seconds": 0.0338912,
+      "cumulative_seconds": 0.9790757000000001
+    },
+    {
+      "file": "tenergy_v2.py",
+      "line": 40,
+      "function": "put",
+      "calls": 502,
+      "self_seconds": 0.014710800000000001,
+      "cumulative_seconds": 0.7945185
+    },
+    {
+      "file": "module.py",
+      "line": 1779,
+      "function": "_wrapped_call_impl",
+      "calls": 2000,
+      "self_seconds": 0.0093892,
+      "cumulative_seconds": 0.6525978
+    },
+    {
+      "file": "module.py",
+      "line": 1787,
+      "function": "_call_impl",
+      "calls": 2000,
+      "self_seconds": 0.0176806,
+      "cumulative_seconds": 0.6498634000000001
+    },
+    {
+      "file": "lstm_energy.py",
+      "line": 194,
+      "function": "forward",
+      "calls": 500,
+      "self_seconds": 0.0100389,
+      "cumulative_seconds": 0.6424343
+    },
+    {
+      "file": "_local.py",
+      "line": 529,
+      "function": "open",
+      "calls": 1005,
+      "self_seconds": 0.0037485,
+      "cumulative_seconds": 0.5974593
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _io.open>",
+      "calls": 1005,
+      "self_seconds": 0.5506093000000001,
+      "cumulative_seconds": 0.5937108
+    },
+    {
+      "file": "rnn.py",
+      "line": 1081,
+      "function": "forward",
+      "calls": 1000,
+      "self_seconds": 0.0347603,
+      "cumulative_seconds": 0.5613925000000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method torch.lstm>",
+      "calls": 1000,
+      "self_seconds": 0.42784890000000003,
+      "cumulative_seconds": 0.42784890000000003
+    },
+    {
+      "file": "_abc.py",
+      "line": 621,
+      "function": "read_bytes",
+      "calls": 503,
+      "self_seconds": 0.0043261,
+      "cumulative_seconds": 0.33205080000000003
+    },
+    {
+      "file": "grad_mode.py",
+      "line": 290,
+      "function": "__enter__",
+      "calls": 500,
+      "self_seconds": 0.0887806,
+      "cumulative_seconds": 0.2313704
+    },
+    {
+      "file": "tenergy_v2.py",
+      "line": 19,
+      "function": "canonical_bytes",
+      "calls": 1006,
+      "self_seconds": 0.0051532,
+      "cumulative_seconds": 0.1650655
+    },
+    {
+      "file": "__init__.py",
+      "line": 183,
+      "function": "dumps",
+      "calls": 1006,
+      "self_seconds": 0.008076,
+      "cumulative_seconds": 0.157447
+    },
+    {
+      "file": "encoder.py",
+      "line": 183,
+      "function": "encode",
+      "calls": 1006,
+      "self_seconds": 0.0060777,
+      "cumulative_seconds": 0.1475654
+    },
+    {
+      "file": "encoder.py",
+      "line": 205,
+      "function": "iterencode",
+      "calls": 1006,
+      "self_seconds": 0.1392919,
+      "cumulative_seconds": 0.1392919
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.any>",
+      "calls": 2516,
+      "self_seconds": 0.0127273,
+      "cumulative_seconds": 0.1014334
+    },
+    {
+      "file": "tenergy_v2.py",
+      "line": 24,
+      "function": "digest",
+      "calls": 503,
+      "self_seconds": 0.0026298000000000003,
+      "cumulative_seconds": 0.0857393
+    },
+    {
+      "file": "lstm_energy.py",
+      "line": 233,
+      "function": "evaluate",
+      "calls": 1,
+      "self_seconds": 0.0003238,
+      "cumulative_seconds": 0.07305650000000001
+    },
+    {
+      "file": "lstm_energy.py",
+      "line": 274,
+      "function": "<genexpr>",
+      "calls": 6500,
+      "self_seconds": 0.0373041,
+      "cumulative_seconds": 0.0603657
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'read' of '_io.BufferedReader' objects>",
+      "calls": 503,
+      "self_seconds": 0.049123700000000006,
+      "cumulative_seconds": 0.049123700000000006
+    },
+    {
+      "file": "_local.py",
+      "line": 166,
+      "function": "__fspath__",
+      "calls": 1005,
+      "self_seconds": 0.0026013,
+      "cumulative_seconds": 0.0431015
+    },
+    {
+      "file": "tenergy_v2.py",
+      "line": 162,
+      "function": "finish",
+      "calls": 1,
+      "self_seconds": 5.6500000000000005e-05,
+      "cumulative_seconds": 0.0408356
+    },
+    {
+      "file": "_local.py",
+      "line": 227,
+      "function": "__str__",
+      "calls": 1005,
+      "self_seconds": 0.0078571,
+      "cumulative_seconds": 0.0405002
+    },
+    {
+      "file": "rnn.py",
+      "line": 406,
+      "function": "_update_flat_weights",
+      "calls": 1000,
+      "self_seconds": 0.0037796,
+      "cumulative_seconds": 0.038428300000000006
+    },
+    {
+      "file": "tenergy_v2.py",
+      "line": 106,
+      "function": "_trajectory",
+      "calls": 500,
+      "self_seconds": 0.0241104,
+      "cumulative_seconds": 0.0374665
+    }
+  ]
+}

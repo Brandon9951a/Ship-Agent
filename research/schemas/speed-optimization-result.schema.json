@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ship-agent/research/schemas/speed-optimization-result.schema.json",
+  "title": "SpeedOptimizationResult",
+  "description": "Tspeed 结果工件（联调接口 v2 第 6 节）。search_status=candidate_found 时，selected_candidate_id 必填且所有 constraint_checks[].passed 必须为 true。",
+  "type": "object",
+  "required": ["search_status", "seed", "population", "generations", "evaluations",
+               "runtime_ms", "constraint_checks", "segment_summary", "schema_version"],
+  "properties": {
+    "schema_version": { "type": "string", "minLength": 1 },
+    "search_status": {
+      "enum": ["candidate_found", "search_unresolved", "input_invalid",
+               "model_out_of_domain", "tool_error"]
+    },
+    "selected_candidate_id": { "type": ["string", "null"] },
+    "selected_trajectory_ref": { "type": ["string", "null"] },
+    "selected_energy_ref": { "type": ["string", "null"] },
+    "selected_demand_ref": { "type": ["string", "null"] },
+    "segment_summary": { "type": "array", "items": { "type": "object" } },
+    "total_duration_s": { "type": ["number", "null"], "minimum": 0 },
+    "arrival_at": {
+      "type": ["string", "null"],
+      "description": "规划基准时刻未知时必须为 null，不得给出日历 ETA"
+    },
+    "objective_terms": { "type": ["object", "null"] },
+    "constraint_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "passed"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "passed": { "type": "boolean" },
+          "actual": { "type": ["number", "null"] },
+          "limit": { "type": ["number", "null"] },
+          "unit": { "type": ["string", "null"] },
+          "reason": { "type": ["string", "null"] },
+          "segment_id": { "type": ["string", "null"] },
+          "time_interval_s": { "type": ["array", "null"], "items": { "type": "number" } },
+          "source_ref": { "type": ["object", "null"] },
+          "tolerance": { "type": ["number", "null"], "minimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "search_trace_ref": { "type": ["string", "null"] },
+    "seed": { "type": "integer" },
+    "population": { "type": "integer", "minimum": 4 },
+    "generations": { "type": "integer", "minimum": 0 },
+    "evaluations": { "type": "integer", "minimum": 0 },
+    "runtime_ms": { "type": "number", "minimum": 0 },
+    "selected_trajectory": { "type": "array", "items": { "type": "object" } },
+    "selected_speed_vector": { "type": "array", "items": { "type": "number" } },
+    "total_energy_kwh": { "type": ["number", "null"], "minimum": 0 },
+    "total_distance_km": { "type": ["number", "null"], "minimum": 0 },
+    "search_trace": { "type": ["object", "null"] },
+    "demand_config_hash": { "type": ["string", "null"] },
+    "bus_side_available": { "type": "boolean" },
+    "prior_feedback_ref": { "type": ["string", "null"] },
+    "rerun_count": { "type": "integer", "minimum": 0 },
+    "diagnostics": { "type": "array", "items": { "type": "object" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "note": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "search_status": { "const": "candidate_found" } },
+        "required": ["search_status"]
+      },
+      "then": {
+        "required": ["selected_candidate_id", "objective_terms", "total_duration_s"],
+        "properties": {
+          "selected_candidate_id": { "type": "string", "minLength": 1 },
+          "constraint_checks": {
+            "type": "array",
+            "items": { "properties": { "passed": { "const": true } } }
+          }
+        }
+      },
+      "else": {
+        "properties": { "selected_candidate_id": { "type": "null" } }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,23 @@
+{
+  "version": "v5-training-domain/1",
+  "scope": "Observed training ranges only; not a planner approval",
+  "model_files_sha256": {
+    "weights.pt": "65b6c46e3abc2f5bc532883071504a6b6e3a2b72256dc8fd17542cc6a353de59",
+    "scaler.json": "2eef7708f32e15dc2573e4ed3572fe1b92d575a7522ca2bed94ab271a918decd",
+    "manifest.json": "8f58c7fd668a36901e656403a2ad0678d61f0f069d764f14036f8735e0e0f70c"
+  },
+  "future_feature_ranges": {
+    "speed_kmh": [
+      0.0018520000157877803,
+      11.656488418579102
+    ],
+    "acceleration_mps2": [
+      -0.04664869233965874,
+      0.05674440786242485
+    ]
+  },
+  "history_power_range_kw": [
+    1.7999999523162842,
+    112.87019348144531
+  ]
+}

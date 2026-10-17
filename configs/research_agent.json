@@ -1,0 +1,38 @@
+{
+  "schema_version": "agent-scenarios/1",
+  "assumption": "以下状态、功率、效率、速度和等待值均为具名软件仿真假设；距离另附资料来源。",
+  "default_origin": "漯河船闸",
+  "default_destination": "漯河港",
+  "current_speed_kmh": 7.0,
+  "remaining_time_s": 3600.0,
+  "min_speed_kmh": 6.0,
+  "max_speed_kmh": 11.112,
+  "waiting_duration_s": 0.0,
+  "prediction_step_s": 5.0,
+  "coefficient": 0.055,
+  "environment": {"scenario": "named-still-water", "current_mps": 0.0, "wind_mps": 0.0,
+                  "model_scope": "解析立方功率假设；未显式建模环境修正"},
+  "conversion_efficiency": 0.94,
+  "auxiliary_kw": 5.0,
+  "battery": {"capacity_kwh": 1000.0, "initial_soc": 0.8, "soc_min": 0.2,
+              "min_power_kw": 5.0, "max_power_kw": 50.0, "discharge_efficiency": 0.9},
+  "de": {"population": 8, "max_generations": 3, "seeds": [211]},
+  "fdp": {"soc_step": 0.05, "max_states_per_layer": 1000, "max_transitions": 100000},
+  "budgets": {"agent_steps": 16, "aux_calls": 6, "invalid_actions": 3, "speed_cycles": 2},
+  "scenarios": {
+    "route_success": {"label": "登记子航线完整求解", "backend": "analytic"},
+    "multi_wait": {"label": "多航段与等待仿真", "backend": "analytic", "synthetic_route": true, "waiting_duration_s": 30.0},
+    "fdp_reject": {"label": "FDP 功率拒绝", "backend": "analytic", "battery_power_kw": 1.0},
+    "missing_conversion": {"label": "缺少转换依据", "backend": "analytic", "conversion_efficiency": null},
+    "lstm_short": {"label": "真实 LSTM 20 秒预测", "backend": "lstm", "duration_s": 20.0},
+    "lstm_domain": {"label": "真实 LSTM 超窗口拒绝", "backend": "lstm", "duration_s": 40.0}
+  },
+  "docs": [
+    "docs/团队资料/02_当前设计/Agent图结构计划.md",
+    "docs/接口/五工具联调接口_v2.md",
+    "docs/数据/Tenergy_LSTM构建与验收.md",
+    "docs/验收/三PR研究联调统筹审查_2026-10-16.md",
+    "research/README.md",
+    "docs/团队资料/04_船舶与航线/README_船舶与航线资料.md"
+  ]
+}

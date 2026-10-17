@@ -15,6 +15,7 @@ def test_frontend_task_consistency_stale_response_and_recovery():
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=20,
         check=False,
     )

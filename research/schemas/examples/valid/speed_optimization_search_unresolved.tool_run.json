@@ -1,0 +1,267 @@
+{
+  "schema_version": "research-tools/2.0-draft",
+  "tool_name": "Tspeed",
+  "call_id": "sample-power-limit",
+  "execution_status": "completed",
+  "outcome_code": "search_unresolved",
+  "parent_call_id": null,
+  "input_hash": "d87f725f934dad8cd357c1c227ba075d3b46be55b02fc9b81bd09b506abef8b8",
+  "request_revision": 1,
+  "snapshot_id": "snapshot.d1-fixture",
+  "scenario_id": "scenario.de-acceptance",
+  "started_at": "2026-10-14T10:33:48+00:00",
+  "finished_at": "2026-10-14T10:33:51+00:00",
+  "payload_ref": null,
+  "diagnostics": [
+    {
+      "stage": "evaluate",
+      "code": "power_limit_exceeded",
+      "detail": "power_limit_exceeded",
+      "time_interval_s": null,
+      "segment_id": null,
+      "field_ref": "constraint_checks",
+      "observed": 42.87568946883549,
+      "limit": null,
+      "unit": "kWh",
+      "source_refs": [],
+      "retryable": false
+    },
+    {
+      "stage": "evaluate",
+      "code": "power_limit_exceeded",
+      "detail": "power_limit_exceeded",
+      "time_interval_s": null,
+      "segment_id": null,
+      "field_ref": "constraint_checks",
+      "observed": 43.03613858089988,
+      "limit": null,
+      "unit": "kWh",
+      "source_refs": [],
+      "retryable": false
+    },
+    {
+      "stage": "evaluate",
+      "code": "power_limit_exceeded",
+      "detail": "power_limit_exceeded",
+      "time_interval_s": null,
+      "segment_id": null,
+      "field_ref": "constraint_checks",
+      "observed": 44.050701116253656,
+      "limit": null,
+      "unit": "kWh",
+      "source_refs": [],
+      "retryable": false
+    },
+    {
+      "stage": "search",
+      "code": "search_unresolved",
+      "detail": "DE 在 126 次评估内未找到可行候选；不得表述为数学无解",
+      "time_interval_s": null,
+      "segment_id": null,
+      "field_ref": "search_status",
+      "observed": null,
+      "limit": null,
+      "unit": null,
+      "source_refs": [],
+      "retryable": true
+    }
+  ],
+  "model_or_algorithm_version": "tspeed-de-rand-1-bin/1.0+contract-research-tools/2.0-draft",
+  "config_hash": "d309207874847ea7d432d7ef44186dcf8293a6e1e770ad9712181b296e10edfd",
+  "runtime_ms": null,
+  "payload": {
+    "search_status": "search_unresolved",
+    "selected_candidate_id": null,
+    "selected_trajectory_ref": null,
+    "selected_energy_ref": null,
+    "selected_demand_ref": null,
+    "segment_summary": [],
+    "total_duration_s": null,
+    "arrival_at": null,
+    "objective_terms": null,
+    "constraint_checks": [],
+    "search_trace_ref": "trace-a1e783ad59710cc1",
+    "seed": 101,
+    "population": 14,
+    "generations": 8,
+    "evaluations": 126,
+    "runtime_ms": 3045.25189999913,
+    "schema_version": "research-tools/2.0-draft/speed-optimization",
+    "selected_trajectory": [],
+    "selected_speed_vector": [],
+    "selected_candidate_ids_by_segment": null,
+    "total_energy_kwh": null,
+    "total_distance_km": null,
+    "search_trace": {
+      "trace_id": "trace-a1e783ad59710cc1",
+      "seed": 101,
+      "population": 14,
+      "generations_requested": 8,
+      "generations_run": 8,
+      "evaluations": 126,
+      "best_objective_by_generation": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "feasible_fraction_by_generation": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "violation_counts": {
+        "power_limit_exceeded": 118
+      },
+      "restarts": 0,
+      "cache_hits": 8,
+      "diagnostic_candidates": [
+        {
+          "candidate_id": "c-4dca56eb6b1d",
+          "speed_vector": [
+            6.046916664142904,
+            6.128766236493114,
+            5.582876911036937
+          ],
+          "violations": [
+            "power_limit_exceeded"
+          ],
+          "objective_value": 44.39916200954005,
+          "energy_kwh": 42.87568946883549,
+          "total_duration_s": 13811.112343631834
+        },
+        {
+          "candidate_id": "c-01aae3e965bc",
+          "speed_vector": [
+            6.0755811671821425,
+            6.129515852062901,
+            5.593530936342475
+          ],
+          "violations": [
+            "power_limit_exceeded"
+          ],
+          "objective_value": 44.487082481464974,
+          "energy_kwh": 43.03613858089988,
+          "total_duration_s": 13786.16995866721
+        },
+        {
+          "candidate_id": "c-ae60784b7bd8",
+          "speed_vector": [
+            6.118464066991581,
+            6.166855363609837,
+            5.785943250427886
+          ],
+          "violations": [
+            "power_limit_exceeded"
+          ],
+          "objective_value": 44.787879894039335,
+          "energy_kwh": 44.050701116253656,
+          "total_duration_s": 13619.535934376341
+        },
+        {
+          "candidate_id": "c-ae69cec4d57a",
+          "speed_vector": [
+            6.229993282637208,
+            6.110085246969435,
+            5.876838857291516
+          ],
+          "violations": [
+            "power_limit_exceeded"
+          ],
+          "objective_value": 44.87198989679796,
+          "energy_kwh": 44.528080820220524,
+          "total_duration_s": 13546.02994191686
+        },
+        {
+          "candidate_id": "c-aec08ec8e2ec",
+          "speed_vector": [
+            6.293723441182133,
+            6.140808114955164,
+            5.791356488916849
+          ],
+          "violations": [
+            "power_limit_exceeded"
+          ],
+          "objective_value": 45.419081515783944,
+          "energy_kwh": 44.69158383610433,
+          "total_duration_s": 13531.699683936866
+        }
+      ],
+      "artifact_ref": null,
+      "note": "DE 为启发式算法，不做全局最优保证；修复规则=bounce_back，变体=DE/rand/1/bin"
+    },
+    "demand_config_hash": null,
+    "bus_side_available": false,
+    "prior_feedback_ref": null,
+    "rerun_count": 0,
+    "diagnostics": [
+      {
+        "stage": "evaluate",
+        "code": "power_limit_exceeded",
+        "detail": "power_limit_exceeded",
+        "time_interval_s": null,
+        "segment_id": null,
+        "field_ref": "constraint_checks",
+        "observed": 42.87568946883549,
+        "limit": null,
+        "unit": "kWh",
+        "source_refs": [],
+        "retryable": false
+      },
+      {
+        "stage": "evaluate",
+        "code": "power_limit_exceeded",
+        "detail": "power_limit_exceeded",
+        "time_interval_s": null,
+        "segment_id": null,
+        "field_ref": "constraint_checks",
+        "observed": 43.03613858089988,
+        "limit": null,
+        "unit": "kWh",
+        "source_refs": [],
+        "retryable": false
+      },
+      {
+        "stage": "evaluate",
+        "code": "power_limit_exceeded",
+        "detail": "power_limit_exceeded",
+        "time_interval_s": null,
+        "segment_id": null,
+        "field_ref": "constraint_checks",
+        "observed": 44.050701116253656,
+        "limit": null,
+        "unit": "kWh",
+        "source_refs": [],
+        "retryable": false
+      },
+      {
+        "stage": "search",
+        "code": "search_unresolved",
+        "detail": "DE 在 126 次评估内未找到可行候选；不得表述为数学无解",
+        "time_interval_s": null,
+        "segment_id": null,
+        "field_ref": "search_status",
+        "observed": null,
+        "limit": null,
+        "unit": null,
+        "source_refs": [],
+        "retryable": true
+      }
+    ],
+    "assumptions": [
+      "S09 船闸等待 900s 为研究情景取值",
+      "功率曲线为验收用解析函数",
+      "母线侧效率与辅助负载为具名研究假设"
+    ],
+    "note": null
+  }
+}
