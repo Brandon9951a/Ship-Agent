@@ -160,6 +160,21 @@ def test_model_cannot_skip_tenergy(tmp_path):
     finally: runtime.close()
 
 
+def test_corrupted_prediction_keeps_verification_failure_in_final_answer(tmp_path):
+    runtime=AgentRuntime(tmp_path,PredictionModel())
+    try:
+        done=runtime.start("预测能耗",background=False)
+        state=dict(runtime.graph.get_state(runtime._config(done["task_id"])).values)
+        ref=state["refs"]["Tenergy"]
+        (runtime.store.blobs/(ref+".json")).write_text("{}",encoding="utf-8")
+        state.update(outcome_code="verification_failed",metrics={})
+        runtime._finish(state)
+        result=runtime.store.get(done["task_id"])
+        assert result["outcome_code"]=="verification_failed"
+        assert result["metrics"]=={}
+    finally: runtime.close()
+
+
 def test_original_website_auto_request_executes_standalone_tenergy(tmp_path):
     from tests.test_web_frontend import AuthenticatedClient, _store
     from ui.web_server import create_app

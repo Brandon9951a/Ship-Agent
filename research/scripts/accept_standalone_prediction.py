@@ -48,20 +48,39 @@ def main():
         verified=verify_prediction(runtime.professional,state) if result.get("outcome_code")=="prediction_completed" else None
         artifact_refs={}
         for row in runtime.store.list(task):
-            if row["kind"] in ("model_response","answer"):continue
             ref=row["id"]
             payload=runtime.store.read(task,ref)
             raw=(runtime.store.blobs/(ref+".json")).read_bytes()
             assert hashlib.sha256(raw).hexdigest()==ref
             (exports/(ref+".json")).write_bytes(raw)
             artifact_refs[ref]=payload["kind"]
+        energy_dir=runtime.store.directory/"energy"/task
+        if energy_dir.exists():
+            for path in energy_dir.glob("*.json"):
+                raw=path.read_bytes();assert hashlib.sha256(raw).hexdigest()==path.stem
+                (exports/path.name).write_bytes(raw)
+                artifact_refs[path.stem]="TenergyV2:"+json.loads(raw)["kind"]
+        prediction=runtime.professional.payload(state,"Tenergy") if state.get("refs",{}).get("Tenergy") else None
+        checks={"outcome":result.get("outcome_code")==expected if expected else result["status"]=="waiting_human",
+                "real_model_responses":bool(models) and all(m["request_id"] and m["model"] for m in models)}
+        if expected:
+            checks["answer_verified"]=result.get("answer_status")=="accepted"
+            checks["actual_backend"]=bool(prediction) and prediction["backend"]==("lstm" if case.startswith("lstm") else "analytic")
+            calls=[e["tool"] for e in events if e["type"]=="tool_started" and not e.get("parent_call_id")]
+            checks["tool_order"]=all(tool in calls for tool in ("Tdata","Tenergy")) and calls.index("Tdata")<calls.index("Tenergy")
+            checks["no_voyage_planning"]=not any(tool in calls for tool in ("Tspeed","Tmanagement"))
+        else:
+            checks["missing_fields"]=set((result.get("pending") or {}).get("fields",[]))=={"origin","destination"}
+        if case=="resumed":checks["same_task_revision"]=result.get("revision")==2
         item={"case":case,"task_id":task,"status":result["status"],
             "outcome_code":result.get("outcome_code"),"answer_status":result.get("answer_status"),
             "request":result.get("request"),"pending":result.get("pending"),
+            "backend":prediction.get("backend") if prediction else None,
+            "diagnostics":prediction.get("diagnostics") if prediction else None,
             "metrics":result.get("metrics"),"models":models,"result_refs":result.get("result_refs"),
             "tool_log":[e for e in events if e["type"] in ("action_requested","tool_started","tool_completed","tool_failed","waiting_human")],
             "verified_summary":verified,"exported_artifacts":artifact_refs,
-            "passed":result.get("outcome_code")==expected if expected else result["status"]=="waiting_human"}
+            "checks":checks,"passed":all(checks.values())}
         report["cases"].append(item)
         (exports/"acceptance.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
         print(json.dumps({k:item[k] for k in ("case","task_id","outcome_code","answer_status","passed")},ensure_ascii=False),flush=True)
