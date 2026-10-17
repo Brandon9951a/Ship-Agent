@@ -7,7 +7,7 @@ function element() {
     value: "", textContent: "", innerHTML: "", className: "", hidden: false,
     disabled: false, title: "", options: [], lastChild: { textContent: "" },
     classList: { add() {}, remove() {}, toggle() {} },
-    setAttribute() {}, addEventListener() {}, focus() {},
+    setAttribute() {}, addEventListener() {}, focus() {}, replaceChildren() {},
     querySelectorAll() { return []; }, querySelector() { return element(); },
   };
 }
@@ -18,6 +18,12 @@ const getNode = selector => {
   return nodes.get(selector);
 };
 const storage = new Map();
+const ResearchBridge = {
+  structuredText: () => "",
+  renderDetails() {},
+  submit: async () => { throw new Error("research submit not configured"); },
+  resume: async () => { throw new Error("research resume not configured"); },
+};
 const context = vm.createContext({
   console, Intl, Date, Number, String, Math, JSON, Set, Map, Promise,
   AbortController, encodeURIComponent,
@@ -36,6 +42,7 @@ const context = vm.createContext({
   Event: class { constructor(type) { this.type = type; } },
   setInterval() {}, setTimeout() {},
   fetch: async () => { throw new Error("fetch not configured"); },
+  ResearchBridge,
 });
 const appPath = path.join(__dirname, "..", "..", "ui", "frontend", "app.js");
 vm.runInContext(fs.readFileSync(appPath, "utf8"), context);
@@ -59,14 +66,14 @@ async function run() {
   `, context);
 
   let resolveRun;
-  context.fetch = () => new Promise(resolve => { resolveRun = resolve; });
+  ResearchBridge.submit = () => new Promise(resolve => { resolveRun = resolve; });
   vm.runInContext(`
     state.quickDirty = false;
     $("#mission-input").value = "从平顶山港到军李船闸，SOC85%，半载，6小时内到达";
     globalThis.pendingRun = runInference();
   `, context);
   vm.runInContext("markResultStale();", context);
-  resolveRun({ ok: true, json: async () => ({ status: "ok", marker: "old-result" }) });
+  resolveRun({ status: "ok", marker: "old-result" });
   await context.pendingRun;
   const stale = vm.runInContext(`({
     result: state.lastResult,
@@ -98,7 +105,7 @@ async function run() {
   if (resumed.marker === "old-resume-result") throw new Error("stale resume response changed the current task");
 
   let resolveCancelled;
-  context.fetch = () => new Promise(resolve => { resolveCancelled = resolve; });
+  ResearchBridge.submit = () => new Promise(resolve => { resolveCancelled = resolve; });
   vm.runInContext(`
     state.lastResult = { marker: "before-cancel" };
     state.resultStale = false;
@@ -106,7 +113,7 @@ async function run() {
     globalThis.cancelledRun = runInference();
     cancelActiveRequest();
   `, context);
-  resolveCancelled({ ok: true, json: async () => ({ status: "ok", marker: "cancelled-result" }) });
+  resolveCancelled({ status: "ok", marker: "cancelled-result" });
   await context.cancelledRun;
   const cancelled = vm.runInContext("state.lastResult", context);
   if (cancelled?.marker === "cancelled-result" || vm.runInContext("state.running", context)) {
@@ -129,4 +136,7 @@ async function run() {
   if (storage.has(activeThreadKey)) throw new Error("confirmed missing task kept recovery id");
 }
 
-run().then(() => process.stdout.write("ok\n"));
+run().then(() => process.stdout.write("ok\n")).catch(error => {
+  process.stderr.write(`${error.stack || error}\n`);
+  process.exitCode = 1;
+});

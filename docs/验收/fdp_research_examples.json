@@ -1,0 +1,3494 @@
+{
+  "success": {
+    "request": {
+      "schema_version": "research-tools/2.0-draft",
+      "task_id": "task:success",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:success",
+      "scenario_id": "assumption:success",
+      "call_id": "call:success",
+      "selected_candidate_id": "candidate:success",
+      "selected_demand_ref": "demand:success",
+      "demand_series": [
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 0.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 30.0,
+          "demand_source": {
+            "source_id": "fixture:demand:0",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 24.0,
+          "propulsion_bus_kw": 25.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        },
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 600.0,
+          "duration_s": 3600.0,
+          "demand_bus_kw": 80.0,
+          "demand_source": {
+            "source_id": "fixture:demand:1",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 74.0,
+          "propulsion_bus_kw": 75.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        },
+        {
+          "segment_id": "segment-2",
+          "phase": "waiting",
+          "start_offset_s": 4200.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 0.0,
+          "demand_source": {
+            "source_id": "fixture:demand:2",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 0,
+          "propulsion_bus_kw": 0.0,
+          "auxiliary_bus_kw": 0.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        },
+        {
+          "segment_id": "segment-2",
+          "phase": "sailing",
+          "start_offset_s": 4800.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 30.0,
+          "demand_source": {
+            "source_id": "fixture:demand:3",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 24.0,
+          "propulsion_bus_kw": 25.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      ],
+      "battery_1": {
+        "battery_id": "battery_1",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_1:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_1:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_1:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_1:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_1:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_1:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "battery_2": {
+        "battery_id": "battery_2",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_2:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_2:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_2:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_2:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_2:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_2:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "load_rate_reference_kw": 100.0,
+      "load_rate_reference_source": {
+        "source_id": "fixture:load-rate-reference",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "allowed_mode_transitions": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "allowed_mode_transitions_source": {
+        "source_id": "fixture:mode-transitions",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "previous_mode": null,
+      "planning_origin_at": null,
+      "parent_call_id": "call:acceptance-harness",
+      "grid": {
+        "soc_step": 0.05,
+        "max_states_per_layer": 1000,
+        "max_transitions": 100000,
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+      },
+      "weights": {
+        "k_p": 0.0001,
+        "k_s": 1000.0,
+        "k_soc": 0.3,
+        "k_low": 100000.0,
+        "low_load_threshold": 0.65,
+        "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+        "source": {
+          "source_id": "liu-hanyou-thesis-2024",
+          "kind": "document",
+          "locator": "printed page 88, equations 5-27 to 5-30",
+          "confirmed": true,
+          "note": "Reference experiment weights; not vessel safety limits."
+        }
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acceptance-battery-parameters",
+          "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+        },
+        {
+          "assumption_id": "acceptance-bus-demand",
+          "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+        }
+      ],
+      "source_mode": "simulation"
+    },
+    "result": {
+      "schema_version": "research-tools/2.0-draft",
+      "tool_name": "Tmanagement",
+      "call_id": "call:success",
+      "parent_call_id": "call:acceptance-harness",
+      "input_hash": "5a225e8f4475b12c1de996735c801e31d466c0d71ee25c5a15f4dc3b5a2c2acc",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:success",
+      "scenario_id": "assumption:success",
+      "execution_status": "completed",
+      "outcome_code": "ok",
+      "payload_ref": {
+        "artifact_id": "tmanagement:mode_trajectory:03d02f7a5a265932",
+        "sha256": "03d02f7a5a265932036e88d2bd88a1378b027b4949113e8952eb3f509cffbc13",
+        "row_count": 4,
+        "schema_version": "research-tools/2.0-draft",
+        "name": "mode_trajectory"
+      },
+      "diagnostics": [],
+      "model_or_algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+      "config_hash": "ad53586894281fff04617ae15c567e716e0f97dd20476e3f782426d71dcc65ac",
+      "payload": {
+        "safe": true,
+        "mode_trajectory_ref": {
+          "artifact_id": "tmanagement:mode_trajectory:03d02f7a5a265932",
+          "sha256": "03d02f7a5a265932036e88d2bd88a1378b027b4949113e8952eb3f509cffbc13",
+          "row_count": 4,
+          "schema_version": "research-tools/2.0-draft",
+          "name": "mode_trajectory"
+        },
+        "battery_1_power_ref": {
+          "artifact_id": "tmanagement:battery_1_power:830c405430164cb3",
+          "sha256": "830c405430164cb3cae1dd42f3351533f426fc6b70e085d6b8539a850fe9e098",
+          "row_count": 4,
+          "schema_version": "research-tools/2.0-draft",
+          "name": "battery_1_power"
+        },
+        "battery_2_power_ref": {
+          "artifact_id": "tmanagement:battery_2_power:a5b4ad5abdbccbd0",
+          "sha256": "a5b4ad5abdbccbd0abc28dae5adf158495170ecaf6010f215f7a7d5bd9c0c64b",
+          "row_count": 4,
+          "schema_version": "research-tools/2.0-draft",
+          "name": "battery_2_power"
+        },
+        "battery_1_soc_ref": {
+          "artifact_id": "tmanagement:battery_1_soc:a68d026db3f28011",
+          "sha256": "a68d026db3f280110d346719be03deadf92915549a1a33fa7e6d82b6f2e14d4d",
+          "row_count": 4,
+          "schema_version": "research-tools/2.0-draft",
+          "name": "battery_1_soc"
+        },
+        "battery_2_soc_ref": {
+          "artifact_id": "tmanagement:battery_2_soc:f9fc2a4853210a6a",
+          "sha256": "f9fc2a4853210a6a3ef292c1b818ef76b826cdff4e38e48c349ad19b0c3f6c59",
+          "row_count": 4,
+          "schema_version": "research-tools/2.0-draft",
+          "name": "battery_2_soc"
+        },
+        "rows": [
+          {
+            "segment_id": "segment-1",
+            "phase": "sailing",
+            "start_offset_s": 0.0,
+            "duration_s": 600.0,
+            "demand_bus_kw": 30.0,
+            "demand_bus_energy_kwh": 5.0,
+            "mode": 1,
+            "battery_1_power_kw": 30.0,
+            "battery_2_power_kw": 0.0,
+            "soc_1_before": 0.8,
+            "soc_2_before": 0.8,
+            "soc_1_after": 0.7944444444444445,
+            "soc_2_after": 0.8,
+            "planning_soc_1_before": 0.8,
+            "planning_soc_2_before": 0.8,
+            "planning_soc_1_after": 0.75,
+            "planning_soc_2_after": 0.8,
+            "grid_soc_1_after": 0.75,
+            "grid_soc_2_after": 0.8,
+            "motor_energy_kwh": 4.0,
+            "propulsion_bus_energy_kwh": 4.166666666666666,
+            "auxiliary_bus_energy_kwh": 0.8333333333333333,
+            "conversion_delta_kwh": 0.16666666666666666,
+            "battery_1_bus_energy_kwh": 5.0,
+            "battery_2_bus_energy_kwh": 0.0,
+            "battery_1_energy_drawn_kwh": 5.555555555555555,
+            "battery_2_energy_drawn_kwh": 0.0,
+            "battery_1_discharge_loss_kwh": 0.5555555555555554,
+            "battery_2_discharge_loss_kwh": 0.0,
+            "input_provenance": {
+              "demand_source": {
+                "source_id": "fixture:demand:0",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "conversion_source": {
+                "source_id": "fixture:conversion",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "component_source": {
+                "source_id": "fixture:shared-adapter-components",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "load_rate_reference_source": {
+                "source_id": "fixture:load-rate-reference",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "allowed_mode_transitions_source": {
+                "source_id": "fixture:mode-transitions",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "weights_source": {
+                "source_id": "liu-hanyou-thesis-2024",
+                "kind": "document",
+                "locator": "printed page 88, equations 5-27 to 5-30",
+                "confirmed": true,
+                "note": "Reference experiment weights; not vessel safety limits."
+              },
+              "assumptions": [
+                {
+                  "assumption_id": "acceptance-battery-parameters",
+                  "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+                },
+                {
+                  "assumption_id": "acceptance-bus-demand",
+                  "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+                }
+              ],
+              "battery_1": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_1:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_1:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_1:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_1:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_1:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_1:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "battery_2": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_2:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_2:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_2:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_2:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_2:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_2:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "scenario_id": "assumption:success",
+              "source_mode": "simulation"
+            },
+            "cost_terms": {
+              "power": 0.09000000000000001,
+              "switch": 0.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            }
+          },
+          {
+            "segment_id": "segment-1",
+            "phase": "sailing",
+            "start_offset_s": 600.0,
+            "duration_s": 3600.0,
+            "demand_bus_kw": 80.0,
+            "demand_bus_energy_kwh": 80.0,
+            "mode": 3,
+            "battery_1_power_kw": 39.860627177700344,
+            "battery_2_power_kw": 40.13937282229965,
+            "soc_1_before": 0.7944444444444445,
+            "soc_2_before": 0.8,
+            "soc_1_after": 0.7501548586914442,
+            "soc_2_after": 0.7554006968641116,
+            "planning_soc_1_before": 0.75,
+            "planning_soc_2_before": 0.8,
+            "planning_soc_1_after": 0.75,
+            "planning_soc_2_after": 0.75,
+            "grid_soc_1_after": 0.75,
+            "grid_soc_2_after": 0.75,
+            "motor_energy_kwh": 74.0,
+            "propulsion_bus_energy_kwh": 75.0,
+            "auxiliary_bus_energy_kwh": 5.0,
+            "conversion_delta_kwh": 1.0,
+            "battery_1_bus_energy_kwh": 39.860627177700344,
+            "battery_2_bus_energy_kwh": 40.13937282229965,
+            "battery_1_energy_drawn_kwh": 44.28958575300038,
+            "battery_2_energy_drawn_kwh": 44.5993031358885,
+            "battery_1_discharge_loss_kwh": 4.428958575300037,
+            "battery_2_discharge_loss_kwh": 4.459930313588849,
+            "input_provenance": {
+              "demand_source": {
+                "source_id": "fixture:demand:1",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "conversion_source": {
+                "source_id": "fixture:conversion",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "component_source": {
+                "source_id": "fixture:shared-adapter-components",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "load_rate_reference_source": {
+                "source_id": "fixture:load-rate-reference",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "allowed_mode_transitions_source": {
+                "source_id": "fixture:mode-transitions",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "weights_source": {
+                "source_id": "liu-hanyou-thesis-2024",
+                "kind": "document",
+                "locator": "printed page 88, equations 5-27 to 5-30",
+                "confirmed": true,
+                "note": "Reference experiment weights; not vessel safety limits."
+              },
+              "assumptions": [
+                {
+                  "assumption_id": "acceptance-battery-parameters",
+                  "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+                },
+                {
+                  "assumption_id": "acceptance-bus-demand",
+                  "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+                }
+              ],
+              "battery_1": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_1:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_1:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_1:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_1:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_1:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_1:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "battery_2": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_2:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_2:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_2:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_2:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_2:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_2:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "scenario_id": "assumption:success",
+              "source_mode": "simulation"
+            },
+            "cost_terms": {
+              "power": 0.3200038849567191,
+              "switch": 1000.0,
+              "soc_balance": 0.030000000000000027,
+              "low_load_mode3": 0.0
+            }
+          },
+          {
+            "segment_id": "segment-2",
+            "phase": "waiting",
+            "start_offset_s": 4200.0,
+            "duration_s": 600.0,
+            "demand_bus_kw": 0.0,
+            "demand_bus_energy_kwh": 0.0,
+            "mode": 3,
+            "battery_1_power_kw": 0.0,
+            "battery_2_power_kw": 0.0,
+            "soc_1_before": 0.7501548586914442,
+            "soc_2_before": 0.7554006968641116,
+            "soc_1_after": 0.7501548586914442,
+            "soc_2_after": 0.7554006968641116,
+            "planning_soc_1_before": 0.75,
+            "planning_soc_2_before": 0.75,
+            "planning_soc_1_after": 0.75,
+            "planning_soc_2_after": 0.75,
+            "grid_soc_1_after": 0.75,
+            "grid_soc_2_after": 0.75,
+            "motor_energy_kwh": 0.0,
+            "propulsion_bus_energy_kwh": 0.0,
+            "auxiliary_bus_energy_kwh": 0.0,
+            "conversion_delta_kwh": 0.0,
+            "battery_1_bus_energy_kwh": 0.0,
+            "battery_2_bus_energy_kwh": 0.0,
+            "battery_1_energy_drawn_kwh": 0.0,
+            "battery_2_energy_drawn_kwh": 0.0,
+            "battery_1_discharge_loss_kwh": 0.0,
+            "battery_2_discharge_loss_kwh": 0.0,
+            "input_provenance": {
+              "demand_source": {
+                "source_id": "fixture:demand:2",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "conversion_source": {
+                "source_id": "fixture:conversion",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "component_source": {
+                "source_id": "fixture:shared-adapter-components",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "load_rate_reference_source": {
+                "source_id": "fixture:load-rate-reference",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "allowed_mode_transitions_source": {
+                "source_id": "fixture:mode-transitions",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "weights_source": {
+                "source_id": "liu-hanyou-thesis-2024",
+                "kind": "document",
+                "locator": "printed page 88, equations 5-27 to 5-30",
+                "confirmed": true,
+                "note": "Reference experiment weights; not vessel safety limits."
+              },
+              "assumptions": [
+                {
+                  "assumption_id": "acceptance-battery-parameters",
+                  "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+                },
+                {
+                  "assumption_id": "acceptance-bus-demand",
+                  "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+                }
+              ],
+              "battery_1": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_1:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_1:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_1:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_1:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_1:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_1:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "battery_2": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_2:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_2:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_2:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_2:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_2:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_2:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "scenario_id": "assumption:success",
+              "source_mode": "simulation"
+            },
+            "cost_terms": {
+              "power": 0.0,
+              "switch": 0.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            }
+          },
+          {
+            "segment_id": "segment-2",
+            "phase": "sailing",
+            "start_offset_s": 4800.0,
+            "duration_s": 600.0,
+            "demand_bus_kw": 30.0,
+            "demand_bus_energy_kwh": 5.0,
+            "mode": 1,
+            "battery_1_power_kw": 30.0,
+            "battery_2_power_kw": 0.0,
+            "soc_1_before": 0.7501548586914442,
+            "soc_2_before": 0.7554006968641116,
+            "soc_1_after": 0.7445993031358886,
+            "soc_2_after": 0.7554006968641116,
+            "planning_soc_1_before": 0.75,
+            "planning_soc_2_before": 0.75,
+            "planning_soc_1_after": 0.7,
+            "planning_soc_2_after": 0.75,
+            "grid_soc_1_after": 0.7,
+            "grid_soc_2_after": 0.75,
+            "motor_energy_kwh": 4.0,
+            "propulsion_bus_energy_kwh": 4.166666666666666,
+            "auxiliary_bus_energy_kwh": 0.8333333333333333,
+            "conversion_delta_kwh": 0.16666666666666666,
+            "battery_1_bus_energy_kwh": 5.0,
+            "battery_2_bus_energy_kwh": 0.0,
+            "battery_1_energy_drawn_kwh": 5.555555555555555,
+            "battery_2_energy_drawn_kwh": 0.0,
+            "battery_1_discharge_loss_kwh": 0.5555555555555554,
+            "battery_2_discharge_loss_kwh": 0.0,
+            "input_provenance": {
+              "demand_source": {
+                "source_id": "fixture:demand:3",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "conversion_source": {
+                "source_id": "fixture:conversion",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "component_source": {
+                "source_id": "fixture:shared-adapter-components",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "load_rate_reference_source": {
+                "source_id": "fixture:load-rate-reference",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "allowed_mode_transitions_source": {
+                "source_id": "fixture:mode-transitions",
+                "kind": "assumption",
+                "locator": null,
+                "confirmed": false,
+                "note": "named acceptance fixture"
+              },
+              "weights_source": {
+                "source_id": "liu-hanyou-thesis-2024",
+                "kind": "document",
+                "locator": "printed page 88, equations 5-27 to 5-30",
+                "confirmed": true,
+                "note": "Reference experiment weights; not vessel safety limits."
+              },
+              "assumptions": [
+                {
+                  "assumption_id": "acceptance-battery-parameters",
+                  "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+                },
+                {
+                  "assumption_id": "acceptance-bus-demand",
+                  "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+                }
+              ],
+              "battery_1": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_1:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_1:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_1:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_1:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_1:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_1:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "battery_2": {
+                "capacity_kwh": {
+                  "source_id": "fixture:battery_2:capacity_kwh",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "initial_soc": {
+                  "source_id": "fixture:battery_2:initial_soc",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "soc_min": {
+                  "source_id": "fixture:battery_2:soc_min",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "min_power_kw": {
+                  "source_id": "fixture:battery_2:min_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "max_power_kw": {
+                  "source_id": "fixture:battery_2:max_power_kw",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                },
+                "discharge_efficiency": {
+                  "source_id": "fixture:battery_2:discharge_efficiency",
+                  "kind": "assumption",
+                  "locator": null,
+                  "confirmed": false,
+                  "note": "named acceptance fixture"
+                }
+              },
+              "scenario_id": "assumption:success",
+              "source_mode": "simulation"
+            },
+            "cost_terms": {
+              "power": 0.09000000000000001,
+              "switch": 1000.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            }
+          }
+        ],
+        "mode_trajectory": [
+          1,
+          3,
+          3,
+          1
+        ],
+        "cost_terms": {
+          "power": 0.5000038849567191,
+          "switch": 2000.0,
+          "soc_balance": 0.030000000000000027,
+          "low_load_mode3": 0.0,
+          "total": 2000.5300038849566
+        },
+        "replayed_cost_terms": {
+          "power": 0.5000038849567191,
+          "switch": 2000.0,
+          "soc_balance": 0.008054587688734016,
+          "low_load_mode3": 0.0,
+          "total": 2000.5080584726454
+        },
+        "constraint_checks": [
+          {
+            "name": "interval[0].time_and_input",
+            "passed": true,
+            "actual": 0.0,
+            "limit": 0.0,
+            "unit": null,
+            "reason": "区间边界、需求或时长与输入不一致。"
+          },
+          {
+            "name": "interval[0].bus_balance",
+            "passed": true,
+            "actual": 30.0,
+            "limit": 30.0,
+            "unit": null,
+            "reason": "P1 + P2 必须等于母线需求。"
+          },
+          {
+            "name": "interval[0].battery_power_limits",
+            "passed": true,
+            "actual": [
+              30.0,
+              0.0
+            ],
+            "limit": [
+              [
+                5,
+                50
+              ],
+              [
+                5,
+                50
+              ]
+            ],
+            "unit": null,
+            "reason": "单组输出超出已提供的运行功率范围。"
+          },
+          {
+            "name": "interval[0].mode_dispatch",
+            "passed": true,
+            "actual": 1,
+            "limit": null,
+            "unit": null,
+            "reason": "模式功率分配与任务书规则不一致。"
+          },
+          {
+            "name": "interval[0].mode_transition",
+            "passed": true,
+            "actual": [
+              null,
+              1
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "模式转换不在请求允许的转换集合中。"
+          },
+          {
+            "name": "interval[0].planning_soc_continuity",
+            "passed": true,
+            "actual": [
+              0.8,
+              0.8
+            ],
+            "limit": [
+              0.8,
+              0.8
+            ],
+            "unit": null,
+            "reason": "规划 SOC 必须连续，不能在区间间跳变。"
+          },
+          {
+            "name": "interval[0].soc_transition",
+            "passed": true,
+            "actual": [
+              0.7944444444444445,
+              0.8
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "SOC 必须由母线输出、效率、容量和时长复算。"
+          },
+          {
+            "name": "interval[0].soc_bounds",
+            "passed": true,
+            "actual": [
+              0.7944444444444445,
+              0.8
+            ],
+            "limit": [
+              0.2,
+              0.2
+            ],
+            "unit": null,
+            "reason": "SOC 越过规划下限或 1.0。"
+          },
+          {
+            "name": "interval[0].cost_terms",
+            "passed": true,
+            "actual": {
+              "power": 0.09000000000000001,
+              "switch": 0.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            },
+            "limit": {
+              "power": 0.09000000000000001,
+              "switch": 0.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            },
+            "unit": null,
+            "reason": "逐时成本分项与论文结构复算不一致。"
+          },
+          {
+            "name": "interval[0].energy_conservation",
+            "passed": true,
+            "actual": {
+              "demand_bus_energy_kwh": 5.0,
+              "battery_1_bus_energy_kwh": 5.0,
+              "battery_2_bus_energy_kwh": 0.0,
+              "battery_1_energy_drawn_kwh": 5.555555555555555,
+              "battery_2_energy_drawn_kwh": 0.0,
+              "battery_1_discharge_loss_kwh": 0.5555555555555554,
+              "battery_2_discharge_loss_kwh": 0.0,
+              "motor_energy_kwh": 4.0,
+              "propulsion_bus_energy_kwh": 4.166666666666666,
+              "auxiliary_bus_energy_kwh": 0.8333333333333333,
+              "conversion_delta_kwh": 0.16666666666666666
+            },
+            "limit": {
+              "demand_bus_energy_kwh": 5.0,
+              "battery_1_bus_energy_kwh": 5.0,
+              "battery_2_bus_energy_kwh": 0.0,
+              "battery_1_energy_drawn_kwh": 5.555555555555555,
+              "battery_2_energy_drawn_kwh": 0.0,
+              "battery_1_discharge_loss_kwh": 0.5555555555555554,
+              "battery_2_discharge_loss_kwh": 0.0,
+              "motor_energy_kwh": 4.0,
+              "propulsion_bus_energy_kwh": 4.166666666666666,
+              "auxiliary_bus_energy_kwh": 0.8333333333333333,
+              "conversion_delta_kwh": 0.16666666666666666
+            },
+            "unit": null,
+            "reason": "母线、电池侧能量及适配器分项必须可按 kW × s / 3600 复算。"
+          },
+          {
+            "name": "interval[1].time_and_input",
+            "passed": true,
+            "actual": 600.0,
+            "limit": 600.0,
+            "unit": null,
+            "reason": "区间边界、需求或时长与输入不一致。"
+          },
+          {
+            "name": "interval[1].bus_balance",
+            "passed": true,
+            "actual": 80.0,
+            "limit": 80.0,
+            "unit": null,
+            "reason": "P1 + P2 必须等于母线需求。"
+          },
+          {
+            "name": "interval[1].battery_power_limits",
+            "passed": true,
+            "actual": [
+              39.860627177700344,
+              40.13937282229965
+            ],
+            "limit": [
+              [
+                5,
+                50
+              ],
+              [
+                5,
+                50
+              ]
+            ],
+            "unit": null,
+            "reason": "单组输出超出已提供的运行功率范围。"
+          },
+          {
+            "name": "interval[1].mode_dispatch",
+            "passed": true,
+            "actual": 3,
+            "limit": null,
+            "unit": null,
+            "reason": "模式功率分配与任务书规则不一致。"
+          },
+          {
+            "name": "interval[1].mode_transition",
+            "passed": true,
+            "actual": [
+              1,
+              3
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "模式转换不在请求允许的转换集合中。"
+          },
+          {
+            "name": "interval[1].planning_soc_continuity",
+            "passed": true,
+            "actual": [
+              0.75,
+              0.8
+            ],
+            "limit": [
+              0.75,
+              0.8
+            ],
+            "unit": null,
+            "reason": "规划 SOC 必须连续，不能在区间间跳变。"
+          },
+          {
+            "name": "interval[1].soc_transition",
+            "passed": true,
+            "actual": [
+              0.7501548586914442,
+              0.7554006968641116
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "SOC 必须由母线输出、效率、容量和时长复算。"
+          },
+          {
+            "name": "interval[1].soc_bounds",
+            "passed": true,
+            "actual": [
+              0.7501548586914442,
+              0.7554006968641116
+            ],
+            "limit": [
+              0.2,
+              0.2
+            ],
+            "unit": null,
+            "reason": "SOC 越过规划下限或 1.0。"
+          },
+          {
+            "name": "interval[1].cost_terms",
+            "passed": true,
+            "actual": {
+              "power": 0.3200038849567191,
+              "switch": 1000.0,
+              "soc_balance": 0.030000000000000027,
+              "low_load_mode3": 0.0
+            },
+            "limit": {
+              "power": 0.3200038849567191,
+              "switch": 1000.0,
+              "soc_balance": 0.030000000000000027,
+              "low_load_mode3": 0.0
+            },
+            "unit": null,
+            "reason": "逐时成本分项与论文结构复算不一致。"
+          },
+          {
+            "name": "interval[1].energy_conservation",
+            "passed": true,
+            "actual": {
+              "demand_bus_energy_kwh": 80.0,
+              "battery_1_bus_energy_kwh": 39.860627177700344,
+              "battery_2_bus_energy_kwh": 40.13937282229965,
+              "battery_1_energy_drawn_kwh": 44.28958575300038,
+              "battery_2_energy_drawn_kwh": 44.5993031358885,
+              "battery_1_discharge_loss_kwh": 4.428958575300037,
+              "battery_2_discharge_loss_kwh": 4.459930313588849,
+              "motor_energy_kwh": 74.0,
+              "propulsion_bus_energy_kwh": 75.0,
+              "auxiliary_bus_energy_kwh": 5.0,
+              "conversion_delta_kwh": 1.0
+            },
+            "limit": {
+              "demand_bus_energy_kwh": 80.0,
+              "battery_1_bus_energy_kwh": 39.860627177700344,
+              "battery_2_bus_energy_kwh": 40.13937282229965,
+              "battery_1_energy_drawn_kwh": 44.28958575300038,
+              "battery_2_energy_drawn_kwh": 44.5993031358885,
+              "battery_1_discharge_loss_kwh": 4.428958575300037,
+              "battery_2_discharge_loss_kwh": 4.459930313588849,
+              "motor_energy_kwh": 74.0,
+              "propulsion_bus_energy_kwh": 75.0,
+              "auxiliary_bus_energy_kwh": 5.0,
+              "conversion_delta_kwh": 1.0
+            },
+            "unit": null,
+            "reason": "母线、电池侧能量及适配器分项必须可按 kW × s / 3600 复算。"
+          },
+          {
+            "name": "interval[2].time_and_input",
+            "passed": true,
+            "actual": 4200.0,
+            "limit": 4200.0,
+            "unit": null,
+            "reason": "区间边界、需求或时长与输入不一致。"
+          },
+          {
+            "name": "interval[2].bus_balance",
+            "passed": true,
+            "actual": 0.0,
+            "limit": 0.0,
+            "unit": null,
+            "reason": "P1 + P2 必须等于母线需求。"
+          },
+          {
+            "name": "interval[2].battery_power_limits",
+            "passed": true,
+            "actual": [
+              0.0,
+              0.0
+            ],
+            "limit": [
+              [
+                5,
+                50
+              ],
+              [
+                5,
+                50
+              ]
+            ],
+            "unit": null,
+            "reason": "单组输出超出已提供的运行功率范围。"
+          },
+          {
+            "name": "interval[2].mode_dispatch",
+            "passed": true,
+            "actual": 3,
+            "limit": null,
+            "unit": null,
+            "reason": "模式功率分配与任务书规则不一致。"
+          },
+          {
+            "name": "interval[2].mode_transition",
+            "passed": true,
+            "actual": [
+              3,
+              3
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "模式转换不在请求允许的转换集合中。"
+          },
+          {
+            "name": "interval[2].planning_soc_continuity",
+            "passed": true,
+            "actual": [
+              0.75,
+              0.75
+            ],
+            "limit": [
+              0.75,
+              0.75
+            ],
+            "unit": null,
+            "reason": "规划 SOC 必须连续，不能在区间间跳变。"
+          },
+          {
+            "name": "interval[2].soc_transition",
+            "passed": true,
+            "actual": [
+              0.7501548586914442,
+              0.7554006968641116
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "SOC 必须由母线输出、效率、容量和时长复算。"
+          },
+          {
+            "name": "interval[2].soc_bounds",
+            "passed": true,
+            "actual": [
+              0.7501548586914442,
+              0.7554006968641116
+            ],
+            "limit": [
+              0.2,
+              0.2
+            ],
+            "unit": null,
+            "reason": "SOC 越过规划下限或 1.0。"
+          },
+          {
+            "name": "interval[2].cost_terms",
+            "passed": true,
+            "actual": {
+              "power": 0.0,
+              "switch": 0.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            },
+            "limit": {
+              "power": 0.0,
+              "switch": 0.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            },
+            "unit": null,
+            "reason": "逐时成本分项与论文结构复算不一致。"
+          },
+          {
+            "name": "interval[2].energy_conservation",
+            "passed": true,
+            "actual": {
+              "demand_bus_energy_kwh": 0.0,
+              "battery_1_bus_energy_kwh": 0.0,
+              "battery_2_bus_energy_kwh": 0.0,
+              "battery_1_energy_drawn_kwh": 0.0,
+              "battery_2_energy_drawn_kwh": 0.0,
+              "battery_1_discharge_loss_kwh": 0.0,
+              "battery_2_discharge_loss_kwh": 0.0,
+              "motor_energy_kwh": 0.0,
+              "propulsion_bus_energy_kwh": 0.0,
+              "auxiliary_bus_energy_kwh": 0.0,
+              "conversion_delta_kwh": 0.0
+            },
+            "limit": {
+              "demand_bus_energy_kwh": 0.0,
+              "battery_1_bus_energy_kwh": 0.0,
+              "battery_2_bus_energy_kwh": 0.0,
+              "battery_1_energy_drawn_kwh": 0.0,
+              "battery_2_energy_drawn_kwh": 0.0,
+              "battery_1_discharge_loss_kwh": 0.0,
+              "battery_2_discharge_loss_kwh": 0.0,
+              "motor_energy_kwh": 0.0,
+              "propulsion_bus_energy_kwh": 0.0,
+              "auxiliary_bus_energy_kwh": 0.0,
+              "conversion_delta_kwh": 0.0
+            },
+            "unit": null,
+            "reason": "母线、电池侧能量及适配器分项必须可按 kW × s / 3600 复算。"
+          },
+          {
+            "name": "interval[3].time_and_input",
+            "passed": true,
+            "actual": 4800.0,
+            "limit": 4800.0,
+            "unit": null,
+            "reason": "区间边界、需求或时长与输入不一致。"
+          },
+          {
+            "name": "interval[3].bus_balance",
+            "passed": true,
+            "actual": 30.0,
+            "limit": 30.0,
+            "unit": null,
+            "reason": "P1 + P2 必须等于母线需求。"
+          },
+          {
+            "name": "interval[3].battery_power_limits",
+            "passed": true,
+            "actual": [
+              30.0,
+              0.0
+            ],
+            "limit": [
+              [
+                5,
+                50
+              ],
+              [
+                5,
+                50
+              ]
+            ],
+            "unit": null,
+            "reason": "单组输出超出已提供的运行功率范围。"
+          },
+          {
+            "name": "interval[3].mode_dispatch",
+            "passed": true,
+            "actual": 1,
+            "limit": null,
+            "unit": null,
+            "reason": "模式功率分配与任务书规则不一致。"
+          },
+          {
+            "name": "interval[3].mode_transition",
+            "passed": true,
+            "actual": [
+              3,
+              1
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "模式转换不在请求允许的转换集合中。"
+          },
+          {
+            "name": "interval[3].planning_soc_continuity",
+            "passed": true,
+            "actual": [
+              0.75,
+              0.75
+            ],
+            "limit": [
+              0.75,
+              0.75
+            ],
+            "unit": null,
+            "reason": "规划 SOC 必须连续，不能在区间间跳变。"
+          },
+          {
+            "name": "interval[3].soc_transition",
+            "passed": true,
+            "actual": [
+              0.7445993031358886,
+              0.7554006968641116
+            ],
+            "limit": null,
+            "unit": null,
+            "reason": "SOC 必须由母线输出、效率、容量和时长复算。"
+          },
+          {
+            "name": "interval[3].soc_bounds",
+            "passed": true,
+            "actual": [
+              0.7445993031358886,
+              0.7554006968641116
+            ],
+            "limit": [
+              0.2,
+              0.2
+            ],
+            "unit": null,
+            "reason": "SOC 越过规划下限或 1.0。"
+          },
+          {
+            "name": "interval[3].cost_terms",
+            "passed": true,
+            "actual": {
+              "power": 0.09000000000000001,
+              "switch": 1000.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            },
+            "limit": {
+              "power": 0.09000000000000001,
+              "switch": 1000.0,
+              "soc_balance": 0.0,
+              "low_load_mode3": 0.0
+            },
+            "unit": null,
+            "reason": "逐时成本分项与论文结构复算不一致。"
+          },
+          {
+            "name": "interval[3].energy_conservation",
+            "passed": true,
+            "actual": {
+              "demand_bus_energy_kwh": 5.0,
+              "battery_1_bus_energy_kwh": 5.0,
+              "battery_2_bus_energy_kwh": 0.0,
+              "battery_1_energy_drawn_kwh": 5.555555555555555,
+              "battery_2_energy_drawn_kwh": 0.0,
+              "battery_1_discharge_loss_kwh": 0.5555555555555554,
+              "battery_2_discharge_loss_kwh": 0.0,
+              "motor_energy_kwh": 4.0,
+              "propulsion_bus_energy_kwh": 4.166666666666666,
+              "auxiliary_bus_energy_kwh": 0.8333333333333333,
+              "conversion_delta_kwh": 0.16666666666666666
+            },
+            "limit": {
+              "demand_bus_energy_kwh": 5.0,
+              "battery_1_bus_energy_kwh": 5.0,
+              "battery_2_bus_energy_kwh": 0.0,
+              "battery_1_energy_drawn_kwh": 5.555555555555555,
+              "battery_2_energy_drawn_kwh": 0.0,
+              "battery_1_discharge_loss_kwh": 0.5555555555555554,
+              "battery_2_discharge_loss_kwh": 0.0,
+              "motor_energy_kwh": 4.0,
+              "propulsion_bus_energy_kwh": 4.166666666666666,
+              "auxiliary_bus_energy_kwh": 0.8333333333333333,
+              "conversion_delta_kwh": 0.16666666666666666
+            },
+            "unit": null,
+            "reason": "母线、电池侧能量及适配器分项必须可按 kW × s / 3600 复算。"
+          },
+          {
+            "name": "cost_terms.optimized",
+            "passed": true,
+            "actual": {
+              "power": 0.5000038849567191,
+              "switch": 2000.0,
+              "soc_balance": 0.030000000000000027,
+              "low_load_mode3": 0.0,
+              "total": 2000.5300038849566
+            },
+            "limit": {
+              "power": 0.5000038849567191,
+              "switch": 2000.0,
+              "soc_balance": 0.030000000000000027,
+              "low_load_mode3": 0.0
+            },
+            "unit": null,
+            "reason": "FDP 成本分项与独立复算结果不一致。"
+          }
+        ],
+        "diagnostic_ref": {
+          "verification": true
+        },
+        "feedback_ref": null,
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+        "grid": {
+          "soc_step": 0.05,
+          "max_states_per_layer": 1000,
+          "max_transitions": 100000,
+          "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+        },
+        "weights": {
+          "k_p": 0.0001,
+          "k_s": 1000.0,
+          "k_soc": 0.3,
+          "k_low": 100000.0,
+          "low_load_threshold": 0.65,
+          "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+          "source": {
+            "source_id": "liu-hanyou-thesis-2024",
+            "kind": "document",
+            "locator": "printed page 88, equations 5-27 to 5-30",
+            "confirmed": true,
+            "note": "Reference experiment weights; not vessel safety limits."
+          }
+        },
+        "assumptions": [
+          {
+            "assumption_id": "acceptance-battery-parameters",
+            "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+          },
+          {
+            "assumption_id": "acceptance-bus-demand",
+            "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+          },
+          {
+            "assumption_id": "research-model-only",
+            "value": "两组电池为可调度研究模型，输出不连接实船控制器。"
+          },
+          {
+            "assumption_id": "no-charging-v1",
+            "value": "首版三模式仅处理放电供能，未实现途中补能状态转移。"
+          }
+        ],
+        "summary": {
+          "final_soc_1": 0.7445993031358886,
+          "final_soc_2": 0.7554006968641116,
+          "final_planning_soc_1": 0.7,
+          "final_planning_soc_2": 0.75,
+          "demand_bus_energy_kwh": 90.0,
+          "bus_energy_1_kwh": 49.860627177700344,
+          "bus_energy_2_kwh": 40.13937282229965,
+          "battery_energy_drawn_1_kwh": 55.400696864111495,
+          "battery_energy_drawn_2_kwh": 44.5993031358885,
+          "battery_discharge_loss_1_kwh": 5.540069686411147,
+          "battery_discharge_loss_2_kwh": 4.459930313588849,
+          "motor_energy_kwh": 82.0,
+          "propulsion_bus_energy_kwh": 83.33333333333334,
+          "auxiliary_bus_energy_kwh": 6.666666666666666,
+          "conversion_delta_kwh": 1.3333333333333335,
+          "segment_summary": [
+            {
+              "segment_id": "segment-1",
+              "start_offset_s": 0.0,
+              "end_offset_s": 4200.0,
+              "duration_s": 4200.0,
+              "demand_bus_energy_kwh": 85.0,
+              "battery_1_bus_energy_kwh": 44.860627177700344,
+              "battery_2_bus_energy_kwh": 40.13937282229965,
+              "battery_1_energy_drawn_kwh": 49.84514130855594,
+              "battery_2_energy_drawn_kwh": 44.5993031358885,
+              "battery_1_discharge_loss_kwh": 4.984514130855592,
+              "battery_2_discharge_loss_kwh": 4.459930313588849,
+              "final_soc_1": 0.7501548586914442,
+              "final_soc_2": 0.7554006968641116,
+              "phases": [
+                "sailing"
+              ],
+              "mode_counts": {
+                "1": 1,
+                "2": 0,
+                "3": 1
+              }
+            },
+            {
+              "segment_id": "segment-2",
+              "start_offset_s": 4200.0,
+              "end_offset_s": 5400.0,
+              "duration_s": 1200.0,
+              "demand_bus_energy_kwh": 5.0,
+              "battery_1_bus_energy_kwh": 5.0,
+              "battery_2_bus_energy_kwh": 0.0,
+              "battery_1_energy_drawn_kwh": 5.555555555555555,
+              "battery_2_energy_drawn_kwh": 0.0,
+              "battery_1_discharge_loss_kwh": 0.5555555555555554,
+              "battery_2_discharge_loss_kwh": 0.0,
+              "final_soc_1": 0.7445993031358886,
+              "final_soc_2": 0.7554006968641116,
+              "phases": [
+                "waiting",
+                "sailing"
+              ],
+              "mode_counts": {
+                "1": 1,
+                "2": 0,
+                "3": 1
+              }
+            }
+          ],
+          "mode_counts": {
+            "1": 2,
+            "2": 0,
+            "3": 2
+          },
+          "transitions_seen": 16,
+          "peak_states_per_layer": 3
+        }
+      }
+    }
+  },
+  "instantaneous_overload": {
+    "request": {
+      "schema_version": "research-tools/2.0-draft",
+      "task_id": "task:instantaneous_overload",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:instantaneous_overload",
+      "scenario_id": "assumption:instantaneous_overload",
+      "call_id": "call:instantaneous_overload",
+      "selected_candidate_id": "candidate:instantaneous_overload",
+      "selected_demand_ref": "demand:instantaneous_overload",
+      "demand_series": [
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 0.0,
+          "duration_s": 60.0,
+          "demand_bus_kw": 120.0,
+          "demand_source": {
+            "source_id": "fixture:demand:0",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 114.0,
+          "propulsion_bus_kw": 115.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      ],
+      "battery_1": {
+        "battery_id": "battery_1",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_1:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_1:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_1:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_1:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_1:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_1:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "battery_2": {
+        "battery_id": "battery_2",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_2:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_2:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_2:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_2:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_2:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_2:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "load_rate_reference_kw": 100.0,
+      "load_rate_reference_source": {
+        "source_id": "fixture:load-rate-reference",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "allowed_mode_transitions": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "allowed_mode_transitions_source": {
+        "source_id": "fixture:mode-transitions",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "previous_mode": null,
+      "planning_origin_at": null,
+      "parent_call_id": "call:acceptance-harness",
+      "grid": {
+        "soc_step": 0.05,
+        "max_states_per_layer": 1000,
+        "max_transitions": 100000,
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+      },
+      "weights": {
+        "k_p": 0.0001,
+        "k_s": 1000.0,
+        "k_soc": 0.3,
+        "k_low": 100000.0,
+        "low_load_threshold": 0.65,
+        "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+        "source": {
+          "source_id": "liu-hanyou-thesis-2024",
+          "kind": "document",
+          "locator": "printed page 88, equations 5-27 to 5-30",
+          "confirmed": true,
+          "note": "Reference experiment weights; not vessel safety limits."
+        }
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acceptance-battery-parameters",
+          "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+        },
+        {
+          "assumption_id": "acceptance-bus-demand",
+          "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+        }
+      ],
+      "source_mode": "simulation"
+    },
+    "result": {
+      "schema_version": "research-tools/2.0-draft",
+      "tool_name": "Tmanagement",
+      "call_id": "call:instantaneous_overload",
+      "parent_call_id": "call:acceptance-harness",
+      "input_hash": "936f1f3a44539d91bc6fb65e7d4814efb1a4279d2ede856d2b6c5d58ebe69ed8",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:instantaneous_overload",
+      "scenario_id": "assumption:instantaneous_overload",
+      "execution_status": "completed",
+      "outcome_code": "infeasible_under_assumptions",
+      "payload_ref": null,
+      "diagnostics": [
+        {
+          "stage": "fdp",
+          "code": "instantaneous_power_exceeds_known_limit",
+          "time_interval_or_segment_id": "segment-1",
+          "field_ref": "demand_bus_kw",
+          "observed": 120.0,
+          "limit": 100,
+          "unit": "kW",
+          "source_refs": [
+            {
+              "source_id": "fixture:battery_1:max_power_kw",
+              "kind": "assumption",
+              "locator": null,
+              "confirmed": false,
+              "note": "named acceptance fixture"
+            },
+            {
+              "source_id": "fixture:battery_2:max_power_kw",
+              "kind": "assumption",
+              "locator": null,
+              "confirmed": false,
+              "note": "named acceptance fixture"
+            }
+          ],
+          "retryable": false,
+          "detail": "该峰值在当前两组功率上限下不可供能；适用于有相同上限证据的候选族。"
+        }
+      ],
+      "model_or_algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+      "config_hash": "ad53586894281fff04617ae15c567e716e0f97dd20476e3f782426d71dcc65ac",
+      "payload": {
+        "safe": false,
+        "feedback": {
+          "selected_candidate_id": "candidate:instantaneous_overload",
+          "selected_demand_ref": "demand:instantaneous_overload",
+          "request_revision": 1,
+          "snapshot_id": "snapshot:instantaneous_overload",
+          "scenario_id": "assumption:instantaneous_overload",
+          "call_id": "call:instantaneous_overload",
+          "demand_series_hash": "7cb03c8c479e683b6ea008749600ed86dff526ac6e511e89a4dcf2e6584cb3f3",
+          "battery_config_hash": "0c3843691c201e3a4db93e67efaec85bd5ddb96a67729c1231b58491c41e7fb2",
+          "failure_scope": "instantaneous_power",
+          "first_failure_interval": {
+            "segment_id": "segment-1",
+            "start_offset_s": 0.0,
+            "duration_s": 60.0,
+            "end_offset_s": 60.0
+          },
+          "violated_rule": "P_1 + P_2 <= P_max_1 + P_max_2",
+          "demand_kw": 120.0,
+          "deliverable_kw": 100,
+          "soc_1": 0.8,
+          "soc_2": 0.8,
+          "limit_source_ref": [
+            {
+              "source_id": "fixture:battery_1:max_power_kw",
+              "kind": "assumption",
+              "locator": null,
+              "confirmed": false,
+              "note": "named acceptance fixture"
+            },
+            {
+              "source_id": "fixture:battery_2:max_power_kw",
+              "kind": "assumption",
+              "locator": null,
+              "confirmed": false,
+              "note": "named acceptance fixture"
+            }
+          ],
+          "diagnostic_certainty": "proven_under_request",
+          "suggested_search_action": "reduce_peak_power_or_revise_constraints",
+          "hard_constraint_applicable_to_candidate_family": true
+        },
+        "diagnostic_ref": {
+          "diagnostic_id": "744e879eed2c8c52"
+        },
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+        "grid": {
+          "soc_step": 0.05,
+          "max_states_per_layer": 1000,
+          "max_transitions": 100000,
+          "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+        },
+        "weights": {
+          "k_p": 0.0001,
+          "k_s": 1000.0,
+          "k_soc": 0.3,
+          "k_low": 100000.0,
+          "low_load_threshold": 0.65,
+          "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+          "source": {
+            "source_id": "liu-hanyou-thesis-2024",
+            "kind": "document",
+            "locator": "printed page 88, equations 5-27 to 5-30",
+            "confirmed": true,
+            "note": "Reference experiment weights; not vessel safety limits."
+          }
+        }
+      }
+    }
+  },
+  "soc_depletion": {
+    "request": {
+      "schema_version": "research-tools/2.0-draft",
+      "task_id": "task:soc_depletion",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:soc_depletion",
+      "scenario_id": "assumption:soc_depletion",
+      "call_id": "call:soc_depletion",
+      "selected_candidate_id": "candidate:soc_depletion",
+      "selected_demand_ref": "demand:soc_depletion",
+      "demand_series": [
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 0.0,
+          "duration_s": 3600.0,
+          "demand_bus_kw": 100.0,
+          "demand_source": {
+            "source_id": "fixture:demand:0",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 94.0,
+          "propulsion_bus_kw": 95.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      ],
+      "battery_1": {
+        "battery_id": "battery_1",
+        "capacity_kwh": 10,
+        "initial_soc": 0.3,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 100,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_1:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_1:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_1:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_1:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_1:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_1:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "battery_2": {
+        "battery_id": "battery_2",
+        "capacity_kwh": 10,
+        "initial_soc": 0.3,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 100,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_2:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_2:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_2:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_2:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_2:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_2:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "load_rate_reference_kw": 100.0,
+      "load_rate_reference_source": {
+        "source_id": "fixture:load-rate-reference",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "allowed_mode_transitions": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "allowed_mode_transitions_source": {
+        "source_id": "fixture:mode-transitions",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "previous_mode": null,
+      "planning_origin_at": null,
+      "parent_call_id": "call:acceptance-harness",
+      "grid": {
+        "soc_step": 0.05,
+        "max_states_per_layer": 1000,
+        "max_transitions": 100000,
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+      },
+      "weights": {
+        "k_p": 0.0001,
+        "k_s": 1000.0,
+        "k_soc": 0.3,
+        "k_low": 100000.0,
+        "low_load_threshold": 0.65,
+        "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+        "source": {
+          "source_id": "liu-hanyou-thesis-2024",
+          "kind": "document",
+          "locator": "printed page 88, equations 5-27 to 5-30",
+          "confirmed": true,
+          "note": "Reference experiment weights; not vessel safety limits."
+        }
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acceptance-battery-parameters",
+          "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+        },
+        {
+          "assumption_id": "acceptance-bus-demand",
+          "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+        }
+      ],
+      "source_mode": "simulation"
+    },
+    "result": {
+      "schema_version": "research-tools/2.0-draft",
+      "tool_name": "Tmanagement",
+      "call_id": "call:soc_depletion",
+      "parent_call_id": "call:acceptance-harness",
+      "input_hash": "dc930fb187ad493ccd02ab4285ae51ca97857bbf9d1c1b8135db87ecdb19c143",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:soc_depletion",
+      "scenario_id": "assumption:soc_depletion",
+      "execution_status": "completed",
+      "outcome_code": "grid_unresolved",
+      "payload_ref": null,
+      "diagnostics": [
+        {
+          "stage": "fdp",
+          "code": "no_path_on_requested_grid",
+          "time_interval_or_segment_id": "segment-1",
+          "field_ref": "soc_or_mode_constraints",
+          "observed": 100.0,
+          "limit": null,
+          "unit": "kW",
+          "source_refs": [],
+          "retryable": false,
+          "detail": "当前离散 SOC 网格的全部状态均无可行转移；这不证明连续模型或实船全局无解。"
+        }
+      ],
+      "model_or_algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+      "config_hash": "ad53586894281fff04617ae15c567e716e0f97dd20476e3f782426d71dcc65ac",
+      "payload": {
+        "safe": false,
+        "feedback": {
+          "selected_candidate_id": "candidate:soc_depletion",
+          "selected_demand_ref": "demand:soc_depletion",
+          "request_revision": 1,
+          "snapshot_id": "snapshot:soc_depletion",
+          "scenario_id": "assumption:soc_depletion",
+          "call_id": "call:soc_depletion",
+          "demand_series_hash": "5a3ba477658b879a00a77df8cc51723ddf2d0e77d9bd8824b25879fdb0ba5af9",
+          "battery_config_hash": "75a5e1337c3e2b67257fb417de553df4044e7551107f06b2222a0fe874ba0673",
+          "failure_scope": "candidate_grid_path",
+          "first_failure_interval": {
+            "segment_id": "segment-1",
+            "start_offset_s": 0.0,
+            "duration_s": 3600.0,
+            "end_offset_s": 3600.0
+          },
+          "violated_rule": "no_feasible_state_transition",
+          "demand_kw": 100.0,
+          "deliverable_kw": null,
+          "soc_1": 0.3,
+          "soc_2": 0.3,
+          "limit_source_ref": null,
+          "diagnostic_certainty": "no_path_on_requested_grid",
+          "suggested_search_action": "inspect_grid_or_replan_candidate",
+          "hard_constraint_applicable_to_candidate_family": false
+        },
+        "grid": {
+          "soc_step": 0.05,
+          "max_states_per_layer": 1000,
+          "max_transitions": 100000,
+          "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+        },
+        "transitions_seen": 3,
+        "peak_states_per_layer": 1
+      }
+    }
+  },
+  "grid_budget": {
+    "request": {
+      "schema_version": "research-tools/2.0-draft",
+      "task_id": "task:grid_budget",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:grid_budget",
+      "scenario_id": "assumption:grid_budget",
+      "call_id": "call:grid_budget",
+      "selected_candidate_id": "candidate:grid_budget",
+      "selected_demand_ref": "demand:grid_budget",
+      "demand_series": [
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 0.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 30.0,
+          "demand_source": {
+            "source_id": "fixture:demand:0",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 24.0,
+          "propulsion_bus_kw": 25.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        },
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 600.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 35.0,
+          "demand_source": {
+            "source_id": "fixture:demand:1",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 29.0,
+          "propulsion_bus_kw": 30.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      ],
+      "battery_1": {
+        "battery_id": "battery_1",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_1:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_1:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_1:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_1:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_1:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_1:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "battery_2": {
+        "battery_id": "battery_2",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_2:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_2:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_2:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_2:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_2:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_2:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "load_rate_reference_kw": 100.0,
+      "load_rate_reference_source": {
+        "source_id": "fixture:load-rate-reference",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "allowed_mode_transitions": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "allowed_mode_transitions_source": {
+        "source_id": "fixture:mode-transitions",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "previous_mode": null,
+      "planning_origin_at": null,
+      "parent_call_id": "call:acceptance-harness",
+      "grid": {
+        "soc_step": 0.05,
+        "max_states_per_layer": 1000,
+        "max_transitions": 1,
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+      },
+      "weights": {
+        "k_p": 0.0001,
+        "k_s": 1000.0,
+        "k_soc": 0.3,
+        "k_low": 100000.0,
+        "low_load_threshold": 0.65,
+        "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+        "source": {
+          "source_id": "liu-hanyou-thesis-2024",
+          "kind": "document",
+          "locator": "printed page 88, equations 5-27 to 5-30",
+          "confirmed": true,
+          "note": "Reference experiment weights; not vessel safety limits."
+        }
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acceptance-battery-parameters",
+          "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+        },
+        {
+          "assumption_id": "acceptance-bus-demand",
+          "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+        }
+      ],
+      "source_mode": "simulation"
+    },
+    "result": {
+      "schema_version": "research-tools/2.0-draft",
+      "tool_name": "Tmanagement",
+      "call_id": "call:grid_budget",
+      "parent_call_id": "call:acceptance-harness",
+      "input_hash": "2a637aec72b4a0bfe18f8aa31ce13c37d9056897e7368896ef90567f91c2b229",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:grid_budget",
+      "scenario_id": "assumption:grid_budget",
+      "execution_status": "completed",
+      "outcome_code": "grid_unresolved",
+      "payload_ref": null,
+      "diagnostics": [
+        {
+          "stage": "fdp",
+          "code": "grid_unresolved",
+          "time_interval_or_segment_id": "segment-1",
+          "field_ref": "grid.max_transitions",
+          "observed": 2,
+          "limit": 1,
+          "unit": "transitions",
+          "source_refs": [],
+          "retryable": true,
+          "detail": "FDP transition budget exhausted; rerun with an explicit larger budget or coarser grid."
+        }
+      ],
+      "model_or_algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+      "config_hash": "a53bb8f8a60918a40c9cb05f04aa3844a157f377551eb2efd55098605397a04d",
+      "payload": {
+        "safe": false,
+        "feedback": {
+          "selected_candidate_id": "candidate:grid_budget",
+          "selected_demand_ref": "demand:grid_budget",
+          "request_revision": 1,
+          "snapshot_id": "snapshot:grid_budget",
+          "scenario_id": "assumption:grid_budget",
+          "call_id": "call:grid_budget",
+          "demand_series_hash": "08f5785f505d21692a45001f6d812070347597ffc15c865088d043fbd86ecdf5",
+          "battery_config_hash": "0c3843691c201e3a4db93e67efaec85bd5ddb96a67729c1231b58491c41e7fb2",
+          "failure_scope": "grid_budget",
+          "first_failure_interval": {
+            "segment_id": "segment-1",
+            "start_offset_s": 0.0,
+            "duration_s": 600.0,
+            "end_offset_s": 600.0
+          },
+          "violated_rule": "max_transitions",
+          "demand_kw": 30.0,
+          "deliverable_kw": null,
+          "soc_1": 0.8,
+          "soc_2": 0.8,
+          "limit_source_ref": null,
+          "diagnostic_certainty": "transition_budget_exhausted",
+          "suggested_search_action": "increase_fdp_budget_or_adjust_grid",
+          "hard_constraint_applicable_to_candidate_family": false
+        },
+        "grid": {
+          "soc_step": 0.05,
+          "max_states_per_layer": 1000,
+          "max_transitions": 1,
+          "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+        },
+        "transitions_seen": 2,
+        "peak_states_per_layer": 1
+      }
+    }
+  },
+  "charging_unsupported": {
+    "request": {
+      "schema_version": "research-tools/2.0-draft",
+      "task_id": "task:charging_unsupported",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:charging_unsupported",
+      "scenario_id": "assumption:charging_unsupported",
+      "call_id": "call:charging_unsupported",
+      "selected_candidate_id": "candidate:charging_unsupported",
+      "selected_demand_ref": "demand:charging_unsupported",
+      "demand_series": [
+        {
+          "segment_id": "segment-1",
+          "phase": "docking",
+          "start_offset_s": 0.0,
+          "duration_s": 300.0,
+          "demand_bus_kw": -10.0,
+          "demand_source": {
+            "source_id": "fixture:demand:0",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 0,
+          "propulsion_bus_kw": -10.0,
+          "auxiliary_bus_kw": 0.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      ],
+      "battery_1": {
+        "battery_id": "battery_1",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_1:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_1:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_1:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_1:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_1:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_1:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "battery_2": {
+        "battery_id": "battery_2",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_2:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_2:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_2:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_2:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_2:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_2:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "load_rate_reference_kw": 100.0,
+      "load_rate_reference_source": {
+        "source_id": "fixture:load-rate-reference",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "allowed_mode_transitions": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "allowed_mode_transitions_source": {
+        "source_id": "fixture:mode-transitions",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "previous_mode": null,
+      "planning_origin_at": null,
+      "parent_call_id": "call:acceptance-harness",
+      "grid": {
+        "soc_step": 0.05,
+        "max_states_per_layer": 1000,
+        "max_transitions": 100000,
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+      },
+      "weights": {
+        "k_p": 0.0001,
+        "k_s": 1000.0,
+        "k_soc": 0.3,
+        "k_low": 100000.0,
+        "low_load_threshold": 0.65,
+        "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+        "source": {
+          "source_id": "liu-hanyou-thesis-2024",
+          "kind": "document",
+          "locator": "printed page 88, equations 5-27 to 5-30",
+          "confirmed": true,
+          "note": "Reference experiment weights; not vessel safety limits."
+        }
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acceptance-battery-parameters",
+          "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+        },
+        {
+          "assumption_id": "acceptance-bus-demand",
+          "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+        }
+      ],
+      "source_mode": "simulation"
+    },
+    "result": {
+      "schema_version": "research-tools/2.0-draft",
+      "tool_name": "Tmanagement",
+      "call_id": "call:charging_unsupported",
+      "parent_call_id": "call:acceptance-harness",
+      "input_hash": "c945861055469ac0c1e9c50f3d80ab4068adc1caa8cda07b7465fdd66ad11f97",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:charging_unsupported",
+      "scenario_id": "assumption:charging_unsupported",
+      "execution_status": "completed",
+      "outcome_code": "unsupported_charging",
+      "payload_ref": null,
+      "diagnostics": [
+        {
+          "stage": "input",
+          "code": "charging_not_supported",
+          "time_interval_or_segment_id": "segment-1",
+          "field_ref": "demand_series[0].demand_bus_kw",
+          "observed": -10.0,
+          "limit": 0,
+          "unit": "kW",
+          "source_refs": [],
+          "retryable": false,
+          "detail": "首版三模式 FDP 只支持放电供能；负母线需求不能冒充补能状态转移。"
+        }
+      ],
+      "model_or_algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+      "config_hash": "ad53586894281fff04617ae15c567e716e0f97dd20476e3f782426d71dcc65ac"
+    }
+  },
+  "missing_efficiency": {
+    "request": {
+      "schema_version": "research-tools/2.0-draft",
+      "task_id": "task:success",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:success",
+      "scenario_id": "assumption:success",
+      "call_id": "call:success",
+      "selected_candidate_id": "candidate:success",
+      "selected_demand_ref": "demand:success",
+      "demand_series": [
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 0.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 30.0,
+          "demand_source": {
+            "source_id": "fixture:demand:0",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 24.0,
+          "propulsion_bus_kw": 25.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        },
+        {
+          "segment_id": "segment-1",
+          "phase": "sailing",
+          "start_offset_s": 600.0,
+          "duration_s": 3600.0,
+          "demand_bus_kw": 80.0,
+          "demand_source": {
+            "source_id": "fixture:demand:1",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 74.0,
+          "propulsion_bus_kw": 75.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        },
+        {
+          "segment_id": "segment-2",
+          "phase": "waiting",
+          "start_offset_s": 4200.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 0.0,
+          "demand_source": {
+            "source_id": "fixture:demand:2",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 0,
+          "propulsion_bus_kw": 0.0,
+          "auxiliary_bus_kw": 0.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        },
+        {
+          "segment_id": "segment-2",
+          "phase": "sailing",
+          "start_offset_s": 4800.0,
+          "duration_s": 600.0,
+          "demand_bus_kw": 30.0,
+          "demand_source": {
+            "source_id": "fixture:demand:3",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "conversion_model_ref": "named-fixture-conversion-v1",
+          "conversion_source": {
+            "source_id": "fixture:conversion",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "motor_power_kw": 24.0,
+          "propulsion_bus_kw": 25.0,
+          "auxiliary_bus_kw": 5.0,
+          "component_source": {
+            "source_id": "fixture:shared-adapter-components",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      ],
+      "battery_1": {
+        "battery_id": "battery_1",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": null,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_1:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_1:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_1:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_1:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_1:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "battery_2": {
+        "battery_id": "battery_2",
+        "capacity_kwh": 1000,
+        "initial_soc": 0.8,
+        "soc_min": 0.2,
+        "min_power_kw": 5,
+        "max_power_kw": 50,
+        "discharge_efficiency": 0.9,
+        "sources": {
+          "capacity_kwh": {
+            "source_id": "fixture:battery_2:capacity_kwh",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "initial_soc": {
+            "source_id": "fixture:battery_2:initial_soc",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "soc_min": {
+            "source_id": "fixture:battery_2:soc_min",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "min_power_kw": {
+            "source_id": "fixture:battery_2:min_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "max_power_kw": {
+            "source_id": "fixture:battery_2:max_power_kw",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          },
+          "discharge_efficiency": {
+            "source_id": "fixture:battery_2:discharge_efficiency",
+            "kind": "assumption",
+            "locator": null,
+            "confirmed": false,
+            "note": "named acceptance fixture"
+          }
+        }
+      },
+      "load_rate_reference_kw": 100.0,
+      "load_rate_reference_source": {
+        "source_id": "fixture:load-rate-reference",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "allowed_mode_transitions": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "allowed_mode_transitions_source": {
+        "source_id": "fixture:mode-transitions",
+        "kind": "assumption",
+        "locator": null,
+        "confirmed": false,
+        "note": "named acceptance fixture"
+      },
+      "previous_mode": null,
+      "planning_origin_at": null,
+      "parent_call_id": "call:acceptance-harness",
+      "grid": {
+        "soc_step": 0.05,
+        "max_states_per_layer": 1000,
+        "max_transitions": 100000,
+        "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0"
+      },
+      "weights": {
+        "k_p": 0.0001,
+        "k_s": 1000.0,
+        "k_soc": 0.3,
+        "k_low": 100000.0,
+        "low_load_threshold": 0.65,
+        "profile_id": "thesis-5.2.2-equations-5-27-to-5-30",
+        "source": {
+          "source_id": "liu-hanyou-thesis-2024",
+          "kind": "document",
+          "locator": "printed page 88, equations 5-27 to 5-30",
+          "confirmed": true,
+          "note": "Reference experiment weights; not vessel safety limits."
+        }
+      },
+      "assumptions": [
+        {
+          "assumption_id": "acceptance-battery-parameters",
+          "value": "容量、SOC、功率界限和效率为测试假设，不是实船参数。"
+        },
+        {
+          "assumption_id": "acceptance-bus-demand",
+          "value": "需求、转换和辅助功率仅用于工具验收夹具。"
+        }
+      ],
+      "source_mode": "simulation"
+    },
+    "result": {
+      "schema_version": "research-tools/2.0-draft",
+      "tool_name": "Tmanagement",
+      "call_id": "call:success",
+      "parent_call_id": "call:acceptance-harness",
+      "input_hash": "89c20e26f59add0397f19f53a30200e10b0d1aaead4d796f6a53ee59361945a9",
+      "request_revision": 1,
+      "snapshot_id": "snapshot:success",
+      "scenario_id": "assumption:success",
+      "execution_status": "completed",
+      "outcome_code": "needs_input",
+      "payload_ref": null,
+      "diagnostics": [
+        {
+          "stage": "input",
+          "code": "missing_input",
+          "time_interval_or_segment_id": null,
+          "field_ref": "battery_1.discharge_efficiency",
+          "observed": null,
+          "limit": null,
+          "unit": null,
+          "source_refs": [],
+          "retryable": true,
+          "detail": "电池关键参数未知，不能填默认值。"
+        },
+        {
+          "stage": "input",
+          "code": "missing_input",
+          "time_interval_or_segment_id": null,
+          "field_ref": "battery_1.sources.discharge_efficiency",
+          "observed": null,
+          "limit": null,
+          "unit": null,
+          "source_refs": [],
+          "retryable": true,
+          "detail": "采用值必须带 source_ref。"
+        }
+      ],
+      "model_or_algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+      "config_hash": "ad53586894281fff04617ae15c567e716e0f97dd20476e3f782426d71dcc65ac"
+    }
+  }
+}

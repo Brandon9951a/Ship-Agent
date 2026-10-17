@@ -589,7 +589,7 @@ function renderTable(segments) {
   </tr>`).join("") : '<tr class="placeholder-row"><td colspan="5">等待航速优化结果</td></tr>';
 }
 
-const CHECK_LABELS = { time: "航时约束", speed: "航速范围", power: "推进功率", soc: "电量余度" };
+const CHECK_LABELS = { time: "航时约束", speed: "航速范围", power: "推进功率", soc: "电量余度", soc_1: "甲组电量余度", soc_2: "乙组电量余度" };
 
 function checkValue(value, unit) {
   if (value == null) return "--";
@@ -664,6 +664,12 @@ function renderTrace(trace) {
 }
 
 function renderModel(result) {
+  if (result.workflow_mode === "research_agent") {
+    $("#model-mode").textContent = result.answer_status === "accepted" ? "真实模型答复" : "工具核验结果";
+    $("#reply-answer").textContent = result.final_answer || result.final_message || "任务尚未生成答复。";
+    $("#reply-panel").hidden = false;
+    return;
+  }
   const reportMode = result.report?.explanation_mode;
   const understandingMode = result.task_understanding?.mode;
   const llmUsed = reportMode === "llm_qualitative" || understandingMode === "llm_qualitative";
@@ -803,9 +809,9 @@ function showInfeasible(result) {
   const failedPayload = failedRecord.payload || {};
   const infeasible = result.status === "infeasible";
   const awaiting = result.status === "awaiting_choice";
-  $("#infeasible-title").textContent = awaiting ? "当前输入条件不满足，等待选择" : infeasible ? "当前输入条件不可行" : "任务需要补充或修正";
+  $("#infeasible-title").textContent = awaiting ? "当前输入条件不满足，等待选择" : infeasible ? "当前输入条件不可行" : result.status === "failed" ? "任务执行未完成" : "任务需要补充或修正";
   const missing = (result.missing_fields || []).map(field => MISSING_FIELD_LABELS[field] || field);
-  if (!result.request?.departure_at && !missing.includes("出发时间")) missing.push("出发时间");
+  if (result.workflow_mode !== "research_agent" && !result.request?.departure_at && !missing.includes("出发时间")) missing.push("出发时间");
   $("#infeasible-reason").textContent = !awaiting && !infeasible && missing.length
     ? `请补齐：${missing.join("、")}。`
     : failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成仿真方案。";
@@ -819,7 +825,7 @@ function showInfeasible(result) {
   const round = result.decision?.round || Math.min((result.replan_count || 0) + 1, result.max_replans || 2);
   $("#correction-title").textContent = awaiting
     ? `等待选择 · 第 ${round}/${result.max_replans || 2} 轮`
-    : result.replan_limit_reached ? "已达到调整上限" : "补齐任务条件后重新计算";
+    : result.replan_limit_reached ? "已达到调整上限" : result.status === "failed" ? "查看诊断或重试任务" : "补齐任务条件后重新计算";
   $("#correction-kicker").textContent = awaiting ? "VERIFIED ALTERNATIVES" : "TASK CORRECTION";
   $("#correction-lock").innerHTML = awaiting
     ? '<i data-lucide="database-zap"></i> 演示任务状态已保存'
@@ -828,6 +834,8 @@ function showInfeasible(result) {
     ? "已达到两轮调整上限，请重新发起任务并修改初始条件。"
     : awaiting
       ? "已复算选项仅代表本系统内计算完成。补能选项须先在现场充电，再录入实测 SOC 重新计算；也可手动改写已知任务字段。"
+      : result.status === "failed"
+        ? "本次未生成方案；可查看模型与工具调用记录后重试。"
       : "请只填写本次任务已知的信息；缺失字段保持空白。提交后将按演示模型重新计算。";
   $(".correction-grid").hidden = false;
   $(".correction-actions").hidden = false;
@@ -859,6 +867,8 @@ function resetResult() {
   renderSafety([]);
   renderRecommendations({});
   renderTrace([]);
+  $("#agent-decision-list").replaceChildren();
+  $("#agent-decision-meta").textContent = "等待任务";
   renderProgress([], true);
   $("#reply-panel").hidden = true;
   $("#infeasible-alert").hidden = true;
@@ -868,6 +878,7 @@ function resetResult() {
 }
 
 function operatorSummary(result, route, summary) {
+  if (result.workflow_mode === "research_agent") return result.final_answer || result.final_message || "本次未形成航行方案。";
   if (result.status === "ok") {
     const origin = route[0]?.origin || result.request?.origin || "起点";
     const destination = route.at(-1)?.destination || result.request?.destination || "终点";
@@ -907,7 +918,7 @@ function renderEvidence(result) {
   const assumptions = report.assumptions || [];
   $("#evidence-content").innerHTML = `
     <div class="evidence-grid">
-      <section><h4>模型与范围</h4><p>模型：${escapeHtml(modelIds.join("、") || "未知")}</p><p>当前结果为 synthetic_demo 软件仿真；推进能耗系数由调研工况单点锚定，历史数据只用于覆盖范围检查，未用于实船标定。</p></section>
+      <section><h4>模型与范围</h4><p>模型：${escapeHtml(modelIds.join("、") || "未知")}</p><p>${result.workflow_mode === "research_agent" ? "当前结果来自研究智能体真实工具调用，船态与电池参数采用具名软件仿真情景。" : "当前结果为 synthetic_demo 软件仿真；推进能耗系数由调研工况单点锚定，历史数据只用于覆盖范围检查，未用于实船标定。"}</p></section>
       <section><h4>采用参数来源</h4><ul>${Object.entries(evidenceSourceLabels).map(([key, label]) => sourceLine(label, sources[key])).join("")}</ul></section>
       <section><h4>航段距离来源</h4><ul>${distances || "<li>未提供航段来源。</li>"}</ul></section>
       <section><h4>模型假设</h4><ul>${assumptions.length ? assumptions.map(item => `<li>${escapeHtml(item)}</li>`).join("") : "<li>报告未提供额外假设。</li>"}</ul></section>
@@ -941,16 +952,18 @@ function renderPlanComparison(result) {
     JSON.stringify(plans[0].speeds_kmh) === JSON.stringify(plans[1].speeds_kmh);
   $("#plan-comparison .comparison-note").textContent = same
     ? "当前约束下，两种目标对应同一离散候选方案；切换目标仍会重新运行完整工具链。"
+    : result.workflow_mode === "research_agent"
+      ? "当前只展示已复核的目标。另一目标点击后会调用真实模型与完整工具链，未计算前不显示预测数字。"
     : "候选采用同一演示模型、航时、功率和 SOC 预算筛选；选用后会重新运行完整工具链。";
   $("#comparison-options").innerHTML = plans.map(plan => {
     const active = plan.goal === selected;
     const title = plan.goal === "min_time" ? "最短航时" : "最低总能耗";
     return `<article class="comparison-card${active ? " selected" : ""}">
-      <header><strong>${title}</strong><span>${active ? "当前目标" : "候选预览"}</span></header>
+      <header><strong>${title}</strong><span>${active ? "当前目标" : result.workflow_mode === "research_agent" ? "待完整重算" : "候选预览"}</span></header>
       <dl><div><dt>计划耗时</dt><dd>${formatHours(plan.duration_h)}</dd></div>
       <div><dt>预计总能耗</dt><dd>${formatNumber(plan.required_energy_kwh, " kWh")}</dd></div>
       <div><dt>预计到港 SOC</dt><dd>${formatNumber(plan.soc_final == null ? null : plan.soc_final * 100, "%")}</dd></div></dl>
-      <p>航段航速：${(plan.speeds_kmh || []).map(speed => formatNumber(speed, " km/h")).join(" · ")}</p>
+      <p>航段航速：${(plan.speeds_kmh || []).length ? plan.speeds_kmh.map(speed => formatNumber(speed, " km/h")).join(" · ") : "待计算"}</p>
       ${active ? "" : `<button type="button" data-plan-goal="${plan.goal}">按此目标完整重算</button>`}
     </article>`;
   }).join("");
@@ -1099,6 +1112,7 @@ async function openHistoryConversation(threadId) {
     const response = await apiFetch(`/api/runs/${encodeURIComponent(threadId)}`);
     if (!response.ok) throw new Error("server_state_unavailable");
     result = await response.json();
+    if (result.workflow_mode === "research_agent") result = await ResearchBridge.load(threadId);
   } catch (_error) {
     if (!item.result) {
       $("#history-feedback").textContent = "服务器记录已失效，且此浏览器没有可用快照。";
@@ -1182,8 +1196,10 @@ async function openSavedPlan(index) {
     const result = await response.json();
     if (requestId !== state.requestSequence || revision !== state.inputRevision) return;
     if (!response.ok) throw new Error(result.error || "方案已失效");
-    if (result.request) syncCorrectionToTask(result.request);
-    renderResult(result);
+    const opened = result.workflow_mode === "research_agent" ? await ResearchBridge.load(item.threadId) : result;
+    if (requestId !== state.requestSequence || revision !== state.inputRevision) return;
+    if (opened.request) syncCorrectionToTask(opened.request);
+    renderResult(opened);
     $("#saved-open-feedback").textContent = "已打开方案；输入框已同步为该航次。";
     $("#decision-status").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
@@ -1242,6 +1258,29 @@ function primeActiveTaskFromStorage() {
   $("#mission-subtitle").textContent = "正在恢复上次任务状态…";
 }
 
+function renderRuntimeControls(result) {
+  const runtime = result?.research_runtime || null;
+  const wrap = $("#task-controls");
+  const stage = $("#task-stage");
+  const cancel = $("#cancel-task");
+  const retry = $("#retry-task");
+  if (!wrap) return;
+  if (!runtime) {
+    wrap.hidden = true;
+    if (stage) stage.textContent = "";
+    if (cancel) cancel.hidden = true;
+    if (retry) retry.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  if (stage) {
+    const attempts = runtime.recovery_attempts ? ` · 已恢复 ${runtime.recovery_attempts} 次` : "";
+    stage.textContent = `${runtime.stage || ""}${runtime.cancel_requested ? " · 正在取消" : ""}${attempts}`;
+  }
+  if (cancel) { cancel.hidden = !runtime.can_cancel; cancel.dataset.threadId = result.thread_id || ""; }
+  if (retry) { retry.hidden = !runtime.can_retry; retry.dataset.threadId = result.thread_id || ""; }
+}
+
 function renderResult(result) {
   if (requestCompleteForForm(result.request)) {
     syncCorrectionToTask(result.request, { rewriteDescription: false });
@@ -1267,7 +1306,7 @@ function renderResult(result) {
   const checks = result.report?.checks || result.tspeed?.payload?.checks || [];
   const warnings = result.report?.warnings || result.tmanagement?.payload?.warnings || [];
 
-  updateStatus(okay ? "success" : awaiting ? "running" : "error", okay ? "仿真方案已生成" : awaiting ? "等待确认" : infeasible ? "航次不可行" : "需要补充");
+  updateStatus(okay ? "success" : awaiting ? "running" : "error", okay ? "仿真方案已生成" : awaiting ? "等待确认" : infeasible ? "航次不可行" : result.status === "failed" ? "执行未完成" : "需要补充");
   $("#mission-title").textContent = route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "仿真方案已生成" : "任务未完成");
   $("#mission-subtitle").textContent = okay
     ? "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。"
@@ -1275,11 +1314,15 @@ function renderResult(result) {
       ? "当前任务不满足执行条件，请选择下方调整方案。"
       : infeasible
         ? "本次任务保留不可行结论，未生成航行方案。"
+        : result.status === "failed"
+          ? "模型或工具执行未完成，详情见答复和调用记录。"
         : "请补充或修正任务信息后重新计算。";
   renderProgress(result.trace || []);
   renderRoute(route, result.tdata?.payload?.route_id || "航线待识别");
   renderModel(result);
   renderTrace(result.trace || []);
+  if (result.workflow_mode === "research_agent") ResearchBridge.renderDetails(result);
+  renderRuntimeControls(result);
   renderRecommendations(result);
 
   if (okay) {
@@ -1287,6 +1330,9 @@ function renderResult(result) {
     $("#metric-time").textContent = formatHours(summary.total_duration?.value);
     $("#metric-eta").textContent = formatEta(summary.eta?.value);
     $("#metric-soc").textContent = formatNumber((summary.soc_final?.value ?? 0) * 100, "%");
+    if (result.workflow_mode === "research_agent" && result.research_soc?.battery_1 != null && result.research_soc?.battery_2 != null) {
+      $("#metric-soc").textContent = `${formatNumber(result.research_soc.battery_1 * 100, "%")} / ${formatNumber(result.research_soc.battery_2 * 100, "%")}`;
+    }
     renderEnergyChart(segments, summary);
     renderTable(segments);
     renderSafety(checks, warnings);
@@ -1311,8 +1357,8 @@ function renderResult(result) {
     renderTable([]);
     renderSafety(checks, warnings);
     showInfeasible(result);
-    updateVesselView((infeasible || awaiting) ? "infeasible" : "incomplete", {
-      message: (infeasible || awaiting) ? "当前航次不可行，回放已停止" : "任务信息需要补充，回放已停止",
+    updateVesselView((infeasible || awaiting) ? "infeasible" : result.status === "failed" ? "failed" : "incomplete", {
+      message: (infeasible || awaiting) ? "当前航次不可行，回放已停止" : result.status === "failed" ? "执行未完成，回放已停止" : "任务信息需要补充，回放已停止",
     });
   }
 
@@ -1504,10 +1550,12 @@ async function runInference(payloadOverride = null) {
   }
   if (!payloadOverride && state.quickDirty && !writeQuickTask({ markChanged: false })) return;
   const message = $("#mission-input").value.trim();
+  const submittedText = payloadOverride ? ResearchBridge.structuredText(payloadOverride) : message;
   if ((!message && !payloadOverride) || state.running) {
     if (!message && !payloadOverride) $("#mission-input").focus();
     return;
   }
+  const pendingResearch = !payloadOverride && state.lastResult?.research_pending ? state.lastResult : null;
   // A new submission supersedes any older decision awaiting confirmation.
   userStorageRemove(ACTIVE_THREAD_KEY);
   userStorageRemove(ACTIVE_TASK_TEXT_KEY);
@@ -1526,23 +1574,48 @@ async function runInference(payloadOverride = null) {
   updateVesselView("running", { message: "五工具链正在计算航行方案" });
   resetResult();
   try {
-    const response = await apiFetch("/api/run", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payloadOverride || { task_text: message }),
-      signal: controller.signal,
-    });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || "请求失败");
+    const onProgress = (task, events) => {
+      if (!isCurrentRequest()) return;
+      const trace = events.filter(event => event.type === "tool_completed").map(event => ({ node: event.tool, status: event.outcome_code === "ok" ? "ok" : "failed" }));
+      renderProgress(trace, true);
+      renderTrace(trace);
+      if (task?.status === "reconnecting") {
+        $("#mission-subtitle").textContent = "服务暂时不可用，正在等待恢复；任务标识已保留。";
+        return;
+      }
+      const stage = task?.status === "queued" ? "排队中"
+        : task?.status === "running" ? `计算中${task?.phase ? ` · ${task.phase}` : ""}`
+        : task?.status === "waiting_human" ? "等待补充信息" : "";
+      $("#task-controls").hidden = false;
+      $("#task-stage").textContent = task?.recovery_attempts ? `${stage} · 已恢复 ${task.recovery_attempts} 次` : stage;
+      $("#cancel-task").hidden = !["queued", "running", "waiting_human"].includes(task?.status);
+      $("#retry-task").hidden = true;
+      $("#mission-subtitle").textContent = `真实模型与工具正在执行 · ${events.filter(event => event.type === "model_completed").length} 次模型响应 · ${trace.length} 次工具完成`;
+    };
+    const result = pendingResearch
+      ? await ResearchBridge.resume(pendingResearch, submittedText, onProgress, controller.signal)
+      : await ResearchBridge.submit(submittedText, onProgress, controller.signal);
     if (!isCurrentRequest()) return;
     if (submittedRevision !== state.inputRevision) {
       discardStaleResponse();
       return;
     }
     renderResult(result);
-    rememberHistoryResult(result, $("#mission-input").value);
+    rememberHistoryResult(result, submittedText);
   } catch (error) {
     if (!isCurrentRequest() || error.name === "AbortError") return;
+    if (error.name === "TaskStillRunning") {
+      // 长任务超出页面等待窗口：保留任务标识，刷新后可继续查看同一任务，
+      // 不把“仍在计算”显示成执行失败，也不重复发布结果。
+      updateStatus("running", "仍在计算");
+      $("#mission-title").textContent = "任务仍在后台计算";
+      $("#mission-subtitle").textContent = "服务仍在执行同一任务；刷新页面可继续查看，结果只会发布一次。";
+      $("#task-controls").hidden = false;
+      $("#task-stage").textContent = "仍在计算 · 可刷新继续查看";
+      $("#cancel-task").hidden = false;
+      $("#cancel-task").dataset.threadId = error.taskId || "";
+      return;
+    }
     updateStatus("error", "计算失败");
     $("#mission-title").textContent = "任务执行失败";
     $("#mission-subtitle").textContent = error.message;
@@ -1751,21 +1824,68 @@ async function restorePendingRun() {
       }
       return;
     }
+    const restored = result.workflow_mode === "research_agent"
+      ? await ResearchBridge.load(threadId, (task, events) => {
+        $("#mission-subtitle").textContent = `正在恢复任务 · ${events.filter(event => event.type === "tool_completed").length} 次工具完成`;
+      }) : result;
+    if (userStorageGet(ACTIVE_THREAD_KEY) !== threadId ||
+        state.inputRevision !== revision || state.requestSequence !== requestSequence) return;
     const storedText = userStorageGet(ACTIVE_TASK_TEXT_KEY);
     let storedRequest = null;
     try { storedRequest = JSON.parse(userStorageGet(ACTIVE_REQUEST_KEY) || "null"); } catch (_error) { /* Ignore an old invalid request cache. */ }
-    const requestChanged = storedRequest && JSON.stringify(storedRequest) !== JSON.stringify(result.request);
+    const requestChanged = storedRequest && JSON.stringify(storedRequest) !== JSON.stringify(restored.request);
     if (storedText && !requestChanged) $("#mission-input").value = storedText;
-    else if (requestCompleteForForm(result.request)) syncCorrectionToTask(result.request);
-    else $("#mission-input").value = result.request?.origin && result.request?.destination
-      ? `从${result.request.origin}到${result.request.destination}` : "";
-    renderResult(result);
-    rememberHistoryResult(result, $("#mission-input").value, { touch: false });
-    if (result.status === "awaiting_choice") {
+    else if (requestCompleteForForm(restored.request)) syncCorrectionToTask(restored.request);
+    else $("#mission-input").value = restored.request?.origin && restored.request?.destination
+      ? `从${restored.request.origin}到${restored.request.destination}` : "";
+    renderResult(restored);
+    rememberHistoryResult(restored, $("#mission-input").value, { touch: false });
+    if (restored.status === "awaiting_choice") {
       $("#correction-feedback").textContent = "已恢复上次等待确认的任务。";
     }
-  } catch (_error) {
+  } catch (error) {
+    if (error.name === "TaskStillRunning") {
+      $("#mission-subtitle").textContent = "上次任务仍在后台计算；刷新页面可继续查看，结果只会发布一次。";
+      $("#task-controls").hidden = false;
+      $("#task-stage").textContent = "仍在计算";
+      $("#cancel-task").hidden = false;
+      $("#cancel-task").dataset.threadId = threadId;
+      return;
+    }
     $("#mission-subtitle").textContent = "网络暂时不可用，恢复标识已保留；请稍后刷新重试。";
+  }
+}
+
+async function cancelTaskById(threadId) {
+  if (!threadId) return;
+  try {
+    $("#task-stage").textContent = "正在取消…";
+    await ResearchBridge.cancel(threadId);
+    const result = await ResearchBridge.load(threadId, task => {
+      $("#task-stage").textContent = `正在取消 · ${task.status || ""}`;
+    });
+    renderResult(result);
+  } catch (error) {
+    $("#mission-subtitle").textContent = `取消失败：${error.message}`;
+  }
+}
+
+async function retryTaskById(threadId) {
+  if (!threadId) return;
+  state.running = true;
+  $("#run-button").disabled = true;
+  try {
+    $("#task-stage").textContent = "正在重试…";
+    const result = await ResearchBridge.retry(threadId, task => {
+      $("#task-stage").textContent = `重试中 · ${task.status || ""}${task.phase ? ` · ${task.phase}` : ""}`;
+    });
+    renderResult(result);
+    rememberHistoryResult(result, $("#mission-input").value, { touch: false });
+  } catch (error) {
+    $("#mission-subtitle").textContent = `重试失败：${error.message}`;
+  } finally {
+    state.running = false;
+    $("#run-button").disabled = false;
   }
 }
 
@@ -1826,6 +1946,8 @@ function bindControls() {
     if (button) openSavedPlan(Number(button.dataset.savedIndex));
   });
   $("#run-button").addEventListener("click", () => runInference());
+  $("#cancel-task").addEventListener("click", () => cancelTaskById($("#cancel-task").dataset.threadId));
+  $("#retry-task").addEventListener("click", () => retryTaskById($("#retry-task").dataset.threadId));
   attachSpeechInput();
   $("#mission-input").addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") runInference();

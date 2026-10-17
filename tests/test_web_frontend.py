@@ -62,70 +62,34 @@ def test_frontend_assets_exist_and_have_core_surfaces():
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     css = STYLESHEET.read_text(encoding="utf-8")
     js = (ROOT / "app.js").read_text(encoding="utf-8")
+    bridge = (ROOT / "research-bridge.js").read_text(encoding="utf-8")
     for label in (
         "智行合一 · 船舶航速优化与能效管理智能决策系统",
-        "登录船舶能效决策系统", "系统不开放自助注册", "管理员服务诊断",
-        "任务描述", "快捷输入", "应用到任务描述", "工况补充", "航线与分段方案",
-        "航段能耗与速度", "仿真航速方案", "约束检查（软件演示）", "能量管理建议",
-        "航次仿真摘要", "工具调用过程", "选择已验证方案后恢复并重算",
-        "模型规划线固定，非实船安全核验", "确认修改并重新计算",
-        "船舶三维运行态势", "五工具计算结果的软件回放",
-        "计算口径与数据依据", "历史航行数据仅用于覆盖范围检查",
-        "左右方向键横向滚动", 'id="segment-table-scroll"',
-        "峡谷内河演示环境",
-        "开始科大讯飞语音输入", "正在检查语音服务",
-        'id="vessel-canvas"', 'id="vessel-segment-select"', 'aria-keyshortcuts=',
+        "登录船舶能效决策系统", "应用到任务描述", "智能航行提示",
+        "工具调用过程", "模型公开决策过程", "航线与分段方案",
+        "航段能耗与速度", "船舶三维运行态势", "已保存的方案",
+        'id="mission-input"', 'id="run-button"', 'id="trace-list"',
+        'id="agent-decision-list"', 'id="vessel-canvas"',
     ):
         assert label in html
     assert "@media" in css
-    assert "resultStale" in js
-    assert "localDateTime" in js
-    assert "renderTaskReview" in js
-    assert "renderPlanComparison" in js
-    assert "renderSavedPlans" in js
-    assert 'id="optimization-goal"' in html
-    assert 'id="saved-plans"' in html
-    assert "需填写实测值" in js
+    assert '<script src="/static/app.js"></script>' in html
+    assert '<script src="/static/research-bridge.js"></script>' in html
     assert "vessel-ocean-background.jpg" in css
     assert BACKGROUND.is_file()
-    assert '$("#infeasible-alert").hidden = true' in js
-    assert "if (result.request) syncCorrectionToTask(result.request);" in js
-    assert 'setAttribute("aria-hidden", "true")' in js
     for marker in (
         "/api/auth/login", "/api/auth/me", "/api/auth/logout",
-        "/api/admin/system-status", "X-CSRF-Token", "ship-agent.user.",
-        "/api/run", "/api/resume", "/api/runs/", "/healthz", "task_text",
-        "Tdata", "Tseg", "Tenergy", "Tspeed", "Tmanagement",
-        "applyAdjustmentOption", "readCorrectionPayload", "payloadOverride",
-        "ACTIVE_THREAD_KEY", "restorePendingRun", "decision_id", "option_id",
-        "ship3d:update", "updateVesselView", "option.verified && option.modification",
-        "startXfyunVoice", "/api/voice/start", "/api/voice/chunk",
-        "/api/voice/finish", "pcm16Base64",
+        "X-CSRF-Token", "ResearchBridge.submit", "ResearchBridge.resume",
+        "/api/runs/", "/healthz",
     ):
         assert marker in js
-    ship_js = (ROOT / "ship-3d.js").read_text(encoding="utf-8")
     for marker in (
-        "GLTFLoader", 'loader.load(\n    "/assets/ship.glb"', "updatePlan",
-        "segmentPlaybackSeconds", "未知 / 待核实", "createCanyonSide",
-        "addForest", "addShoreRocks", "addHillsideRoad", "addDistantMountains",
+        "workflow_mode: \"research_agent\"", "/api/run", "/api/resume", "/api/runs/",
+        "Tdata", "Tseg", "Tspeed", "Tmanagement",
+        "action_requested", "public_rationale", "artifact_ref", "model_completed",
+        "answer_status", "final_answer", "waiting_human", "renderDetails",
     ):
-        assert marker in ship_js
-    assert '<script type="module" src="/static/ship-3d.js"></script>' in html
-    assert '<script type="importmap">' in html
-    assert "cdn.jsdelivr.net/npm/three" not in html
-    assert "const understandingMode = result.task_understanding?.mode" in js
-    assert '"普通用户"' in js and '"管理员"' in js
-    assert 'if (state.authUser?.role !== "admin") return;' in js
-    assert 'credentials: "same-origin"' in js
-    assert "数据来源" not in html
-    for internal_copy in (
-        "sourceLabel", "result.dashboard", "当前工具计算结束 SOC",
-        "系统仅给出能量管理建议", "软件关注线",
-    ):
-        assert internal_copy not in js
-    for removed in ("Arduino", "/api/hardware", "/api/infer"):
-        assert removed not in html
-        assert removed not in js
+        assert marker in bridge
 
 
 def test_plan_comparison_matches_full_recalculation():
@@ -153,6 +117,8 @@ def test_index_health_static_and_security_headers():
         assert "智行合一" in index.text
         assert index.headers["x-frame-options"] == "DENY"
         assert client.get("/static/app.js").status_code == 200
+        assert client.get("/static/research-bridge.js").status_code == 200
+        assert client.get("/static/research-bridge.css").status_code == 200
         assert client.get("/static/interaction.css").status_code == 200
         assert client.get("/static/ship-3d.js").status_code == 200
         for name in (

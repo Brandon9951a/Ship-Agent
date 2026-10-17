@@ -1,0 +1,141 @@
+{
+  "split": {
+    "history": 12,
+    "horizon": 5,
+    "purge_points": 17,
+    "extension": true,
+    "source_holdout": false,
+    "blocks": [
+      {
+        "source": "data.xlsx",
+        "split": "train",
+        "start": 0,
+        "end": 7354,
+        "first_time": 0.0,
+        "last_time": 36765.0
+      },
+      {
+        "source": "data.xlsx",
+        "split": "val",
+        "start": 7371,
+        "end": 9805,
+        "first_time": 36855.0,
+        "last_time": 49020.0
+      },
+      {
+        "source": "data.xlsx",
+        "split": "test",
+        "start": 9822,
+        "end": 12257,
+        "first_time": 49110.0,
+        "last_time": 61280.0
+      }
+    ],
+    "sample_counts": {
+      "train": 2467,
+      "val": 2298,
+      "test": 1809
+    },
+    "sample_counts_by_source": {
+      "train": {
+        "data.xlsx": 2467,
+        "log4p-10-29(1).csv": 0,
+        "log4p-10-31(1).csv": 0
+      },
+      "val": {
+        "data.xlsx": 2298,
+        "log4p-10-29(1).csv": 0,
+        "log4p-10-31(1).csv": 0
+      },
+      "test": {
+        "data.xlsx": 1809,
+        "log4p-10-29(1).csv": 0,
+        "log4p-10-31(1).csv": 0
+      }
+    },
+    "rejected_windows": {
+      "nonmoving_negative_or_outlier": 5601
+    }
+  },
+  "speed_range_kmh": [
+    0.009269382804632187,
+    11.42654037475586
+  ],
+  "future_features": 6,
+  "extension": true,
+  "source_holdout": false,
+  "hidden": 32,
+  "seed": 20261014,
+  "training": {
+    "epochs_run": 25,
+    "best_epoch": 23,
+    "validation_scaled_mae": [
+      0.5540630718072256,
+      0.5053597291310629,
+      0.44995710750420886,
+      0.3081834663947423,
+      0.28498320529858273,
+      0.301114022731781,
+      0.2908666158715884,
+      0.2584213266770045,
+      0.23600024481614432,
+      0.23759725938240686,
+      0.22831930965185165,
+      0.20713286846876144,
+      0.19454009582599005,
+      0.18396414568026861,
+      0.16514667123556137,
+      0.17076275994380316,
+      0.17078932374715805,
+      0.16206005215644836,
+      0.15352710833152136,
+      0.1543786699573199,
+      0.1557253102461497,
+      0.15536716828743616,
+      0.15001801898082098,
+      0.150353342294693,
+      0.16439207891623178
+    ],
+    "early_stop_patience": 5
+  },
+  "cubic_coefficients": [
+    30.12732696533203,
+    0.060587648302316666
+  ],
+  "environment_range": {
+    "depth_m": [
+      5.417104721069336,
+      10.666289329528809
+    ],
+    "current_mps": [
+      -0.7491439580917358,
+      -0.2502318024635315
+    ],
+    "wind_mps": [
+      0.0,
+      10.7594575881958
+    ],
+    "wind_angle_deg": [
+      0.0,
+      376.82183837890625
+    ]
+  },
+  "version": "excel_six",
+  "source_sha256": {
+    "data.xlsx": "a62c5fde4796aa8e18322661ed19fe1fa3be473e1cc130d0a8c5b90d2206f5b7",
+    "log4p-10-29(1).csv": "d1123094ee22ebb8098d3920fa0d45f803dd8b374f257d2032ff837d0e23b1f7",
+    "log4p-10-31(1).csv": "2cf012d1ddb2c73acc957598cf40a126ffc60e8cb5f87197d1e99dcdca813fb5"
+  },
+  "dependency_versions": {
+    "python": "3.13.3",
+    "numpy": "2.5.4",
+    "torch": "2.14.1+cpu"
+  },
+  "label": "propulsion_motor_observed_kw",
+  "status": "experimental_unapproved",
+  "step_seconds": 5,
+  "horizon": 5,
+  "csv_units": "provisional per LSTM task book; field dictionary unconfirmed",
+  "integration": "right_endpoint_kW_seconds_over_3600",
+  "planner_approved": false
+}

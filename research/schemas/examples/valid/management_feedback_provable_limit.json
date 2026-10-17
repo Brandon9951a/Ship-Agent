@@ -1,0 +1,27 @@
+{
+  "selected_candidate_id": "c-0c6ec3d2f079",
+  "selected_demand_ref": "demand-c-0c6ec3d2f079",
+  "battery_config_hash": "cfg-hash-1",
+  "failure_scope": "power_upper_bound_provable",
+  "violated_rule": "bus_power_limit",
+  "first_failure_interval": [
+    120.0,
+    180.0
+  ],
+  "demand_kw": 520.0,
+  "deliverable_kw": 480.0,
+  "soc_1": 0.62,
+  "soc_2": 0.58,
+  "limit_source_ref": {
+    "source_id": "doc.豫交投001参数",
+    "kind": "document",
+    "locator": "docs/团队资料/04_船舶与航线/豫交投001参数.docx",
+    "confirmed": true,
+    "note": null,
+    "mode": null
+  },
+  "diagnostic_certainty": "provable_for_candidate_family",
+  "suggested_search_action": "tighten_bus_power_limit",
+  "detail": "母线总功率上限对候选族成立",
+  "schema_version": "research-tools/2.0-draft"
+}

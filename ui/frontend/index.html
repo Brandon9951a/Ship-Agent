@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/static/app.css" />
     <link rel="stylesheet" href="/static/interaction.css" />
+    <link rel="stylesheet" href="/static/research-bridge.css" />
   </head>
   <body>
     <main class="login-screen" id="login-screen" aria-labelledby="login-title">
@@ -142,6 +143,12 @@
             <div class="decision-status idle" id="decision-status"><span></span>待命</div>
           </section>
 
+          <div class="task-controls" id="task-controls" hidden>
+            <span class="task-stage" id="task-stage" role="status"></span>
+            <button class="secondary-action" id="cancel-task" type="button" hidden><i data-lucide="square"></i> 取消任务</button>
+            <button class="secondary-action" id="retry-task" type="button" hidden><i data-lucide="refresh-cw"></i> 重试任务</button>
+          </div>
+
           <div class="result-stale" id="result-stale" role="status" hidden></div>
           <section class="progress-track" id="progress-track">
             <div class="progress-labels" id="progress-labels">
@@ -151,6 +158,15 @@
               <div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div><div class="progress-step"></div>
             </div>
           </section>
+
+          <details class="trace-panel" id="trace-panel">
+            <summary><span><i data-lucide="workflow"></i> 工具调用过程</span><span class="trace-meta" id="trace-meta">等待任务</span></summary>
+            <ol id="trace-list" class="trace-list"></ol>
+          </details>
+          <details class="trace-panel" id="agent-decision-panel">
+            <summary><span><i data-lucide="brain"></i> 模型公开决策过程</span><span class="trace-meta" id="agent-decision-meta">等待任务</span></summary>
+            <div id="agent-decision-list" class="agent-decision-list"></div>
+          </details>
 
           <section class="infeasible-alert" id="infeasible-alert" hidden>
             <header><span class="infeasible-icon"><i data-lucide="circle-x"></i></span><div><span class="surface-kicker">VOYAGE ALERT</span><h3 id="infeasible-title">航次不可行</h3></div></header>
@@ -296,15 +312,12 @@
             <div id="final-answer"></div>
           </section>
 
-          <details class="trace-panel" id="trace-panel">
-            <summary><span><i data-lucide="workflow"></i> 工具调用过程</span><span class="trace-meta" id="trace-meta">等待任务</span></summary>
-            <ol id="trace-list" class="trace-list"></ol>
-          </details>
         </section>
       </main>
     </div>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="/static/app.js"></script>
+    <script src="/static/research-bridge.js"></script>
     <script type="importmap">
       {
         "imports": {

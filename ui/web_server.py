@@ -45,6 +45,8 @@ MAX_REQUEST_BYTES = 64 * 1024
 MAX_VOICE_REQUEST_BYTES = 96 * 1024
 MAX_VOICE_CHUNK_BYTES = 64 * 1024
 STATIC_FILES = {
+    "research-bridge.js": (ROOT / "research-bridge.js", "text/javascript; charset=utf-8"),
+    "research-bridge.css": (ROOT / "research-bridge.css", "text/css; charset=utf-8"),
     "app.css": (STYLESHEET, "text/css; charset=utf-8"),
     "interaction.css": (ROOT / "interaction.css", "text/css; charset=utf-8"),
     "app.js": (ROOT / "app.js", "text/javascript; charset=utf-8"),
@@ -156,6 +158,7 @@ def create_app(
     checkpoint_database_url: str | None = None,
     checkpoint_sqlite_path: str | Path | None = None,
     auth_store: AuthStore | None = None,
+    research_directory: str | Path | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI):
@@ -171,7 +174,15 @@ def create_app(
             sqlite_path=checkpoint_sqlite_path,
         ) as runtime:
             application.state.workflow_runtime = runtime
-            yield
+            from research.agent.runtime import AgentRuntime
+            directory = research_directory or os.getenv("SHIP_RESEARCH_STORAGE") or (
+                Path(checkpoint_sqlite_path).parent / "research-agent" if checkpoint_sqlite_path
+                else PROJECT_ROOT / "var" / "research-agent")
+            application.state.research_runtime = AgentRuntime(directory, llm_client)
+            try:
+                yield
+            finally:
+                await run_in_threadpool(application.state.research_runtime.close)
 
     app = FastAPI(
         title="智行合一本地演示",
@@ -260,6 +271,38 @@ def create_app(
             "speech_mode": (
                 "iflytek_iat" if app.state.speech_manager.available else "unconfigured"
             ),
+        }
+
+    @app.get("/api/admin/research-runtime", include_in_schema=False)
+    async def research_runtime_status(request: Request):
+        """队列、恢复与超时边界；供管理员定位“任务卡住/服务重启”类问题。"""
+        if request.state.session["role"] != "admin":
+            return _auth_error(403, "forbidden")
+        research = app.state.research_runtime
+        try:
+            queue = {
+                "queued": research.store.count_status("queued"),
+                "running": research.store.count_status("running"),
+                "waiting_human": research.store.count_status("waiting_human"),
+                "failed": research.store.count_status("failed"),
+            }
+        except Exception:
+            queue = None
+        return {
+            "status": "ok",
+            "queue": queue,
+            "limits": {
+                "max_active_tasks": research.limits.max_active_tasks,
+                "task_timeout_s": research.limits.task_timeout_s,
+                "queue_timeout_s": research.limits.queue_timeout_s,
+                "max_recovery_attempts": research.limits.max_recovery_attempts,
+            },
+            "last_recovery": {
+                "recovered_at": research.recovery.get("recovered_at"),
+                "resumed_from_checkpoint": len(research.recovery.get("resumed_from_checkpoint") or []),
+                "restarted_from_input": len(research.recovery.get("restarted_from_input") or []),
+                "exhausted": len(research.recovery.get("exhausted") or []),
+            },
         }
 
     @app.post("/api/auth/login", include_in_schema=False)
@@ -452,6 +495,21 @@ def create_app(
             return _error(400, "invalid_json")
         if not isinstance(payload, dict):
             return _error(400, "request_must_be_object")
+        if payload.get("workflow_mode") == "research_agent":
+            from research.agent.runtime import RuntimeQueueFull
+            try:
+                result = await run_in_threadpool(app.state.research_runtime.start, payload.get("task_text"),
+                    owner=request.state.session["id"], scenario_id=payload.get("scenario_id", "route_success"),
+                    task_type=payload.get("task_type", "auto"))
+                return JSONResponse(result, status_code=202)
+            except RuntimeQueueFull as exc:
+                return JSONResponse(status_code=429, content={
+                    "error": "research_queue_full", "limit": exc.limit,
+                    "active": exc.active, "retry_after_s": 5,
+                    "detail": "活跃任务已达上限，请等待已有任务结束或取消后重试。",
+                })
+            except (KeyError, TypeError, ValueError):
+                return _error(400, "invalid_research_request")
         # Bind before invoking the graph so a created checkpoint is never
         # observable without an owner record, including interrupted runs.
         thread_id = str(uuid4())
@@ -488,6 +546,17 @@ def create_app(
             if not isinstance(payload, dict):
                 raise ValueError
             thread_id = validate_thread_id(str(payload.get("thread_id", "")))
+            if payload.get("workflow_mode") == "research_agent":
+                try:
+                    result = await run_in_threadpool(app.state.research_runtime.resume, thread_id,
+                        request.state.session["id"], pending_id=payload.get("pending_id"),
+                        revision=payload.get("revision"), response_id=payload.get("response_id"),
+                        reply_text=payload.get("reply_text"))
+                    return JSONResponse(result, status_code=202)
+                except LookupError:
+                    return _workflow_error(404, "workflow_not_found")
+                except (TypeError, ValueError):
+                    return _workflow_error(409, "invalid_or_stale_response")
             decision_id = str(payload.get("decision_id", ""))
             option_id = str(payload.get("option_id", ""))
             if (
@@ -527,6 +596,10 @@ def create_app(
         except ValueError:
             return _workflow_error(400, "invalid_resume_request")
         try:
+            return app.state.research_runtime.store.get(thread_id, request.state.session["id"])
+        except LookupError:
+            pass
+        try:
             owned = await run_in_threadpool(app.state.auth_store.owns_workflow,
                                             thread_id, request.state.session["id"])
         except Exception:
@@ -540,6 +613,66 @@ def create_app(
         except Exception:
             return _workflow_error(500, "workflow_failed")
         return JSONResponse(content=_public_result(_result_from_state(state), request.state.session["role"]))
+
+    @app.get("/api/research/config", include_in_schema=False)
+    async def research_config(request: Request):
+        config = json.loads((PROJECT_ROOT / "configs/research_agent.json").read_text(encoding="utf-8"))
+        client = app.state.llm_client
+        return {"scenarios": config["scenarios"], "model_configured": bool(client and client.config.enabled),
+                "requested_model": client.config.model if client else None,
+                "connection_status": "验收以任务中的真实 model_completed 事件为准"}
+
+    @app.get("/api/runs/{thread_id}/events", include_in_schema=False)
+    async def research_events(thread_id: str, request: Request, after_seq: int = 0):
+        runtime = app.state.research_runtime
+        try:
+            runtime.store.get(thread_id, request.state.session["id"])
+            return {"events": runtime.store.events(thread_id, max(0, after_seq))}
+        except LookupError:
+            return _workflow_error(404, "workflow_not_found")
+
+    @app.get("/api/runs/{thread_id}/artifacts/{artifact_ref}", include_in_schema=False)
+    async def research_artifact(thread_id: str, artifact_ref: str, request: Request):
+        runtime = app.state.research_runtime
+        try:
+            runtime.store.get(thread_id, request.state.session["id"])
+            return runtime.store.read(thread_id, artifact_ref)
+        except LookupError:
+            return _workflow_error(404, "artifact_not_found")
+        except (ValueError, OSError):
+            return _workflow_error(409, "artifact_integrity_failed")
+
+    @app.post("/api/runs/{thread_id}/cancel", include_in_schema=False)
+    async def research_cancel(thread_id: str, request: Request):
+        """取消排队/运行中/等待补充的任务；不发布未复核方案。"""
+        try:
+            thread_id = validate_thread_id(thread_id)
+        except ValueError:
+            return _workflow_error(400, "invalid_resume_request")
+        try:
+            task = await run_in_threadpool(app.state.research_runtime.cancel, thread_id,
+                                           request.state.session["id"])
+        except LookupError:
+            return _workflow_error(404, "workflow_not_found")
+        return task
+
+    @app.post("/api/runs/{thread_id}/retry", include_in_schema=False)
+    async def research_retry(thread_id: str, request: Request):
+        """从检查点续跑或从输入快照重试；已完成的答复不会被重复发布。"""
+        try:
+            thread_id = validate_thread_id(thread_id)
+        except ValueError:
+            return _workflow_error(400, "invalid_resume_request")
+        try:
+            task = await run_in_threadpool(app.state.research_runtime.retry, thread_id,
+                                           request.state.session["id"])
+            return JSONResponse(task, status_code=202)
+        except LookupError:
+            return _workflow_error(404, "workflow_not_found")
+        except ValueError as exc:
+            return _workflow_error(409, str(exc) or "task_not_retryable")
+        except Exception:
+            return _workflow_error(503, "retry_unavailable")
 
     return app
 
@@ -591,6 +724,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="运行智行合一本地驾驶舱")
     parser.add_argument("--host", default=os.environ.get("SHIP_WEB_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8765")))
+    parser.add_argument("--env-file", type=Path, help="显式加载已有模型配置文件")
     parser.add_argument(
         "--llm", action="store_true", help="启用云端定性理解和解释；失败自动回退模板",
     )
@@ -598,6 +732,8 @@ def main() -> None:
         "--open-browser", action="store_true", help="服务就绪后尝试打开本地页面",
     )
     args = parser.parse_args()
+    if args.env_file:
+        os.environ["SHIP_ENV_FILE"] = str(args.env_file.resolve())
     if not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
     client, mode = _load_llm(args.llm)
