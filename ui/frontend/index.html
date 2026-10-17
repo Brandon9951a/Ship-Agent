@@ -153,6 +153,15 @@
             </div>
           </section>
 
+          <details class="trace-panel" id="trace-panel">
+            <summary><span><i data-lucide="workflow"></i> 工具调用过程</span><span class="trace-meta" id="trace-meta">等待任务</span></summary>
+            <ol id="trace-list" class="trace-list"></ol>
+          </details>
+          <details class="trace-panel" id="agent-decision-panel">
+            <summary><span><i data-lucide="brain"></i> 模型公开决策过程</span><span class="trace-meta" id="agent-decision-meta">等待任务</span></summary>
+            <div id="agent-decision-list" class="agent-decision-list"></div>
+          </details>
+
           <section class="infeasible-alert" id="infeasible-alert" hidden>
             <header><span class="infeasible-icon"><i data-lucide="circle-x"></i></span><div><span class="surface-kicker">VOYAGE ALERT</span><h3 id="infeasible-title">航次不可行</h3></div></header>
             <div class="infeasible-content">
@@ -297,14 +306,6 @@
             <div id="final-answer"></div>
           </section>
 
-          <details class="trace-panel" id="trace-panel">
-            <summary><span><i data-lucide="workflow"></i> 工具调用过程</span><span class="trace-meta" id="trace-meta">等待任务</span></summary>
-            <ol id="trace-list" class="trace-list"></ol>
-          </details>
-          <details class="trace-panel" id="agent-decision-panel">
-            <summary><span><i data-lucide="brain"></i> 模型公开决策过程</span><span class="trace-meta" id="agent-decision-meta">等待任务</span></summary>
-            <div id="agent-decision-list" class="agent-decision-list"></div>
-          </details>
         </section>
       </main>
     </div>
