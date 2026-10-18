@@ -85,7 +85,7 @@ function sampleTask(kind) {
   const departure = localDateTime().replace("T", " ");
   const timeLimit = kind === "time" ? 1 : 6;
   const soc1 = kind === "soc" ? 31 : 85;
-  const soc2 = kind === "soc" ? 35 : 80;
+  const soc2 = kind === "soc" ? 31 : 85;
   return `从平顶山港到军李船闸，${departure}出发，甲组电池SOC${soc1}%，乙组电池SOC${soc2}%，半载，${timeLimit}小时内到达`;
 }
 
@@ -2036,7 +2036,7 @@ function bindControls() {
     $("#departure-input").value = localDateTime();
     $("#time-input").value = kind === "time" ? 1 : 6;
     $("#adv-soc-1").value = kind === "soc" ? 31 : 85;
-    $("#adv-soc-2").value = kind === "soc" ? 35 : 80;
+    $("#adv-soc-2").value = kind === "soc" ? 31 : 85;
     $("#adv-load").value = "半载";
     $("#optimization-goal").value = "min_energy";
     writeQuickTask();
