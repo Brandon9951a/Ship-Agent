@@ -29,6 +29,18 @@ from research.agent.protocol import TOOLS, REQUEST_TOOL, ANSWER_TOOL, render_ans
 AUX={"search_project_docs","query_task_results","calculate"}
 PRO={"Tdata","Tseg","Tenergy","Tspeed","Tmanagement"}
 TERMINAL={"completed","failed","cancelled"}
+
+# A stated voyage duration is a hard user constraint. Keep it even when the
+# language model omits the optional seconds field or supplies the wrong unit.
+_ARRIVAL_DURATION = re.compile(
+    r"(?<![\d.])(?P<hours>\d+(?:\.\d+)?)\s*(?:小\s*时|h(?:ours?)?)\s*"
+    r"(?:内|之内|以内|限时|到达|抵达)", re.IGNORECASE)
+
+
+def explicit_arrival_duration_s(text):
+    matches = list(_ARRIVAL_DURATION.finditer(text))
+    return float(matches[-1].group("hours")) * 3600 if matches else None
+
 # 可由用户显式重试的终态结果码；真实不可行与缺参不在其中。
 RETRYABLE_CODES={"process_interrupted","model_unavailable","tool_error","task_timeout",
                  "queue_timeout","recovery_exhausted","agent_budget_exhausted"}
@@ -345,6 +357,11 @@ class AgentRuntime:
         kind=s["task_type"] if s["task_type"]!="auto" else request.pop("task_type")
         request.pop("task_type",None)
         notes=[]
+        if kind=="planning":
+            explicit_deadline=explicit_arrival_duration_s(user_text)
+            if explicit_deadline is not None and request.get("remaining_time_s")!=explicit_deadline:
+                request["remaining_time_s"]=explicit_deadline
+                notes.append("按用户原文中的到达时限设置 remaining_time_s；已核对小时到秒的换算")
         percent=re.search(r"SOC\s*(\d+(?:\.\d+)?)\s*[%％]",user_text,re.IGNORECASE)
         for key in ("initial_soc_1","initial_soc_2"):
             value=request.get(key)

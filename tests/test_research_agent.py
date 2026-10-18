@@ -177,6 +177,35 @@ def test_malformed_model_request_arguments_get_one_correction_turn(tmp_path):
         runtime.close()
 
 
+@pytest.mark.parametrize("model_seconds", [None, 29.006, 3600])
+def test_explicit_arrival_limit_survives_model_parse_error(tmp_path, model_seconds):
+    class DeadlineModel(ScriptedModel):
+        def complete_chat(self, messages, *, tools, **kwargs):
+            if [item["function"]["name"] for item in tools] == ["submit_request"]:
+                args = {"task_type": "planning", "origin": "军李船闸",
+                        "destination": "葫芦湾船闸", "remaining_time_s": model_seconds}
+                return {"message": {"role": "assistant", "content": "", "tool_calls": [{
+                    "id": str(uuid4()), "type": "function", "function": {
+                        "name": "submit_request", "arguments": json.dumps(args, ensure_ascii=False)}}]},
+                    "response_model": "scripted-test", "request_id": str(uuid4()), "latency_ms": 0}
+            return super().complete_chat(messages, tools=tools, **kwargs)
+
+    runtime = AgentRuntime(tmp_path, DeadlineModel())
+    try:
+        runtime.store.create("deadline-parse", "local", {"status": "running"})
+        parsed = runtime._parse({"task_id": "deadline-parse", "scenario_id": "route_success",
+                                 "task_type": "auto", "revision": 1,
+                                 "messages": [{"role": "user", "content":
+                                               "从军李船闸到葫芦湾船闸，2026-10-19 09:00出发，"
+                                               "SOC85%，半载，29.006小时内到达"}]})
+        assert parsed["request"]["remaining_time_s"] == pytest.approx(104421.6)
+        assert runtime.store.get("deadline-parse")["request"]["remaining_time_s"] == pytest.approx(104421.6)
+        if model_seconds != 104421.6:
+            assert any(event["type"] == "input_normalized" for event in runtime.store.events("deadline-parse"))
+    finally:
+        runtime.close()
+
+
 def test_actual_solver_loop_and_persisted_evidence(tmp_path):
     runtime = AgentRuntime(tmp_path, ScriptedModel())
     try:
