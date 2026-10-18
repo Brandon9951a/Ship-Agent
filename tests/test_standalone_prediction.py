@@ -71,6 +71,7 @@ def test_duration_and_user_speed_are_actual_prediction_inputs(tmp_path):
         body=energy(tool,state)
         assert verify_prediction(tool,state)["motor_energy_kwh"]==pytest.approx(55*20/3600)
         assert body["summary"]["duration_s"]==20
+        assert body["sources"]["trajectory"]=="user"
     finally: store.close()
 
 
@@ -160,7 +161,7 @@ def test_model_cannot_skip_tenergy(tmp_path):
     finally: runtime.close()
 
 
-def test_corrupted_prediction_keeps_verification_failure_in_final_answer(tmp_path):
+def test_completed_prediction_answer_is_not_overwritten_by_replayed_finish(tmp_path):
     runtime=AgentRuntime(tmp_path,PredictionModel())
     try:
         done=runtime.start("预测能耗",background=False)
@@ -170,8 +171,9 @@ def test_corrupted_prediction_keeps_verification_failure_in_final_answer(tmp_pat
         state.update(outcome_code="verification_failed",metrics={})
         runtime._finish(state)
         result=runtime.store.get(done["task_id"])
-        assert result["outcome_code"]=="verification_failed"
-        assert result["metrics"]=={}
+        assert result["outcome_code"]=="prediction_completed"
+        assert result["answer_ref"]==done["answer_ref"]
+        assert runtime.store.events(done["task_id"])[-1]["type"]=="answer_reused"
     finally: runtime.close()
 
 

@@ -216,6 +216,27 @@ class ProfessionalTools:
         request, spec, data = self.context(state, call_id)
         if spec.demand_spec.conversion is None:
             return self.save(state, "Tspeed", {"diagnostics": [{"code":"conversion_missing"}]}, "needs_input")
+        fastest_s = sum(3600 * segment.distance_km / segment.max_speed_kmh
+                        + segment.waiting_duration_s for segment in request.segments)
+        if request.remaining_time_s is not None and fastest_s > request.remaining_time_s + 1e-6:
+            distance_km = sum(segment.distance_km for segment in request.segments)
+            return self.save(state, "Tspeed", {
+                "request": request.to_dict(), "snapshot_id": data["snapshot_id"],
+                "summary": {"distance_km": distance_km,
+                            "minimum_duration_s": fastest_s,
+                            "deadline_s": request.remaining_time_s},
+                "diagnostics": [{
+                    "code": "deadline_below_physical_minimum",
+                    "field_ref": "remaining_time_s",
+                    "detail": (f"所选航段共 {distance_km:.3f} km；按情景最高航速和等待时间，"
+                               f"最短也需 {fastest_s / 3600:.2f} 小时，当前期限为 "
+                               f"{request.remaining_time_s / 3600:.2f} 小时。"
+                               "可延长到达期限或选择更短航段后重算。"),
+                    "minimum_duration_s": fastest_s,
+                    "deadline_s": request.remaining_time_s,
+                    "deadline_source": "user" if state["request"].get("remaining_time_s") is not None else "named_simulation",
+                }],
+            }, "infeasible_under_assumptions")
         store = DemandArtifactStore(self.store.directory / "demand" / state["task_id"])
         run, result = run_speed_optimization(request, scenario=SimulationScenario(
             state["scenario_id"], spec.environment_ref, spec.history_ref, spec,
@@ -263,9 +284,16 @@ class ProfessionalTools:
         req = replace(req,call_id=call_id,parent_call_id=speed["run"]["call_id"])
         result = run_management_fdp(req)
         payload = result.get("payload") or {}
+        original_request = req.to_dict()
+        if result.get("outcome_code") == "ok" and payload.get("grid"):
+            # Adaptive FDP may solve on a coarser grid. The independent
+            # verifier must replay that exact grid, while the original
+            # request remains available for audit and comparison.
+            req = replace(req, grid=FDPGridConfig(**payload["grid"]))
         summary = {**speed.get("summary",{}), **payload.get("summary",{}),
                    "safe":payload.get("safe",False),"backend":"analytic"}
         saved = self.save(state,"Tmanagement", {"request":req.to_dict(),"result":result,
+            "original_request":original_request,
             "speed_ref":state["refs"]["Tspeed"],"snapshot_id":data["snapshot_id"],"summary":summary,
             "diagnostics":result.get("diagnostics",[])},result["outcome_code"])
         if payload.get("feedback"):

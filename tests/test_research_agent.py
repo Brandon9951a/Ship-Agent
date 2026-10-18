@@ -54,6 +54,39 @@ class ScriptedModel:
             "response_model":"scripted-test","request_id":str(uuid4()),"latency_ms":0}
 
 
+def test_malformed_model_request_arguments_get_one_correction_turn(tmp_path):
+    class MalformedOnce:
+        config = SimpleNamespace(enabled=True, model="scripted-test")
+
+        def __init__(self):
+            self.calls = 0
+
+        def complete_chat(self, messages, *, tools, **kwargs):
+            self.calls += 1
+            arguments = ('{"task_type":"planning","origin":"漯河船闸",'
+                         '"destination":"漯河港","objective": min_time}'
+                         if self.calls == 1 else json.dumps({
+                             "task_type": "planning", "origin": "漯河船闸",
+                             "destination": "漯河港", "objective": "min_time"}))
+            return {"message": {"role": "assistant", "tool_calls": [{
+                "id": str(uuid4()), "type": "function", "function": {
+                    "name": "submit_request", "arguments": arguments}}]},
+                "response_model": "scripted-test"}
+
+    client = MalformedOnce()
+    runtime = AgentRuntime(tmp_path, client)
+    try:
+        runtime.store.create("parse-repair", "local", {"status": "running"})
+        parsed = runtime._parse({"task_id": "parse-repair", "scenario_id": "route_success",
+                                 "task_type": "auto", "revision": 1,
+                                 "messages": [{"role": "user", "content": "从漯河船闸到漯河港，优先最短时间"}]})
+        assert parsed["request"]["objective"] == "min_time"
+        assert client.calls == 2
+        assert any(e["type"] == "model_arguments_rejected" for e in runtime.store.events("parse-repair"))
+    finally:
+        runtime.close()
+
+
 def test_actual_solver_loop_and_persisted_evidence(tmp_path):
     runtime = AgentRuntime(tmp_path, ScriptedModel())
     try:
@@ -132,7 +165,7 @@ def test_forbidden_skip_fdp_never_executes(tmp_path):
         runtime.close()
 
 
-@pytest.mark.parametrize("scenario,expected", [("fdp_reject","search_unresolved"),("missing_conversion","needs_input")])
+@pytest.mark.parametrize("scenario,expected", [("fdp_reject","solver_unresolved"),("missing_conversion","needs_input")])
 def test_failures_never_publish_plan(tmp_path,scenario,expected):
     runtime=AgentRuntime(tmp_path,ScriptedModel())
     try:
@@ -167,12 +200,90 @@ def test_fdp_grid_budget_ends_as_solver_unresolved_without_model_budget_exhausti
         runtime.close()
 
 
+def test_registered_long_route_reports_deadline_bound_and_change_option(tmp_path):
+    store = Store(tmp_path)
+    store.create("long-route", "local", {})
+    tools = ProfessionalTools(store)
+    state = {"task_id": "long-route", "scenario_id": "route_success", "revision": 1,
+             "request": {"origin": "平顶山港", "destination": "军李船闸"}, "refs": {}}
+    try:
+        for name, fn in (("Tdata", tools.data), ("Tseg", tools.segments)):
+            result = fn(state, name)
+            assert result["outcome_code"] == "ok"
+            state["refs"][name] = result["artifact_ref"]
+        result = tools.speed(state, "speed")
+        assert result["outcome_code"] == "infeasible_under_assumptions"
+        diagnostic = result["diagnostics"][0]
+        assert diagnostic["code"] == "deadline_below_physical_minimum"
+        assert diagnostic["minimum_duration_s"] > diagnostic["deadline_s"]
+        assert diagnostic["deadline_source"] == "named_simulation"
+        assert "延长到达期限" in diagnostic["detail"]
+    finally:
+        store.close()
+
+
+def test_adaptive_fdp_result_replays_with_effective_grid(tmp_path, monkeypatch):
+    from dataclasses import replace
+    import research.agent.professional as professional_module
+    from schemas.research_management import BatteryManagementRequest
+    from tools.tmanagement_fdp import run_management_fdp
+
+    store = Store(tmp_path)
+    store.create("adaptive-grid", "local", {})
+    tools = ProfessionalTools(store)
+    state = {"task_id": "adaptive-grid", "scenario_id": "route_success", "revision": 1,
+             "request": {"origin": "漯河船闸", "destination": "漯河港"}, "refs": {}}
+    try:
+        for name, fn in (("Tdata", tools.data), ("Tseg", tools.segments),
+                         ("Tspeed", tools.speed)):
+            result = fn(state, name)
+            assert result["outcome_code"] == "ok"
+            state["refs"][name] = result["artifact_ref"]
+        speed = tools.payload(state, "Tspeed")
+        original = BatteryManagementRequest.from_dict(speed["fdp_request"])
+        effective = replace(original, grid=replace(original.grid, soc_step=0.1,
+            algorithm_version=original.grid.algorithm_version + "+bounded-adaptive-retry"))
+        retry_result = run_management_fdp(effective)
+        assert retry_result["outcome_code"] == "ok"
+        monkeypatch.setattr(professional_module, "run_management_fdp", lambda _request: retry_result)
+        result = tools.management(state, "management")
+        assert result["outcome_code"] == "ok"
+        state["refs"]["Tmanagement"] = result["artifact_ref"]
+        saved = tools.payload(state, "Tmanagement")
+        assert saved["original_request"]["grid"]["soc_step"] == 0.05
+        assert saved["request"]["grid"]["soc_step"] == 0.1
+        assert tools.verify(state)[1]["safe"] is True
+    finally:
+        store.close()
+
+
+def test_deadline_failure_fallback_keeps_specific_reason_and_adjustment(tmp_path):
+    runtime = AgentRuntime(tmp_path, ScriptedModel(invalid_answer=True))
+    try:
+        runtime.store.create("deadline-final", "local", {"status": "running"})
+        runtime._finish({"task_id": "deadline-final", "scenario_id": "route_success", "task_type": "planning",
+                         "outcome_code": "infeasible_under_assumptions", "metrics": {},
+                         "request": {"origin": "平顶山港", "destination": "军李船闸"},
+                         "messages": [{"role": "user", "content": "1 小时内到达"}], "refs": {},
+                         "observations": [{"tool": "Tspeed", "outcome_code": "infeasible_under_assumptions",
+                                           "diagnostics": [{"code": "deadline_below_physical_minimum",
+                                                            "minimum_duration_s": 7200,
+                                                            "deadline_s": 3600,
+                                                            "deadline_source": "user"}]}]})
+        answer = runtime.store.get("deadline-final")["final_answer"]
+        assert "最短需 2.00 小时" in answer
+        assert "用户给定期限为 1.00 小时" in answer
+        assert "延长到达期限" in answer
+    finally:
+        runtime.close()
+
+
 def test_tspeed_search_unresolved_ends_as_solver_unresolved(tmp_path):
     runtime = AgentRuntime(tmp_path, ScriptedModel())
     try:
-        runtime.store.create("task-search-unresolved", "local", {"status": "running"})
+        runtime.store.create("case-search-unresolved", "local", {"status": "running"})
         state = {
-            "task_id": "task-search-unresolved",
+            "task_id": "case-search-unresolved",
             "scenario_id": "route_success",
             "outcomes": {"Tdata": "ok", "Tseg": "ok", "Tspeed": "search_unresolved"},
             "steps": 0, "invalid_actions": 0, "task_type": "planning",
@@ -181,7 +292,7 @@ def test_tspeed_search_unresolved_ends_as_solver_unresolved(tmp_path):
         }
         decision = runtime._reconcile(state)
         assert decision == {"route": "finish", "outcome_code": "solver_unresolved"}
-        assert runtime.store.events("task-search-unresolved")[-1]["source_outcome"] == "search_unresolved"
+        assert runtime.store.events("case-search-unresolved")[-1]["source_outcome"] == "search_unresolved"
     finally:
         runtime.close()
 

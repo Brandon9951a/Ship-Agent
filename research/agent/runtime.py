@@ -31,8 +31,7 @@ PRO={"Tdata","Tseg","Tenergy","Tspeed","Tmanagement"}
 TERMINAL={"completed","failed","cancelled"}
 # 可由用户显式重试的终态结果码；真实不可行与缺参不在其中。
 RETRYABLE_CODES={"process_interrupted","model_unavailable","tool_error","task_timeout",
-                 "queue_timeout","recovery_exhausted","agent_budget_exhausted",
-                 "solver_unresolved"}
+                 "queue_timeout","recovery_exhausted","agent_budget_exhausted"}
 _STOPPED_WORKERS=set()
 _STOPPED_LOCK=threading.Lock()
 
@@ -303,6 +302,8 @@ class AgentRuntime:
         if len(calls)!=1 or calls[0]["function"]["name"]!=definition["function"]["name"]:
             raise ValueError("one_native_tool_call_required")
         args=json.loads(calls[0]["function"]["arguments"])
+        if not isinstance(args,dict):
+            raise ValueError("tool_arguments_must_be_object")
         if definition["function"]["name"]=="submit_request":
             nullable=("origin","destination","remaining_time_s","initial_soc_1","initial_soc_2",
                       "current_speed_kmh","objective","load_state","departure_at","prediction_backend","prediction_duration_s")
@@ -323,10 +324,24 @@ class AgentRuntime:
         prompt={"scenario":s["scenario_id"],"entry_task_type":s["task_type"],
                 "registered_synthetic_entities":["仿真起点","仿真中间点","仿真终点"] if cfg.get("synthetic_route") else [],
                 "previous_request":s.get("request",{}),"instructions":"按原文抽取；不要填默认目的地或模拟电池值。百分数 SOC 可以写为 0 到 1 的小数；保留载况和出发时刻。预测默认 analytic；仅用户明确指定 LSTM 时选 lstm。prediction_duration_s 是预测窗口，不是到达期限。trajectory 仅从用户明确给定的逐区间轨迹提取，不得编造。"}
-        msg=self._model(s,[{"role":"system","content":"提取用户最新任务。已确认信息可保留，用户未说的字段留空。"},
-            *[m for m in s["messages"] if m["role"]=="user"],{"role":"user","content":json.dumps(prompt,ensure_ascii=False)}],
-            [REQUEST_TOOL],{"type":"function","function":{"name":"submit_request"}})
-        request=self._arguments(msg,REQUEST_TOOL)
+        messages=[{"role":"system","content":"提取用户最新任务。已确认信息可保留，用户未说的字段留空。"},
+            *[m for m in s["messages"] if m["role"]=="user"],{"role":"user","content":json.dumps(prompt,ensure_ascii=False)}]
+        for attempt in range(2):
+            msg=self._model(s,messages,[REQUEST_TOOL],{"type":"function","function":{"name":"submit_request"}})
+            try:
+                request=self._arguments(msg,REQUEST_TOOL)
+                break
+            except (ValueError,TypeError,KeyError,AttributeError) as exc:
+                self.store.event(s["task_id"],"model_arguments_rejected",phase="parse",
+                                 attempt=attempt+1,reason=type(exc).__name__)
+                if attempt:
+                    raise ValueError("model_request_invalid") from exc
+                calls=msg.get("tool_calls") or []
+                if len(calls)==1 and calls[0].get("id"):
+                    messages.extend([msg,{"role":"tool","tool_call_id":calls[0]["id"],
+                        "content":"工具参数不是有效 JSON 或不符合字段约束。请重新调用 submit_request；枚举值必须用双引号包围。"}])
+                else:
+                    messages.append({"role":"user","content":"请只调用一次 submit_request，并提交有效 JSON 对象。"})
         kind=s["task_type"] if s["task_type"]!="auto" else request.pop("task_type")
         request.pop("task_type",None)
         notes=[]
@@ -386,32 +401,41 @@ class AgentRuntime:
             if outcomes.get("Tenergy")=="needs_input":
                 missing=[d["field_ref"] for d in self.professional.payload(s,"Tenergy").get("diagnostics",[])
                          if d.get("field_ref")]
-        allowed=[]
-        if s["aux_calls"]<budget["aux_calls"] and (s["task_type"]!="prediction" or "Tenergy" in outcomes):
-            allowed.extend(sorted(AUX))
-        if s["task_type"] in ("planning","prediction"):
-            if "Tdata" not in outcomes:
-                allowed.append("Tdata")
-            if missing:
-                allowed.append("ask_clarification")
-            if outcomes.get("Tdata")=="ok":
-                if s["task_type"]=="prediction" and not missing and "Tenergy" not in outcomes:
-                    allowed.append("Tenergy")
-                if s["task_type"]=="planning" and not missing:
-                    if "Tseg" not in outcomes:
-                        allowed.append("Tseg")
-                    if outcomes.get("Tseg")=="ok" and s["speed_cycles"]<budget["speed_cycles"]:
-                        if "Tspeed" not in outcomes or (s.get("feedback_limit_kw") is not None and outcomes.get("Tmanagement") not in (None,"ok")):
-                            allowed.append("Tspeed")
-                    if outcomes.get("Tspeed")=="ok" and "Tmanagement" not in outcomes:
-                        allowed.append("Tmanagement")
-        ready=(s["task_type"]=="planning" and outcomes.get("Tmanagement")=="ok") or (
-            s["task_type"]=="prediction" and outcomes.get("Tenergy")=="ok") or (
-            s["task_type"]=="question" and any(o["tool"] in AUX and o["outcome_code"] in ("ok","not_found") for o in s["observations"]))
-        if ready:
-            allowed.append("prepare_final")
-        if any(code not in ("ok","not_found") for code in outcomes.values()) or s["aux_calls"]>=budget["aux_calls"]:
-            allowed.append("finish_without_plan")
+        # Keep professional dependencies deterministic. The model still requests
+        # every action, but cannot spend a planning turn on an unrelated helper
+        # before the required solver has returned its diagnosis.
+        if s["task_type"]=="question":
+            allowed=sorted(AUX) if s["aux_calls"]<budget["aux_calls"] else []
+            if any(o["tool"] in AUX and o["outcome_code"] in ("ok","not_found") for o in s["observations"]):
+                allowed.append("prepare_final")
+            if not allowed or any(o["tool"] in AUX and o["outcome_code"] not in ("ok","not_found") for o in s["observations"]):
+                allowed.append("finish_without_plan")
+        elif "Tdata" not in outcomes:
+            allowed=["Tdata"]
+        elif outcomes["Tdata"]!="ok":
+            allowed=["finish_without_plan"]
+        elif missing:
+            allowed=["ask_clarification"]
+        elif s["task_type"]=="prediction":
+            allowed=(["Tenergy"] if "Tenergy" not in outcomes else
+                     ["prepare_final"] if outcomes["Tenergy"]=="ok" else
+                     ["finish_without_plan"])
+        elif "Tseg" not in outcomes:
+            allowed=["Tseg"]
+        elif outcomes["Tseg"]!="ok":
+            allowed=["finish_without_plan"]
+        elif "Tspeed" not in outcomes:
+            allowed=["Tspeed"]
+        elif outcomes["Tspeed"]!="ok":
+            allowed=["finish_without_plan"]
+        elif "Tmanagement" not in outcomes:
+            allowed=["Tmanagement"]
+        elif outcomes["Tmanagement"]=="ok":
+            allowed=["prepare_final"]
+        elif s.get("feedback_limit_kw") is not None and s["speed_cycles"]<budget["speed_cycles"]:
+            allowed=["Tspeed"]
+        else:
+            allowed=["finish_without_plan"]
         self.store.update(s["task_id"],phase="agent_decide",allowed_actions=allowed,missing_fields=missing)
         return {"allowed":allowed,"missing":missing,"route":"decide"}
 
@@ -674,6 +698,18 @@ class AgentRuntime:
                 body=f"独立能耗预测完成（{prediction['backend']}）：电机侧 {measured('motor_energy_kwh')}，历时 {measured('duration_s')}。该结果仅为研究仿真，不代表航次可行。模型正文未通过核验或暂不可用，详情见工具记录。"
             else:
                 body=f"工具结果：{evidence['outcome_code']}。模型正文未通过核验或暂不可用；展开原始响应可查看模型实际输出与工具诊断。"
+        if evidence["outcome_code"]=="infeasible_under_assumptions":
+            deadline=next((d for obs in reversed(s["observations"]) if obs.get("tool")=="Tspeed"
+                           for d in obs.get("diagnostics",[])
+                           if d.get("code")=="deadline_below_physical_minimum"),None)
+            if deadline and all(type(deadline.get(k)) in (int,float)
+                                for k in ("minimum_duration_s","deadline_s")):
+                minimum=deadline["minimum_duration_s"]; limit=deadline["deadline_s"]
+                if minimum>limit>=0:
+                    source="用户给定" if deadline.get("deadline_source")=="user" else "具名仿真默认"
+                    note=(f"工具诊断：按所选航段的情景最高航速和等待时间，最短需 {minimum/3600:.2f} 小时；"
+                          f"{source}期限为 {limit/3600:.2f} 小时。可延长到达期限，或选择更短航段后重新计算。")
+                    body=(body+"\n"+note) if status=="accepted" else note+"模型原始答复未通过核验，可展开查看。"
         hits=[hit for obs in s["observations"] if obs["tool"]=="search_project_docs" for hit in obs.get("results",[])]
         sources=[];seen=set()
         for hit in sorted(hits,key=lambda item:item.get("score",0),reverse=True):

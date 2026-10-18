@@ -102,7 +102,7 @@ def analytic_energy(tools, state, call_id):
         "demand_ref":demand_ref,"segment_ref":segment_ref,"environment_ref":environment_ref,
         "summary":summary,"units":{"power":"kW","energy":"kWh","time":"s","speed":"km/h"},
         "time_range_s":[0,candidate.total_duration_s],"integration_rule":predictor.integration_rule,
-        "sources":{"snapshot_ref":state["refs"]["Tdata"],"trajectory":"user" if req.get("trajectory") else "named_simulation"},
+        "sources":{"snapshot_ref":state["refs"]["Tdata"],"trajectory":"user" if req.get("trajectory") or req.get("prediction_duration_s") is not None else "named_simulation"},
         "diagnostics":[d.to_dict() for d in (*entry.diagnostics,*demand.diagnostics)]},entry.outcome_code)
 
 

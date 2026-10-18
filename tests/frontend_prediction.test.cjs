@@ -52,7 +52,7 @@ test('dashboard prediction rendering clears voyage metrics and never starts voya
     renderRecommendations: () => {}, renderEnergyChart: () => {}, renderTable: () => {},
     renderSafety: () => {}, updateVesselView: mode => { vessel = mode; },
     formatHours: String, userStorageSet: () => {}, operatorSummary: () => '预测完成',
-    renderHistory: () => {}, refreshIcons: () => {}, ACTIVE_THREAD_KEY: '',
+    renderHistory: () => {}, refreshIcons: () => {}, renderRuntimeControls: () => {}, ACTIVE_THREAD_KEY: '',
     ACTIVE_TASK_TEXT_KEY: '', ACTIVE_REQUEST_KEY: '',
   });
   context.$('#infeasible-alert').setAttribute = () => {};

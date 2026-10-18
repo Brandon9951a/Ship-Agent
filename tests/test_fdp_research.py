@@ -324,6 +324,22 @@ def test_long_horizon_budget_retry_keeps_unresolved_distinct_from_infeasible():
         assert payload["search_attempts"][-1]["outcome_code"] == "grid_unresolved"
 
 
+def test_coarser_retry_cannot_turn_original_budget_miss_into_infeasibility(monkeypatch):
+    import tools.tmanagement_fdp as fdp
+
+    outcomes = iter([
+        {"outcome_code": "grid_unresolved", "payload": {"budget": "transitions"}, "diagnostics": []},
+        {"outcome_code": "infeasible_under_assumptions", "payload": {"grid": "coarser"}, "diagnostics": []},
+    ])
+    monkeypatch.setattr(fdp, "_run_management_fdp_once", lambda _request: next(outcomes))
+    result = fdp.run_management_fdp(build_request("success"))
+    assert result["outcome_code"] == "grid_unresolved"
+    assert result["payload"]["budget"] == "transitions"
+    assert result["payload"]["retry_result"] == {"grid": "coarser"}
+    assert [attempt["outcome_code"] for attempt in result["search_attempts"]] == [
+        "grid_unresolved", "infeasible_under_assumptions"]
+
+
 def test_missing_adapter_components_do_not_turn_into_zero():
     request = build_request("success")
     points = list(request.demand_series)

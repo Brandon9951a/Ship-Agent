@@ -905,9 +905,12 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
     # Preserve the first failure evidence when all bounded attempts remain
     # unresolved. The later attempt may fail at a different interval, but it
     # must not erase the original budget boundary used by the caller.
-    if second.get("outcome_code") == "grid_unresolved":
+    if second.get("outcome_code") in ("grid_unresolved", "infeasible_under_assumptions"):
         payload = dict(first.get("payload") or {})
-        payload["original_failure"] = second.get("payload")
+        payload["retry_result"] = second.get("payload")
+        # A coarser grid cannot prove that the original search was infeasible.
+        # Keep the initial unresolved outcome and its budget diagnostics.
+        second = {**first, "payload": payload}
     else:
         payload = second.get("payload")
         if payload is None:
