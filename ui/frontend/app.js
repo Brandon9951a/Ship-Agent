@@ -84,8 +84,22 @@ function localDateTime(daysAhead = 1) {
 function sampleTask(kind) {
   const departure = localDateTime().replace("T", " ");
   const timeLimit = kind === "time" ? 1 : 6;
-  const soc = kind === "soc" ? 31 : 85;
-  return `从平顶山港到军李船闸，${departure}出发，SOC${soc}%，半载，${timeLimit}小时内到达`;
+  const soc1 = kind === "soc" ? 31 : 85;
+  const soc2 = kind === "soc" ? 35 : 80;
+  return `从平顶山港到军李船闸，${departure}出发，甲组电池SOC${soc1}%，乙组电池SOC${soc2}%，半载，${timeLimit}小时内到达`;
+}
+
+function initialSocPair(request = {}) {
+  return [request.soc_initial_1 ?? request.initial_soc_1 ?? request.soc_initial ?? null,
+    request.soc_initial_2 ?? request.initial_soc_2 ?? request.soc_initial ?? null];
+}
+
+function socPercentText(value) {
+  return String(Number((Number(value) * 100).toFixed(1)));
+}
+
+function dualSocTaskText(soc1, soc2) {
+  return `甲组电池SOC${soc1}%，乙组电池SOC${soc2}%`;
 }
 
 function updateStatus(kind, text) {
@@ -120,7 +134,9 @@ function fillCorrectionForm(request = {}) {
   populateSelect($("#correction-destination"), ALL_ROUTE_NODES, request.destination || "", "请选择终点");
   $("#correction-departure").value = localDateTimeValue(request.departure_at);
   $("#correction-duration").value = request.max_duration_h ?? "";
-  $("#correction-soc").value = request.soc_initial == null ? "" : Number(request.soc_initial) * 100;
+  const [soc1, soc2] = initialSocPair(request);
+  $("#correction-soc-1").value = soc1 == null ? "" : socPercentText(soc1);
+  $("#correction-soc-2").value = soc2 == null ? "" : socPercentText(soc2);
   $("#correction-load").value = request.load_state || "";
   $("#correction-goal").value = request.optimization_goal || "min_energy";
 }
@@ -132,14 +148,17 @@ function readCorrectionPayload() {
   if (!origin || !destination) throw new Error("请选择起点和终点。");
   if (!departure) throw new Error("请填写出发时间。");
   if (!$("#correction-duration").value) throw new Error("请填写最长航时。");
-  if (!$("#correction-soc").value) throw new Error("请填写初始 SOC。");
+  if ($("#correction-soc-1").value === "") throw new Error("请填写甲组初始 SOC。");
+  if ($("#correction-soc-2").value === "") throw new Error("请填写乙组初始 SOC。");
   if (!$("#correction-load").value) throw new Error("请填写载况。");
   const duration = Number($("#correction-duration").value);
-  const socPercent = Number($("#correction-soc").value);
+  const socPercent1 = Number($("#correction-soc-1").value);
+  const socPercent2 = Number($("#correction-soc-2").value);
   if (!origin || !destination || origin === destination) throw new Error("起点和终点必须不同。");
   if (!departure) throw new Error("请填写出发时间。");
   if (!Number.isFinite(duration) || duration <= 0) throw new Error("最长航时必须大于 0 小时。");
-  if (!Number.isFinite(socPercent) || socPercent < 0 || socPercent > 100) throw new Error("初始 SOC 必须在 0% 到 100% 之间。");
+  if (!Number.isFinite(socPercent1) || socPercent1 < 0 || socPercent1 > 100) throw new Error("甲组初始 SOC 必须在 0% 到 100% 之间。");
+  if (!Number.isFinite(socPercent2) || socPercent2 < 0 || socPercent2 > 100) throw new Error("乙组初始 SOC 必须在 0% 到 100% 之间。");
   const prior = state.lastResult?.request || {};
   const loadState = $("#correction-load").value;
   return {
@@ -148,7 +167,9 @@ function readCorrectionPayload() {
     departure_at: withLocalOffset(departure),
     arrival_deadline: null,
     max_duration_h: duration,
-    soc_initial: socPercent / 100,
+    soc_initial_1: socPercent1 / 100,
+    soc_initial_2: socPercent2 / 100,
+    soc_initial: Math.min(socPercent1, socPercent2) / 100,
     load_state: loadState,
     draft_m: prior.load_state === loadState ? prior.draft_m ?? null : null,
     environment: prior.environment || {},
@@ -158,14 +179,15 @@ function readCorrectionPayload() {
 
 function syncCorrectionToTask(payload, { rewriteDescription = true } = {}) {
   const departure = localDateTimeValue(payload.departure_at).replace("T", " ");
-  const soc = Number(payload.soc_initial) * 100;
-  const socText = String(Number(soc.toFixed(1)));
+  const [soc1, soc2] = initialSocPair(payload);
+  const socText = dualSocTaskText(socPercentText(soc1), socPercentText(soc2));
   const durationText = String(Math.ceil(Number(payload.max_duration_h) * 1000) / 1000);
   const goalText = payload.optimization_goal === "min_time" ? "，优先最短航时" : "";
-  if (rewriteDescription) $("#mission-input").value = `从${payload.origin}到${payload.destination}，${departure}出发，SOC${socText}%，${payload.load_state}，${durationText}小时内到达${goalText}`;
+  if (rewriteDescription) $("#mission-input").value = `从${payload.origin}到${payload.destination}，${departure}出发，${socText}，${payload.load_state}，${durationText}小时内到达${goalText}`;
   $("#departure-input").value = localDateTimeValue(payload.departure_at);
   $("#time-input").value = payload.max_duration_h;
-  $("#adv-soc").value = Number(soc.toFixed(1));
+  $("#adv-soc-1").value = socPercentText(soc1);
+  $("#adv-soc-2").value = socPercentText(soc2);
   $("#adv-load").value = payload.load_state;
   $("#optimization-goal").value = payload.optimization_goal || "min_energy";
   $("#start-select").value = ALL_ROUTE_NODES.includes(payload.origin) ? payload.origin : "";
@@ -175,8 +197,9 @@ function syncCorrectionToTask(payload, { rewriteDescription = true } = {}) {
 }
 
 function requestCompleteForForm(request) {
+  const [soc1, soc2] = initialSocPair(request);
   return Boolean(request?.origin && request?.destination && request?.departure_at &&
-    request.max_duration_h != null && request.soc_initial != null && request.load_state);
+    request.max_duration_h != null && soc1 != null && soc2 != null && request.load_state);
 }
 
 function syncPartialRequestToInputs(request = {}) {
@@ -185,7 +208,9 @@ function syncPartialRequestToInputs(request = {}) {
   renderQuickRoutePreview();
   $("#departure-input").value = localDateTimeValue(request.departure_at);
   $("#time-input").value = request.max_duration_h ?? "";
-  $("#adv-soc").value = request.soc_initial == null ? "" : Number((request.soc_initial * 100).toFixed(1));
+  const [soc1, soc2] = initialSocPair(request);
+  $("#adv-soc-1").value = soc1 == null ? "" : socPercentText(soc1);
+  $("#adv-soc-2").value = soc2 == null ? "" : socPercentText(soc2);
   $("#adv-load").value = request.load_state || "";
   $("#optimization-goal").value = request.optimization_goal || "min_energy";
   state.quickDirty = false;
@@ -935,11 +960,13 @@ function renderEvidence(result) {
 }
 
 function renderTaskReview(request) {
+  const [soc1, soc2] = initialSocPair(request);
   const values = [
     ["航线", `${request.origin || "未识别"} → ${request.destination || "未识别"}`],
     ["出发", formatEta(request.departure_at)],
     ["限时", request.max_duration_h == null ? "未设置" : formatHours(request.max_duration_h)],
-    ["初始 SOC", request.soc_initial == null ? "未识别" : formatNumber(request.soc_initial * 100, "%")],
+    ["甲组初始 SOC", soc1 == null ? "未识别" : formatNumber(soc1 * 100, "%")],
+    ["乙组初始 SOC", soc2 == null ? "未识别" : formatNumber(soc2 * 100, "%")],
     ["载况", request.load_state || "未识别"],
     ["目标", request.optimization_goal === "min_time" ? "最短航时" : "最低总能耗"],
   ];
@@ -1659,7 +1686,7 @@ function quickTaskError(message, selector) {
   throw error;
 }
 
-const QUICK_FIELD_IDS = ["start-select", "end-select", "time-input", "adv-soc", "adv-load", "departure-input", "optimization-goal"];
+const QUICK_FIELD_IDS = ["start-select", "end-select", "time-input", "adv-soc-1", "adv-soc-2", "adv-load", "departure-input", "optimization-goal"];
 let quickDialogSnapshot = null;
 
 function snapshotQuickFields() {
@@ -1694,7 +1721,8 @@ function writeQuickTask({ silent = false, markChanged = true } = {}) {
   const destination = $("#end-select").value;
   const departureValue = $("#departure-input").value;
   const hoursValue = $("#time-input").value;
-  const socValue = $("#adv-soc").value;
+  const socValue1 = $("#adv-soc-1").value;
+  const socValue2 = $("#adv-soc-2").value;
   const load = $("#adv-load").value;
   try {
     if (!origin) quickTaskError("请选择起点。", "#start-select");
@@ -1702,20 +1730,25 @@ function writeQuickTask({ silent = false, markChanged = true } = {}) {
     if (origin === destination) quickTaskError("起点和终点必须不同。", "#end-select");
     if (!departureValue) quickTaskError("请填写出发时间。", "#departure-input");
     if (hoursValue === "") quickTaskError("请填写限时。", "#time-input");
-    if (socValue === "") quickTaskError("请填写初始 SOC。", "#adv-soc");
+    if (socValue1 === "") quickTaskError("请填写甲组初始 SOC。", "#adv-soc-1");
+    if (socValue2 === "") quickTaskError("请填写乙组初始 SOC。", "#adv-soc-2");
     if (!load) quickTaskError("请选择装载状态。", "#adv-load");
     const hours = Number(hoursValue);
-    const soc = Number(socValue);
+    const soc1 = Number(socValue1);
+    const soc2 = Number(socValue2);
     if (!Number.isFinite(hours) || hours < 0.5 || hours > 72) {
       quickTaskError("限时必须在 0.5 到 72 小时之间。", "#time-input");
     }
-    if (!Number.isFinite(soc) || soc < 0 || soc > 100) {
-      quickTaskError("初始 SOC 必须在 0% 到 100% 之间。", "#adv-soc");
+    if (!Number.isFinite(soc1) || soc1 < 0 || soc1 > 100) {
+      quickTaskError("甲组初始 SOC 必须在 0% 到 100% 之间。", "#adv-soc-1");
+    }
+    if (!Number.isFinite(soc2) || soc2 < 0 || soc2 > 100) {
+      quickTaskError("乙组初始 SOC 必须在 0% 到 100% 之间。", "#adv-soc-2");
     }
     const departure = departureValue.replace("T", " ");
     $("#time-input").value = hours;
     const goalText = $("#optimization-goal").value === "min_time" ? "，优先最短航时" : "";
-    $("#mission-input").value = `从${origin}到${destination}，${departure}出发，SOC${soc}%，${load}，${hours}小时内到达${goalText}`;
+    $("#mission-input").value = `从${origin}到${destination}，${departure}出发，${dualSocTaskText(soc1, soc2)}，${load}，${hours}小时内到达${goalText}`;
     state.quickDirty = false;
     $("#quick-error").textContent = "";
     if (markChanged) markResultStale();
@@ -1923,7 +1956,7 @@ function bindControls() {
     closeQuickDialog();
   });
   $("#mission-input").addEventListener("input", () => { state.quickDirty = false; markResultStale(); });
-  ["#start-select", "#end-select", "#departure-input", "#adv-soc", "#adv-load", "#optimization-goal"].forEach(selector => {
+  ["#start-select", "#end-select", "#departure-input", "#adv-soc-1", "#adv-soc-2", "#adv-load", "#optimization-goal"].forEach(selector => {
     $(selector).addEventListener("input", markQuickInputChanged);
     $(selector).addEventListener("change", markQuickInputChanged);
   });
@@ -1931,7 +1964,7 @@ function bindControls() {
     $(selector).addEventListener("input", renderQuickRoutePreview);
     $(selector).addEventListener("change", renderQuickRoutePreview);
   });
-  ["#correction-origin", "#correction-destination", "#correction-departure", "#correction-duration", "#correction-soc", "#correction-load", "#correction-goal"].forEach(selector => {
+  ["#correction-origin", "#correction-destination", "#correction-departure", "#correction-duration", "#correction-soc-1", "#correction-soc-2", "#correction-load", "#correction-goal"].forEach(selector => {
     $(selector).addEventListener("input", markResultStale);
     $(selector).addEventListener("change", markResultStale);
   });
@@ -2002,7 +2035,8 @@ function bindControls() {
     renderQuickRoutePreview();
     $("#departure-input").value = localDateTime();
     $("#time-input").value = kind === "time" ? 1 : 6;
-    $("#adv-soc").value = kind === "soc" ? 31 : 85;
+    $("#adv-soc-1").value = kind === "soc" ? 31 : 85;
+    $("#adv-soc-2").value = kind === "soc" ? 35 : 80;
     $("#adv-load").value = "半载";
     $("#optimization-goal").value = "min_energy";
     writeQuickTask();

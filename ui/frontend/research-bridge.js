@@ -21,7 +21,10 @@ const ResearchBridge = (() => {
     if (!request) return "";
     const parts = [`从${request.origin}到${request.destination}`];
     if (request.departure_at) parts.push(`${request.departure_at}出发`);
-    if (request.soc_initial != null) parts.push(`两组电池 SOC${Number(request.soc_initial * 100).toFixed(1)}%`);
+    const soc1 = request.soc_initial_1 ?? request.initial_soc_1 ?? request.soc_initial;
+    const soc2 = request.soc_initial_2 ?? request.initial_soc_2 ?? request.soc_initial;
+    if (soc1 != null) parts.push(`甲组电池SOC${Number(soc1 * 100).toFixed(1)}%`);
+    if (soc2 != null) parts.push(`乙组电池SOC${Number(soc2 * 100).toFixed(1)}%`);
     if (request.load_state) parts.push(request.load_state);
     if (request.max_duration_h != null) parts.push(`${request.max_duration_h}小时内到达`);
     if (request.optimization_goal === "min_time") parts.push("优先最短航时");
@@ -216,7 +219,8 @@ const ResearchBridge = (() => {
       },
       request: { origin, destination, departure_at: request.departure_at,
         max_duration_h: request.remaining_time_s == null ? null : request.remaining_time_s / 3600,
-        soc_initial: initial1,
+        soc_initial: initial1 == null || initial2 == null ? null : Math.min(initial1, initial2),
+        soc_initial_1: initial1, soc_initial_2: initial2,
         load_state: request.load_state || data?.load_state || null,
         optimization_goal: request.objective || "min_energy" },
       tdata: { payload: { route_id: "研究仿真航线" } },

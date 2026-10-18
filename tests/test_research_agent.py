@@ -206,6 +206,39 @@ def test_explicit_arrival_limit_survives_model_parse_error(tmp_path, model_secon
         runtime.close()
 
 
+def test_explicit_battery_group_soc_survives_model_parse_error(tmp_path):
+    class CollapsedSocModel(ScriptedModel):
+        def complete_chat(self, messages, *, tools, **kwargs):
+            if [item["function"]["name"] for item in tools] == ["submit_request"]:
+                args = {"task_type": "planning", "origin": "平顶山港",
+                        "destination": "军李船闸", "initial_soc_1": .85,
+                        "initial_soc_2": .85}
+                return {"message": {"role": "assistant", "content": "", "tool_calls": [{
+                    "id": str(uuid4()), "type": "function", "function": {
+                        "name": "submit_request", "arguments": json.dumps(args, ensure_ascii=False)}}]},
+                    "response_model": "scripted-test", "request_id": str(uuid4()), "latency_ms": 0}
+            return super().complete_chat(messages, tools=tools, **kwargs)
+
+    runtime = AgentRuntime(tmp_path, CollapsedSocModel())
+    try:
+        runtime.store.create("dual-soc-parse", "local", {"status": "running"})
+        parsed = runtime._parse({"task_id": "dual-soc-parse", "scenario_id": "route_success",
+                                 "task_type": "auto", "revision": 1,
+                                 "messages": [{"role": "user", "content":
+                                               "从平顶山港到军李船闸，甲组电池SOC85%，"
+                                               "乙组电池SOC80%，半载，6小时内到达"}]})
+        assert parsed["request"]["initial_soc_1"] == pytest.approx(.85)
+        assert parsed["request"]["initial_soc_2"] == pytest.approx(.80)
+        assert not parsed["request"].get("soc_applied_to_both")
+        state = {"task_id": "dual-soc-parse", "scenario_id": "route_success",
+                 "revision": 1, "request": parsed["request"]}
+        result = ProfessionalTools(runtime.store).data(state, "data")
+        assert result["summary"]["batteries"]["battery_1"]["initial_soc"] == pytest.approx(.85)
+        assert result["summary"]["batteries"]["battery_2"]["initial_soc"] == pytest.approx(.80)
+    finally:
+        runtime.close()
+
+
 def test_actual_solver_loop_and_persisted_evidence(tmp_path):
     runtime = AgentRuntime(tmp_path, ScriptedModel())
     try:

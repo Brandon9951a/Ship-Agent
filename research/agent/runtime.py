@@ -35,6 +35,9 @@ TERMINAL={"completed","failed","cancelled"}
 _ARRIVAL_DURATION = re.compile(
     r"(?<![\d.])(?P<hours>\d+(?:\.\d+)?)\s*(?:小\s*时|h(?:ours?)?)\s*"
     r"(?:内|之内|以内|限时|到达|抵达)", re.IGNORECASE)
+_GROUP_SOC = re.compile(
+    r"(?P<group>甲|乙)(?:组|号)?\s*(?:电池)?\s*(?:SOC|荷电状态)\s*[:：]?\s*"
+    r"(?P<percent>\d+(?:\.\d+)?)\s*[%％]", re.IGNORECASE)
 
 
 def explicit_arrival_duration_s(text):
@@ -362,6 +365,12 @@ class AgentRuntime:
             if explicit_deadline is not None and request.get("remaining_time_s")!=explicit_deadline:
                 request["remaining_time_s"]=explicit_deadline
                 notes.append("按用户原文中的到达时限设置 remaining_time_s；已核对小时到秒的换算")
+        for match in _GROUP_SOC.finditer(user_text):
+            key="initial_soc_1" if match.group("group")=="甲" else "initial_soc_2"
+            value=float(match.group("percent"))/100
+            if request.get(key)!=value:
+                request[key]=value
+                notes.append(f"{key}: 按用户原文中的电池组 SOC 设置")
         percent=re.search(r"SOC\s*(\d+(?:\.\d+)?)\s*[%％]",user_text,re.IGNORECASE)
         for key in ("initial_soc_1","initial_soc_2"):
             value=request.get(key)
