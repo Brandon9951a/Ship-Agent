@@ -7,7 +7,7 @@ import pytest
 
 from research.agent.runtime import AgentRuntime
 from research.agent.store import Store
-from research.agent.professional import ProfessionalTools
+from research.agent.professional import ProfessionalTools, configuration
 from research.agent.auxiliary import calculate, query_results, search
 from research.agent.protocol import render_answer
 from core.llm_layer import LLMTransportError
@@ -52,6 +52,20 @@ class ScriptedModel:
         return {"message":{"role":"assistant","content":"","tool_calls":[{
             "id":str(uuid4()),"type":"function","function":{"name":name,"arguments":json.dumps(args)}}]},
             "response_model":"scripted-test","request_id":str(uuid4()),"latency_ms":0}
+
+
+def test_named_voyage_scenario_matches_economic_power_and_range_anchor():
+    cfg = configuration("route_success")
+    cruise = cfg["min_speed_kmh"]
+    motor_kw = cfg["coefficient"] * cruise**3
+    battery = cfg["battery"]
+    battery_draw_kw = (motor_kw / cfg["conversion_efficiency"] + cfg["auxiliary_kw"]) / battery["discharge_efficiency"]
+    range_to_alarm_km = (1 - battery["soc_min"]) * 2 * battery["capacity_kwh"] / battery_draw_kw * cruise
+    assert cruise / 1.852 == pytest.approx(6)
+    assert cfg["max_speed_kmh"] / 1.852 == pytest.approx(7.8)
+    assert motor_kw == pytest.approx(90)
+    assert cfg["coefficient"] * cfg["max_speed_kmh"]**3 <= 200
+    assert 130 <= range_to_alarm_km <= 150
 
 
 def test_malformed_model_request_arguments_get_one_correction_turn(tmp_path):
@@ -406,7 +420,7 @@ def test_percent_soc_and_half_load_run_with_explicit_simulation_scope(tmp_path):
         assert result["request"]["initial_soc_2"]==.85
         assert result["request"]["soc_applied_to_both"]
         assert result["outcome_code"]=="research_feasible"
-        assert result["metrics"]["distance_km"]["value"]==25.5
+        assert result["metrics"]["distance_km"]["value"]==pytest.approx(25.5)
         assert all(result["outcomes"][name]=="ok" for name in ("Tdata","Tseg","Tspeed","Tmanagement"))
         snapshot=runtime.store.read(result["task_id"],result["result_refs"]["Tdata"])["payload"]
         assert snapshot["load_state"]=="半载"

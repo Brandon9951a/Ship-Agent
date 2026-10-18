@@ -233,6 +233,19 @@ def test_short_intervals_do_not_consume_one_soc_grid_step_each():
     assert all(check["passed"] for check in result["payload"]["constraint_checks"])
 
 
+def test_persisted_time_rounding_does_not_break_contiguous_demand():
+    from tools.tmanagement_fdp import validate_request
+
+    base = build_request("success")
+    first = replace(base.demand_series[0], start_offset_s=0.0, duration_s=4.352051836)
+    rounded = replace(first, start_offset_s=4.352051835, duration_s=5.0)
+    request = replace(base, demand_series=[first, rounded])
+    assert not any(item["field_ref"].endswith("start_offset_s") for item in validate_request(request))
+    gap = replace(rounded, start_offset_s=4.353051836)
+    request = replace(base, demand_series=[first, gap])
+    assert any(item["field_ref"].endswith("start_offset_s") for item in validate_request(request))
+
+
 @pytest.mark.parametrize(
     ("case_id", "outcome"),
     [

@@ -31,6 +31,7 @@ from tools.fdp_verifier import verify_trajectory
 MODES = (1, 2, 3)
 DEFAULT_TRANSITIONS = tuple((left, right) for left in MODES for right in MODES)
 EPS = 1e-9
+TIME_AXIS_TOL = 1e-6  # Persisted demand timestamps are rounded to microsecond precision.
 
 
 def _now() -> str:
@@ -182,7 +183,7 @@ def validate_request(request: BatteryManagementRequest) -> list[dict[str, Any]]:
             elif not _finite(value):
                 invalid(path + "." + field, value, "必须是有限数值。")
         if _finite(point.start_offset_s) and not isclose(
-                float(point.start_offset_s), expected_start, rel_tol=0, abs_tol=EPS):
+                float(point.start_offset_s), expected_start, rel_tol=0, abs_tol=TIME_AXIS_TOL):
             invalid(path + ".start_offset_s", point.start_offset_s,
                     "时间轴必须连续、从 0 开始且不重叠。", expected_start)
         if _finite(point.duration_s) and point.duration_s <= 0:
