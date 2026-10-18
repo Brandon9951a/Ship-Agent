@@ -68,6 +68,53 @@ def test_named_voyage_scenario_matches_economic_power_and_range_anchor():
     assert 130 <= range_to_alarm_km <= 150
 
 
+def test_named_lock_approach_profile_is_applied_to_solver_input(tmp_path):
+    store = Store(tmp_path)
+    store.create("approach-profile", "local", {})
+    tools = ProfessionalTools(store)
+    state = {"task_id": "approach-profile", "scenario_id": "route_success", "revision": 1,
+             "request": {"origin": "平顶山港", "destination": "大路李船闸"}, "refs": {}}
+    try:
+        for name, fn in (("Tdata", tools.data), ("Tseg", tools.segments)):
+            result = fn(state, name)
+            assert result["outcome_code"] == "ok"
+            state["refs"][name] = result["artifact_ref"]
+        segments = tools.payload(state, "Tseg")["segments"]
+        approach = next(item for item in segments if item["segment_id"].startswith("s04_"))
+        assert approach["min_speed_kmh"] == 2.0
+        assert approach["max_speed_kmh"] == pytest.approx(11.112)
+        assert any("segment_operating_profiles" in ref["source_id"] for ref in approach["source_refs"])
+        assert segments[0]["min_speed_kmh"] == pytest.approx(11.112)
+    finally:
+        store.close()
+
+
+def test_named_multisegment_voyage_has_real_speed_difference_and_verified_soc(tmp_path):
+    store = Store(tmp_path)
+    store.create("varying-voyage", "local", {})
+    tools = ProfessionalTools(store)
+    state = {"task_id": "varying-voyage", "scenario_id": "route_success", "revision": 1,
+             "request": {"origin": "平顶山港", "destination": "大路李船闸",
+                         "remaining_time_s": 104421.6, "initial_soc_1": .85, "initial_soc_2": .85},
+             "refs": {}}
+    try:
+        for name, fn in (("Tdata", tools.data), ("Tseg", tools.segments),
+                         ("Tspeed", tools.speed), ("Tmanagement", tools.management)):
+            result = fn(state, name)
+            assert result["outcome_code"] == "ok"
+            state["refs"][name] = result["artifact_ref"]
+        speed = tools.payload(state, "Tspeed")["summary"]
+        assert speed["speed_vector_kmh"][3] < min(speed["speed_vector_kmh"][:3])
+        assert speed["distance_km"] == pytest.approx(117.889)
+        _, summary = tools.verify(state)
+        assert summary["safe"] is True
+        assert summary["final_soc_1"] >= .25
+        assert summary["final_soc_2"] >= .25
+        assert summary["demand_bus_energy_kwh"] == pytest.approx(speed["bus_energy_kwh"])
+    finally:
+        store.close()
+
+
 def test_malformed_model_request_arguments_get_one_correction_turn(tmp_path):
     class MalformedOnce:
         config = SimpleNamespace(enabled=True, model="scripted-test")

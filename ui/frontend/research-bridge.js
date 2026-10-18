@@ -1,6 +1,7 @@
 /* Adapter from the durable research agent to the original voyage dashboard. */
 const ResearchBridge = (() => {
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const modelResponseCache = new Map();
   const value = (number, unit) => number == null ? null : { value: number, unit };
   const metric = (task, name) => task.metrics?.[name]?.value ?? null;
   const finite = number => typeof number === "number" && Number.isFinite(number);
@@ -253,7 +254,7 @@ const ResearchBridge = (() => {
     return result;
   }
 
-  async function renderDetails(result) {
+  async function renderDetails(result, { live = false } = {}) {
     const events = result.research_events || [];
     const toolEvents = events.filter(event => ["tool_started", "tool_completed", "tool_failed"].includes(event.type));
     const actions = events.filter(event => event.type === "action_requested");
@@ -269,13 +270,18 @@ const ResearchBridge = (() => {
     if (!decisionList) return;
     const modelViews = await Promise.all(models.map(async event => {
       try {
-        const payload = await artifact(result.thread_id, event.artifact_ref);
+        const key = `${result.thread_id}:${event.artifact_ref}`;
+        if (!modelResponseCache.has(key)) modelResponseCache.set(key, artifact(result.thread_id, event.artifact_ref));
+        const payload = await modelResponseCache.get(key);
         return { event, response: payload?.response?.message || {} };
       } catch (_error) {
+        modelResponseCache.delete(`${result.thread_id}:${event.artifact_ref}`);
         return { event, response: {} };
       }
     }));
-    if (state.lastResult?.thread_id !== result.thread_id) return;
+    if (live && !state.running) return;
+    if (state.lastResult?.thread_id !== result.thread_id && state.activeRequest?.taskId !== result.thread_id
+        && userStorageGet(ACTIVE_THREAD_KEY) !== result.thread_id) return;
     const decisionLines = actions.map(event => `<li><strong>${escapeHtml(event.tool || "动作")}</strong><p>${escapeHtml(event.public_rationale || "模型未提供公开依据")}</p><small>调用 ${escapeHtml(event.call_id || "")} · 序号 ${event.seq}</small></li>`).join("");
     const rawLines = modelViews.map(({ event, response }) => {
       let answer = "";
@@ -287,8 +293,8 @@ const ResearchBridge = (() => {
     }).join("");
     const prediction = result.research_prediction;
     const predictionView = prediction ? `<section><h4>独立能耗预测 · ${escapeHtml(prediction.backend || "")}</h4><p>状态：${escapeHtml(prediction.outcome_code)} · 电机侧 ${escapeHtml(prediction.summary?.motor_energy_kwh ?? "未知")} kWh · 时间范围 ${escapeHtml(JSON.stringify(prediction.time_range_s || []))} s</p><p>预测结果不构成航次可行性判定。</p><details><summary>预测工件、来源与诊断</summary><pre>${escapeHtml(JSON.stringify({ artifact_ref: prediction.artifact_ref, power_series_ref: prediction.power_series_ref, demand_ref: prediction.demand_ref, model: prediction.summary?.model_version || prediction.request?.model_version, sources: prediction.sources, units: prediction.units, integration_rule: prediction.integration_rule || prediction.power_series?.integration_rule, diagnostics: prediction.diagnostics }, null, 2))}</pre></details></section>` : "";
-    decisionList.innerHTML = `${predictionView}<h4>公开决策依据</h4><ol>${decisionLines || "<li>本次没有决策动作。</li>"}</ol><details><summary>查看模型原始响应</summary><ol>${rawLines || "<li>没有模型响应记录。</li>"}</ol></details>`;
-    $("#agent-decision-meta").textContent = `${models.length} 次模型响应 · ${actions.length} 次动作`;
+    decisionList.innerHTML = `${predictionView}<h4>公开决策依据</h4><ol>${decisionLines || (live ? "<li>模型正在计算，等待首个决策动作。</li>" : "<li>本次没有决策动作。</li>")}</ol><details><summary>查看模型原始响应</summary><ol>${rawLines || (live ? "<li>模型响应尚未产生。</li>" : "<li>没有模型响应记录。</li>")}</ol></details>`;
+    $("#agent-decision-meta").textContent = `${live ? "等待任务完成 · " : ""}${models.length} 次模型响应 · ${actions.length} 次动作`;
   }
 
   return { submit, resume, load, wait, cancel, retry, renderDetails, structuredText };

@@ -14,3 +14,13 @@
 .task-stage:empty { display: none; }
 .task-controls .secondary-action { padding: 0.3rem 0.7rem; font-size: 0.82rem; }
 .task-controls .secondary-action[hidden] { display: none; }
+.decision-status.running { gap: 10px; min-height: 42px; padding: 9px 16px; font-size: 15px; }
+.decision-status.running span { width: 16px; height: 16px; background: transparent; border: 2px solid #b8d2f5; border-top-color: currentColor; animation: voyage-loading-spin .75s linear infinite; }
+.progress-track { padding: 16px 0 10px; }
+.progress-labels { margin-bottom: 8px; }
+.progress-labels span { font-size: 12px; }
+.progress-step { height: 8px; border-radius: 5px; }
+.progress-step.active { animation: voyage-loading-pulse 1.2s ease-in-out infinite; }
+@keyframes voyage-loading-spin { to { transform: rotate(360deg); } }
+@keyframes voyage-loading-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .decision-status.running span, .progress-step.active { animation: none; } }

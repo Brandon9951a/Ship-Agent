@@ -554,20 +554,21 @@ def sample_phases(phases: list[PhaseSpan], *, start_offset_s: float,
                 offset += take
                 remaining -= take
             continue
-        # 斜坡按步长切片；每片时长 = step，最后一片吸收残余时间，
-        # 因此每片加速度仍等于阶段加速度（不会因摊薄残余而被放大）。
-        count = max(1, math.floor(duration / step + TOLERANCE))
-        slice_duration = min(step, duration / count)
+        # 斜坡等分，确保每片不长于预测步长；平均航速须按该片实际
+        # 起止速度计算，否则末片吸收余量时会把航程和功率积分算偏。
+        count = max(1, math.ceil(duration / step))
+        slice_duration = duration / count
         rate = phase.acceleration_mps2
         for index in range(count):
+            actual_duration = (duration - slice_duration * (count - 1)
+                               if index == count - 1 else slice_duration)
             start_fraction = (index * slice_duration) / duration
-            end_fraction = min(((index + 1) * slice_duration) / duration, 1.0)
+            end_fraction = min((index * slice_duration + actual_duration) / duration, 1.0)
             from_speed = phase.speed_at_fraction(start_fraction)
             to_speed = phase.speed_at_fraction(end_fraction)
             intervals.append(SampledInterval(
                 start_offset_s=offset,
-                duration_s=(duration - slice_duration * (count - 1)
-                            if index == count - 1 else slice_duration),
+                duration_s=actual_duration,
                 planned_speed_kmh=(from_speed + to_speed) / 2.0,
                 kind=phase.kind, phase=Phase.SAILING.value,
                 acceleration_mps2=rate))

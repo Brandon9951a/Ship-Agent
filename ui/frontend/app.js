@@ -666,7 +666,7 @@ function renderTrace(trace) {
     const status = item.status === "ok" ? "finish" : item.status || "完成";
     return `<li class="trace-item"><span class="trace-index">${index + 1}</span><div><strong>${escapeHtml(label)}</strong><p>${escapeHtml(`${round} · ${status}${option}`)}</p></div></li>`;
   }).join("");
-  $("#trace-meta").textContent = state.trace.length ? `${state.trace.length} 个步骤` : "等待任务";
+  $("#trace-meta").textContent = state.trace.length ? `${state.trace.length} 个步骤` : state.running ? "等待任务完成" : "等待任务";
 }
 
 function renderModel(result) {
@@ -874,7 +874,8 @@ function resetResult() {
   renderRecommendations({});
   renderTrace([]);
   $("#agent-decision-list").replaceChildren();
-  $("#agent-decision-meta").textContent = "等待任务";
+  $("#agent-decision-meta").textContent = "等待任务完成";
+  $("#agent-decision-list").textContent = "模型正在计算，公开决策记录会在这里陆续显示。";
   renderProgress([], true);
   $("#reply-panel").hidden = true;
   $("#infeasible-alert").hidden = true;
@@ -1594,6 +1595,10 @@ async function runInference(payloadOverride = null) {
       const trace = researchToolTrace(events);
       renderProgress(trace, true);
       renderTrace(trace);
+      if (task?.thread_id) {
+        state.activeRequest.taskId = task.thread_id;
+        void ResearchBridge.renderDetails({ thread_id: task.thread_id, research_events: events }, { live: true });
+      }
       if (task?.status === "reconnecting") {
         $("#mission-subtitle").textContent = "服务暂时不可用，正在等待恢复；任务标识已保留。";
         return;

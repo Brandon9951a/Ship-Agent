@@ -7,6 +7,18 @@
   "remaining_time_s": 3600.0,
   "min_speed_kmh": 11.112,
   "max_speed_kmh": 14.4456,
+  "segment_operating_profiles": {
+    "s04_luohe_lock_to_luohe_port": {
+      "min_speed_kmh": 2.0,
+      "max_speed_kmh": 11.112,
+      "note": "漯河船闸至漯河港短航段采用低速靠泊演示范围；这是软件仿真假设，不是通航限速。"
+    },
+    "s04_luohe_lock_to_luohe_port_reverse": {
+      "min_speed_kmh": 2.0,
+      "max_speed_kmh": 11.112,
+      "note": "漯河港至漯河船闸短航段采用低速进闸演示范围；这是软件仿真假设，不是通航限速。"
+    }
+  },
   "waiting_duration_s": 0.0,
   "prediction_step_s": 5.0,
   "coefficient": 0.06559425611908812,
@@ -17,7 +29,7 @@
   "battery": {"capacity_kwh": 1000.0, "initial_soc": 0.8, "soc_min": 0.25,
               "min_power_kw": 5.0, "max_power_kw": 125.0, "discharge_efficiency": 0.9},
   "de": {"population": 8, "max_generations": 3, "seeds": [211]},
-  "fdp": {"soc_step": 0.05, "max_states_per_layer": 1000, "max_transitions": 100000},
+  "fdp": {"soc_step": 0.05, "max_states_per_layer": 1000, "max_transitions": 150000},
   "budgets": {"agent_steps": 16, "aux_calls": 6, "invalid_actions": 3, "speed_cycles": 2},
   "scenarios": {
     "route_success": {"label": "登记子航线完整求解", "backend": "analytic"},

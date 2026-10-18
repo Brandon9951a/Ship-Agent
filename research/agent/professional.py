@@ -149,12 +149,20 @@ class ProfessionalTools:
         for a, b in zip(selected, selected[1:]):
             if a["destination"] != b["origin"]:
                 raise ValueError("route_discontinuous")
-        segments = [SegmentConstraint(segment_id=s["id"], distance_km=s["distance_km"],
-            min_speed_kmh=cfg["min_speed_kmh"], max_speed_kmh=cfg["max_speed_kmh"],
-            origin_entity_id=s["origin"], destination_entity_id=s["destination"],
-            waiting_duration_s=cfg["waiting_duration_s"], waiting_rule="具名仿真等待规则",
-            phase_or_segment_type="cruise", quality_flags=("simulation",),
-            source_refs=(SourceRef(**s["source"]), source("route_constraints"))).to_dict() for s in selected]
+        segments = []
+        for s in selected:
+            profile = cfg.get("segment_operating_profiles", {}).get(s["id"], {})
+            low = finite(profile.get("min_speed_kmh", cfg["min_speed_kmh"]), 0, cfg["max_speed_kmh"])
+            high = finite(profile.get("max_speed_kmh", cfg["max_speed_kmh"]), low, cfg["max_speed_kmh"])
+            refs = (SourceRef(**s["source"]), source("route_constraints"))
+            if profile:
+                refs += (replace(source(f"segment_operating_profiles.{s['id']}"), note=profile["note"]),)
+            segments.append(SegmentConstraint(segment_id=s["id"], distance_km=s["distance_km"],
+                min_speed_kmh=low, max_speed_kmh=high,
+                origin_entity_id=s["origin"], destination_entity_id=s["destination"],
+                waiting_duration_s=cfg["waiting_duration_s"], waiting_rule="具名仿真等待规则",
+                phase_or_segment_type="cruise", quality_flags=("simulation",),
+                source_refs=refs).to_dict())
         return self.save(state, "Tseg", {"segments": segments, "snapshot_id": data["snapshot_id"],
             "call_id": call_id}, summary={"segments": segments, "distance_km": sum(s["distance_km"] for s in segments)})
 

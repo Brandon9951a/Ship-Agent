@@ -94,3 +94,25 @@ test('tool call details show finish for completed calls and retain real failures
   assert.match(html, /Tmanagement · failed/);
   assert.match(html, /solver_unresolved/);
 });
+
+test('running decision panel shows live public actions and model response', async () => {
+  const nodes = new Map();
+  const context = vm.createContext({
+    apiFetch: async () => ({ ok: true, json: async () => ({ payload: {
+      response: { message: { role: 'assistant', content: '正在评估航段' } },
+    } }) }),
+    $: id => { if (!nodes.has(id)) nodes.set(id, {}); return nodes.get(id); },
+    escapeHtml: String,
+    state: { running: true, activeRequest: { taskId: 'task' }, lastResult: null },
+    userStorageGet: () => 'task', ACTIVE_THREAD_KEY: 'active',
+  });
+  vm.runInContext(fs.readFileSync('ui/frontend/research-bridge.js', 'utf8'), context);
+  context.liveResult = { thread_id: 'task', research_events: [
+    { seq: 1, type: 'model_completed', model: 'test-model', artifact_ref: 'response-ref' },
+    { seq: 2, type: 'action_requested', tool: 'Tseg', public_rationale: '读取登记航段' },
+  ] };
+  await vm.runInContext('ResearchBridge.renderDetails(liveResult, { live: true })', context);
+  assert.match(nodes.get('#agent-decision-meta').textContent, /等待任务完成 · 1 次模型响应/);
+  assert.match(nodes.get('#agent-decision-list').innerHTML, /读取登记航段/);
+  assert.match(nodes.get('#agent-decision-list').innerHTML, /正在评估航段/);
+});
