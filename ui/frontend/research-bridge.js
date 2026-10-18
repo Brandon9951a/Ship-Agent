@@ -202,13 +202,18 @@ const ResearchBridge = (() => {
     const verifiedFallback = legacyJsonFallback && task.outcome_code === "research_feasible"
       ? `研究仿真方案已通过工具复核。航程 ${formatNumber(metric(task, "distance_km"), " km", 3)}，历时 ${formatNumber(duration, " s", 1)}，母线能耗 ${formatNumber(energy, " kWh", 3)}。末端电池 SOC：甲组 ${formatNumber((soc1 ?? 0) * 100, "%")}，乙组 ${formatNumber((soc2 ?? 0) * 100, "%")}。模型正文未通过数值核验，原始响应和调用依据可在下方展开查看。`
       : null;
-    const finalAnswer = verifiedFallback || task.final_answer || "";
+    const guidance = task.operator_guidance || null;
+    const finalAnswer = guidance
+      ? `${guidance.reason}\n\n建议：${guidance.suggestion}`
+      : verifiedFallback || task.final_answer || "";
     const reason = pending
       ? `${pending.question || "请补充任务信息。"}\n请在任务描述中补充后点击“计算仿真方案”继续。`
       : finalAnswer || task.error || task.outcome_code || "尚未形成可用方案。";
     const result = {
       workflow_mode: "research_agent", thread_id: task.thread_id, status, outcome_code: task.outcome_code,
-      answer_status: task.answer_status, final_answer: finalAnswer || (pending ? reason : ""), research_pending: pending,
+      answer_status: guidance ? "operator_guidance" : task.answer_status,
+      final_answer: finalAnswer || (pending ? reason : ""), operator_guidance: guidance,
+      research_pending: pending,
       research_events: events, research_metrics: task.metrics || {},
       research_prediction: prediction ? { ...prediction, artifact_ref: refs.Tenergy } : null,
       research_soc: { battery_1: soc1, battery_2: soc2 },
@@ -230,7 +235,7 @@ const ResearchBridge = (() => {
       })) } },
       trace,
       report: { explanation: finalAnswer || reason,
-        explanation_mode: task.answer_status === "accepted" ? "llm_qualitative" : "tool_result",
+        explanation_mode: guidance ? "tool_result" : task.answer_status === "accepted" ? "llm_qualitative" : "tool_result",
         segments: rows, summary: {
           required_energy: value(energy, "kWh"), total_duration: value(duration == null ? null : duration / 3600, "h"),
           eta: value(eta, "datetime"), soc_final: value(soc1 == null || soc2 == null ? null : Math.min(soc1, soc2), "fraction"),

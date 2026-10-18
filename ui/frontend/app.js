@@ -838,25 +838,28 @@ async function applyCorrection() {
 function showInfeasible(result) {
   const failedRecord = result[result.failed_tool?.toLowerCase()] || result.tspeed || {};
   const failedPayload = failedRecord.payload || {};
+  const guidance = result.operator_guidance || null;
   const infeasible = result.status === "infeasible";
   const awaiting = result.status === "awaiting_choice";
-  $("#infeasible-title").textContent = awaiting ? "当前输入条件不满足，等待选择" : infeasible ? "当前输入条件不可行" : result.status === "failed" ? "任务执行未完成" : "任务需要补充或修正";
+  $("#infeasible-title").textContent = guidance?.title || (awaiting ? "当前输入条件不满足，等待选择" : infeasible ? "当前输入条件不可行" : result.status === "failed" ? "任务执行未完成" : "任务需要补充或修正");
   const missing = (result.missing_fields || []).map(field => MISSING_FIELD_LABELS[field] || field);
   if (result.workflow_mode !== "research_agent" && !result.request?.departure_at && !missing.includes("出发时间")) missing.push("出发时间");
-  $("#infeasible-reason").textContent = !awaiting && !infeasible && missing.length
+  $("#infeasible-reason").textContent = guidance?.reason || (!awaiting && !infeasible && missing.length
     ? `请补齐：${missing.join("、")}。`
-    : failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成仿真方案。";
+    : failedRecord.reason || failedPayload.reason || (result.questions || []).join("；") || result.final_message || "当前任务未形成仿真方案。");
   const options = awaiting ? (result.adjustment_options || []) : [];
-  $("#infeasible-suggestion-block").hidden = Boolean(options.length || missing.length);
-  $("#infeasible-suggestion").textContent = result.replan_limit_reached
+  $("#infeasible-suggestion-block").hidden = !guidance && Boolean(options.length || missing.length);
+  $("#infeasible-suggestion").textContent = guidance?.suggestion || (result.replan_limit_reached
       ? "已达到两轮调整上限，请重新发起任务。"
-      : (result.questions || []).join("\n") || result.final_message || "请补充所需参数后重新计算。";
+      : (result.questions || []).join("\n") || (result.status === "failed"
+        ? "请重试任务；若再次失败，请保留任务记录并联系技术人员。"
+        : "请检查航段、到达时限及甲乙两组出发电量，修改后重新计算。"));
   fillCorrectionForm(result.request || {});
   renderAdjustmentOptions(options);
   const round = result.decision?.round || Math.min((result.replan_count || 0) + 1, result.max_replans || 2);
   $("#correction-title").textContent = awaiting
     ? `等待选择 · 第 ${round}/${result.max_replans || 2} 轮`
-    : result.replan_limit_reached ? "已达到调整上限" : result.status === "failed" ? "查看诊断或重试任务" : "补齐任务条件后重新计算";
+    : result.replan_limit_reached ? "已达到调整上限" : guidance ? "修改条件后重新计算" : result.status === "failed" ? "查看诊断或重试任务" : "补齐任务条件后重新计算";
   $("#correction-kicker").textContent = awaiting ? "VERIFIED ALTERNATIVES" : "TASK CORRECTION";
   $("#correction-lock").innerHTML = awaiting
     ? '<i data-lucide="database-zap"></i> 演示任务状态已保存'
@@ -865,6 +868,8 @@ function showInfeasible(result) {
     ? "已达到两轮调整上限，请重新发起任务并修改初始条件。"
     : awaiting
       ? "已复算选项仅代表本系统内计算完成。补能选项须先在现场充电，再录入实测 SOC 重新计算；也可手动改写已知任务字段。"
+      : guidance
+        ? "请在补电或调整航次后填写实际条件并重新计算；只有通过复核的新结果才能作为本次仿真方案。"
       : result.status === "failed"
         ? "本次未生成方案；可查看模型与工具调用记录后重试。"
       : "请只填写本次任务已知的信息；缺失字段保持空白。提交后将按演示模型重新计算。";
@@ -1341,10 +1346,12 @@ function renderResult(result) {
   const checks = result.report?.checks || result.tspeed?.payload?.checks || [];
   const warnings = result.report?.warnings || result.tmanagement?.payload?.warnings || [];
 
-  updateStatus(okay || predicted ? "success" : awaiting ? "running" : "error", predicted ? "能耗预测完成" : okay ? "仿真方案已生成" : awaiting ? "等待确认" : infeasible ? "航次不可行" : result.status === "failed" ? "执行未完成" : "需要补充");
+  updateStatus(okay || predicted ? "success" : awaiting ? "running" : "error", predicted ? "能耗预测完成" : okay ? "仿真方案已生成" : awaiting ? "等待确认" : result.operator_guidance ? "需调整条件" : infeasible ? "航次不可行" : result.status === "failed" ? "执行未完成" : "需要补充");
   $("#mission-title").textContent = predicted ? "独立能耗预测完成" : route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "仿真方案已生成" : "任务未完成");
   $("#mission-subtitle").textContent = predicted ? "工具已计算功率与能量；来源、后端和诊断见下方。此结果不代表航次可行。" : okay
     ? "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。"
+    : result.operator_guidance
+      ? result.operator_guidance.title
     : awaiting
       ? "当前任务不满足执行条件，请选择下方调整方案。"
       : infeasible

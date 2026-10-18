@@ -8,6 +8,7 @@ import pytest
 from research.agent.runtime import AgentRuntime
 from research.agent.store import Store
 from research.agent.professional import ProfessionalTools, configuration
+from research.agent.guidance import operator_guidance
 from research.agent.auxiliary import calculate, query_results, search
 from research.agent.protocol import render_answer
 from core.llm_layer import LLMTransportError
@@ -66,6 +67,92 @@ def test_named_voyage_scenario_matches_economic_power_and_range_anchor():
     assert motor_kw == pytest.approx(90)
     assert cfg["coefficient"] * cfg["max_speed_kmh"]**3 <= 200
     assert 130 <= range_to_alarm_km <= 150
+
+
+def test_batteries_at_planning_floor_get_actionable_diagnostic(tmp_path, monkeypatch):
+    import research.agent.professional as professional_module
+
+    def unexpected_solver(_request):
+        raise AssertionError("FDP must not run when neither battery has usable energy")
+
+    monkeypatch.setattr(professional_module, "run_management_fdp", unexpected_solver)
+    store = Store(tmp_path)
+    store.create("floor-case", "local", {})
+    tools = ProfessionalTools(store)
+    state = {"task_id": "floor-case", "scenario_id": "route_success", "revision": 1,
+             "request": {"origin": "漯河船闸", "destination": "漯河港",
+                         "remaining_time_s": 3600, "initial_soc_1": .25,
+                         "initial_soc_2": .25}, "refs": {}}
+    try:
+        for name, fn in (("Tdata", tools.data), ("Tseg", tools.segments),
+                         ("Tspeed", tools.speed)):
+            result = fn(state, name)
+            assert result["outcome_code"] == "ok"
+            state["refs"][name] = result["artifact_ref"]
+        result = tools.management(state, "management")
+        assert result["outcome_code"] == "infeasible_under_assumptions"
+        assert result["diagnostics"][0]["code"] == "initial_soc_at_planning_floor"
+        state["refs"]["Tmanagement"] = result["artifact_ref"]
+        guidance = operator_guidance(store, state["task_id"], result["outcome_code"],
+                                     state["request"], state["refs"])
+        assert "25%" in guidance["reason"]
+        assert "补电" in guidance["suggestion"]
+        assert "grid_unresolved" not in str(guidance)
+    finally:
+        store.close()
+
+
+def test_low_soc_agent_answer_uses_plain_reason_and_next_step(tmp_path):
+    class LowSocModel(ScriptedModel):
+        def complete_chat(self, messages, *, tools, **kwargs):
+            result = super().complete_chat(messages, tools=tools, **kwargs)
+            if [tool["function"]["name"] for tool in tools] == ["submit_request"]:
+                call = result["message"]["tool_calls"][0]
+                args = json.loads(call["function"]["arguments"])
+                args.update(initial_soc_1=.25, initial_soc_2=.25, remaining_time_s=3600)
+                call["function"]["arguments"] = json.dumps(args)
+            return result
+
+    runtime = AgentRuntime(tmp_path, LowSocModel())
+    try:
+        result = runtime.start("从漯河船闸到漯河港，甲组电池SOC25%，乙组电池SOC25%，1小时内到达",
+                               background=False)
+        assert result["outcome_code"] == "infeasible_under_assumptions"
+        assert result["answer_status"] == "operator_guidance"
+        assert "25%" in result["final_answer"]
+        assert "建议：" in result["final_answer"]
+        assert "补电" in result["final_answer"]
+        assert "grid_unresolved" not in result["final_answer"]
+        assert "solver_unresolved" not in result["final_answer"]
+        assert result["operator_guidance"]["reason"] != result["operator_guidance"]["suggestion"]
+    finally:
+        runtime.close()
+
+
+def test_existing_grid_result_gets_operator_guidance_on_read(tmp_path):
+    from tests.test_web_frontend import AuthenticatedClient, _store
+    from ui.web_server import create_app
+
+    app = create_app(llm_client=ScriptedModel(), checkpoint_backend="memory",
+                     research_directory=tmp_path / "research",
+                     auth_store=_store(tmp_path / "auth.sqlite3"))
+    with AuthenticatedClient(app) as client:
+        owner = client.get("/api/auth/me").json()["user"]["id"]
+        task_id = str(uuid4())
+        store = app.state.research_runtime.store
+        store.create(task_id, owner, {"status": "completed", "outcome_code": "solver_unresolved",
+                                      "request": {"initial_soc_1": .25, "initial_soc_2": .25}})
+        data_ref = store.put(task_id, "Tdata", {"batteries": {
+            "battery_1": {"initial_soc": .25, "soc_min": .25},
+            "battery_2": {"initial_soc": .25, "soc_min": .25}}})
+        speed_ref = store.put(task_id, "Tspeed", {"summary": {"bus_energy_kwh": 641.1}})
+        store.update(task_id, result_refs={"Tdata": data_ref, "Tspeed": speed_ref})
+        response = client.get(f"/api/runs/{task_id}")
+        assert response.status_code == 200
+        guidance = response.json()["operator_guidance"]
+        assert "25%" in guidance["reason"]
+        assert "重新计算" in guidance["suggestion"]
+        assert guidance["reason"] != guidance["suggestion"]
 
 
 def test_named_lock_approach_profile_is_applied_to_solver_input(tmp_path):

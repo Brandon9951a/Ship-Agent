@@ -310,6 +310,26 @@ class ProfessionalTools:
         if digest(demand.to_dict()) != digest(exported):
             raise ValueError("demand_changed")
         req = replace(req,call_id=call_id,parent_call_id=speed["run"]["call_id"])
+        batteries = (req.battery_1, req.battery_2)
+        if (all(b.initial_soc <= b.soc_min + 1e-9 for b in batteries)
+                and any(point.demand_bus_kw > 0 for point in demand.points)):
+            # With no charging in the FDP model, two batteries already at
+            # their planning floors cannot supply even the first positive
+            # demand interval. This is a known input constraint, not a grid
+            # search miss.
+            diagnostic = {"code": "initial_soc_at_planning_floor",
+                "field_ref": "initial_soc_1,initial_soc_2",
+                "detail": "两组电池出发电量均已达到本次仿真规划下限，航行需要用电；请先补电并录入补电后的两组 SOC 再计算。",
+                "initial_soc_1": req.battery_1.initial_soc,
+                "initial_soc_2": req.battery_2.initial_soc,
+                "soc_min_1": req.battery_1.soc_min,
+                "soc_min_2": req.battery_2.soc_min}
+            summary = {**speed.get("summary", {}), "safe": False,
+                       "backend": "analytic"}
+            return self.save(state, "Tmanagement", {
+                "request": req.to_dict(), "speed_ref": state["refs"]["Tspeed"],
+                "snapshot_id": data["snapshot_id"], "summary": summary,
+                "diagnostics": [diagnostic]}, "infeasible_under_assumptions")
         result = run_management_fdp(req)
         payload = result.get("payload") or {}
         original_request = req.to_dict()

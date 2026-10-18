@@ -24,6 +24,7 @@ from core.llm_layer import LLMTransportError
 from research.agent.store import Store, now
 from research.agent.professional import ProfessionalTools, configuration
 from research.agent.auxiliary import search, query_results, calculate
+from research.agent.guidance import operator_guidance, guidance_answer
 from research.agent.protocol import TOOLS, REQUEST_TOOL, ANSWER_TOOL, render_answer
 
 AUX={"search_project_docs","query_task_results","calculate"}
@@ -407,6 +408,11 @@ class AgentRuntime:
             self.store.event(s["task_id"],"solver_unresolved",
                              source_outcome="grid_unresolved")
             return {"route":"finish","outcome_code":"solver_unresolved"}
+        if s["outcomes"].get("Tmanagement") == "infeasible_under_assumptions" and any(
+                obs.get("tool")=="Tmanagement" and any(
+                    d.get("code")=="initial_soc_at_planning_floor" for d in obs.get("diagnostics",[]))
+                for obs in s.get("observations",[])):
+            return {"route":"finish","outcome_code":"infeasible_under_assumptions"}
         if s["outcomes"].get("Tspeed") == "search_unresolved":
             self.store.event(s["task_id"],"solver_unresolved",
                              source_outcome="search_unresolved")
@@ -581,7 +587,7 @@ class AgentRuntime:
             changes.update(speed_cycles=s["speed_cycles"]+1,feedback_limit_kw=None)
         if name=="Tmanagement" and result["outcome_code"]!="ok" and result.get("artifact_ref"):
             full=self.store.read(s["task_id"],result["artifact_ref"])["payload"]
-            feedback=(full["result"].get("payload") or {}).get("feedback") or {}
+            feedback=((full.get("result") or {}).get("payload") or {}).get("feedback") or {}
             if (feedback.get("failure_scope")=="instantaneous_power" and feedback.get("diagnostic_certainty")=="proven_under_request"
                     and feedback.get("limit_source_ref") and feedback.get("selected_demand_ref")==full["request"]["selected_demand_ref"]):
                 changes["feedback_limit_kw"]=feedback["deliverable_kw"]
@@ -736,6 +742,12 @@ class AgentRuntime:
                     note=(f"工具诊断：按所选航段的情景最高航速和等待时间，最短需 {minimum/3600:.2f} 小时；"
                           f"{source}期限为 {limit/3600:.2f} 小时。可延长到达期限，或选择更短航段后重新计算。")
                     body=(body+"\n"+note) if status=="accepted" else note+"模型原始答复未通过核验，可展开查看。"
+        guidance=operator_guidance(self.store,s["task_id"],outcome,s.get("request",{}),s.get("refs",{}))
+        if guidance:
+            # The raw model answer remains in its response artifact. The
+            # operator sees a short explanation tied to checked tool facts.
+            body=guidance_answer(guidance)
+            status="operator_guidance"
         hits=[hit for obs in s["observations"] if obs["tool"]=="search_project_docs" for hit in obs.get("results",[])]
         sources=[];seen=set()
         for hit in sorted(hits,key=lambda item:item.get("score",0),reverse=True):
@@ -746,10 +758,12 @@ class AgentRuntime:
                 seen.add(key)
             if len(sources)==5:break
         ref=self.store.put(s["task_id"],"answer",{"answer_markdown":body,"answer_status":status,
-            "metrics":metrics,"errors":errors,"outcome_code":evidence["outcome_code"],"sources":sources})
+            "metrics":metrics,"errors":errors,"outcome_code":evidence["outcome_code"],
+            "operator_guidance":guidance,"sources":sources})
         self.store.event(s["task_id"],"answer_completed",answer_status=status,artifact_ref=ref)
         self.store.update(s["task_id"],status="completed",outcome_code=evidence["outcome_code"],answer_status=status,
-            final_answer=body,answer_sources=sources,answer_ref=ref,metrics=metrics,pending=None,phase="completed")
+            final_answer=body,operator_guidance=guidance,answer_sources=sources,
+            answer_ref=ref,metrics=metrics,pending=None,phase="completed")
         return {"final_answer":body,"answer_status":status}
 
     def _graph(self):

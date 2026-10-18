@@ -26,6 +26,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.concurrency import run_in_threadpool
 
 from core.llm_layer import LLMClient, LLMConfig, LLMConfigError
+from research.agent.guidance import operator_guidance
 from core.speech import SpeechServiceError, XfyunSpeechManager
 from core.workflow_runtime import (
     InvalidAdjustmentOptionError, WorkflowNotAwaitingChoiceError,
@@ -596,7 +597,14 @@ def create_app(
         except ValueError:
             return _workflow_error(400, "invalid_resume_request")
         try:
-            return app.state.research_runtime.store.get(thread_id, request.state.session["id"])
+            store = app.state.research_runtime.store
+            record = store.get(thread_id, request.state.session["id"])
+            if record.get("status") == "completed" and not record.get("operator_guidance"):
+                guidance = operator_guidance(store, thread_id, record.get("outcome_code"),
+                                             record.get("request") or {}, record.get("result_refs") or {})
+                if guidance:
+                    record = {**record, "operator_guidance": guidance}
+            return record
         except LookupError:
             pass
         try:
