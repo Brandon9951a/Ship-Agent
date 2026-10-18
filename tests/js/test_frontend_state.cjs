@@ -54,12 +54,13 @@ async function run() {
     $("#departure-input").value = "2026-10-03T09:00";
     $("#time-input").value = "6";
     $("#adv-time").value = "6";
-    $("#adv-soc").value = "31";
+    $("#adv-soc-1").value = "31";
+    $("#adv-soc-2").value = "46";
     $("#adv-load").value = "半载";
     if (!writeQuickTask({ markChanged: false })) throw new Error("valid quick task rejected");
-    if (!$("#mission-input").value.includes("SOC31%")) throw new Error("quick SOC not synchronized");
+    if (!$("#mission-input").value.includes("甲组电池SOC31%，乙组电池SOC46%")) throw new Error("quick SOC not synchronized");
     const priorText = $("#mission-input").value;
-    $("#adv-soc").value = "";
+    $("#adv-soc-2").value = "";
     if (writeQuickTask({ silent: true, markChanged: false })) throw new Error("empty SOC accepted");
     if ($("#mission-input").value !== priorText) throw new Error("empty SOC silently rewrote task");
     if (!state.quickDirty) throw new Error("invalid quick form not marked dirty");
