@@ -1,0 +1,5513 @@
+{
+  "schema_version": "fdp-72-coverage/1",
+  "source": "ui/frontend/app.js ALL_ROUTE_NODES and configs/route_facts.yaml",
+  "standard_conditions": "route_success analytic backend; min_energy; no model override",
+  "requested_count": 72,
+  "completed_count": 72,
+  "records": [
+    {
+      "sequence": 1,
+      "origin": "平顶山港",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-01-82808dab",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 50.49086202739354,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 52.31334829955188,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 53.285935185283265,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 445.526
+    },
+    {
+      "sequence": 2,
+      "origin": "平顶山港",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-02-f718c770",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 99.99086202737992,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 115.66943660539032,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 125.78275215070902,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 821.115
+    },
+    {
+      "sequence": 3,
+      "origin": "平顶山港",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-03-d29d9694",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 187.3088620273967,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 220.67418011423803,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 243.32199830298592,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1513.367
+    },
+    {
+      "sequence": 4,
+      "origin": "平顶山港",
+      "destination": "漯河港",
+      "task_id": "fdp-72-04-c0910773",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 188.67308202739736,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 246.20190314316784,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 268.1320174209201,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1537.894
+    },
+    {
+      "sequence": 5,
+      "origin": "平顶山港",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-05-f84dd915",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 233.42108202741832,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 244.05818288122262,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 273.5597518118284,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1918.595
+    },
+    {
+      "sequence": 6,
+      "origin": "平顶山港",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-06-80ccd47a",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 282.7230820274414,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 479.9245369371536,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 493.0969482700281,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2229.274
+    },
+    {
+      "sequence": 7,
+      "origin": "平顶山港",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-07-967389bc",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 336.97508202746684,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 444.69747584247284,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 448.7307600216861,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2813.771
+    },
+    {
+      "sequence": 8,
+      "origin": "平顶山港",
+      "destination": "周口港",
+      "task_id": "fdp-72-08-0b7e704e",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 375.783082027485,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 445.50657672399666,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 500.13894780902643,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 3101.187
+    },
+    {
+      "sequence": 9,
+      "origin": "军李船闸",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-09-2d362112",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 50.49086202739354,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 52.31334829955188,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 53.285935185283265,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 431.463
+    },
+    {
+      "sequence": 10,
+      "origin": "军李船闸",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-10-d62a37e5",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 49.500862027393495,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 51.28760995046491,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 52.24112471218536,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 421.275
+    },
+    {
+      "sequence": 11,
+      "origin": "军李船闸",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-11-024089eb",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 136.81886202737303,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 155.9053896158229,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 173.23090401298705,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1093.833
+    },
+    {
+      "sequence": 12,
+      "origin": "军李船闸",
+      "destination": "漯河港",
+      "task_id": "fdp-72-12-78e40abf",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 138.18308202737367,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 155.380916093662,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 161.91871887040287,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1157.134
+    },
+    {
+      "sequence": 13,
+      "origin": "军李船闸",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-13-7a47702a",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 182.93108202739464,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 274.39075399495965,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 275.3952947107541,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1392.084
+    },
+    {
+      "sequence": 14,
+      "origin": "军李船闸",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-14-37da6f98",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 232.23308202741774,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 271.1756658481982,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 317.34505822010914,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1821.087
+    },
+    {
+      "sequence": 15,
+      "origin": "军李船闸",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-15-b936911d",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 286.4850820274431,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 466.7408826395482,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 478.06717839886346,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2154.67
+    },
+    {
+      "sequence": 16,
+      "origin": "军李船闸",
+      "destination": "周口港",
+      "task_id": "fdp-72-16-d8e5fd23",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 325.2930820274613,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 454.2362455858927,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 458.19618868139236,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2562.955
+    },
+    {
+      "sequence": 17,
+      "origin": "马湾船闸",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-17-75d41a01",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 99.9908620273799,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 115.54979258484005,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 125.83936746795398,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 815.389
+    },
+    {
+      "sequence": 18,
+      "origin": "马湾船闸",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-18-6b2a241b",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 49.500862027393495,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 51.28760995046491,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 52.24112471218536,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 427.857
+    },
+    {
+      "sequence": 19,
+      "origin": "马湾船闸",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-19-84878e15",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 87.3188620273849,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 90.47081488559819,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 92.15288478452555,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 700.843
+    },
+    {
+      "sequence": 20,
+      "origin": "马湾船闸",
+      "destination": "漯河港",
+      "task_id": "fdp-72-20-bcc2d916",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 88.68308202738436,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 89.83017533201917,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 90.94083345668741,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 707.479
+    },
+    {
+      "sequence": 21,
+      "origin": "马湾船闸",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-21-56c94cc1",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 133.43108202737147,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 137.30435807714557,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 157.80345789326748,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1100.176
+    },
+    {
+      "sequence": 22,
+      "origin": "马湾船闸",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-22-fdb99c63",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 182.73308202739457,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 248.06015548829976,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 251.27469094871498,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1478.417
+    },
+    {
+      "sequence": 23,
+      "origin": "马湾船闸",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-23-f75643cc",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 236.98508202742,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 264.2359182240875,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 269.7598763073215,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1924.365
+    },
+    {
+      "sequence": 24,
+      "origin": "马湾船闸",
+      "destination": "周口港",
+      "task_id": "fdp-72-24-4bf1cefe",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 275.7930820274382,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 438.4586501561541,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 470.71152891700984,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2106.662
+    },
+    {
+      "sequence": 25,
+      "origin": "漯河船闸",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-25-e8f19321",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 187.3088620273967,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 225.61247029349704,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 263.679135183369,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1542.987
+    },
+    {
+      "sequence": 26,
+      "origin": "漯河船闸",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-26-6ae7d08e",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 136.81886202737306,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 160.4757912008105,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 165.77611236288857,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1076.329
+    },
+    {
+      "sequence": 27,
+      "origin": "漯河船闸",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-27-3637d185",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 87.3188620273849,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 90.47081488559819,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 92.15288478452555,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 701.181
+    },
+    {
+      "sequence": 28,
+      "origin": "漯河船闸",
+      "destination": "漯河港",
+      "task_id": "fdp-72-28-83199571",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "ok",
+          "diagnostics": [
+            {
+              "stage": "verify",
+              "code": "resampling_difference",
+              "detail": "优化阶段规划网格与核验精度的能量差",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "total_energy_kwh",
+              "observed": -7.558398351648066e-13,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "demand_build",
+              "code": "conversion_is_named_assumption",
+              "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "conversion_model_ref",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [
+                {
+                  "source_id": "simulation:conversion",
+                  "kind": "assumption",
+                  "locator": "configs/research_agent.json",
+                  "confirmed": false,
+                  "note": "具名软件仿真值",
+                  "mode": "simulation"
+                }
+              ],
+              "retryable": false
+            }
+          ]
+        },
+        "Tmanagement": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        }
+      },
+      "outcome_code": "research_feasible",
+      "verification": {
+        "passed": true,
+        "artifact_ref": "c605ce45c95f8f500b294000a1679dbd5ad105ad03bd98a179617edc87b89f48"
+      },
+      "summary": {
+        "auxiliary_bus_energy_kwh": 0.5740059156375,
+        "backend": "analytic",
+        "battery_discharge_loss_1_kwh": 0.0009031414628017254,
+        "battery_discharge_loss_2_kwh": 0.2242325072476556,
+        "battery_energy_drawn_1_kwh": 0.009031414628017261,
+        "battery_energy_drawn_2_kwh": 2.2423250724765564,
+        "bus_energy_1_kwh": 0.008128273165215536,
+        "bus_energy_2_kwh": 2.0180925652289012,
+        "bus_energy_kwh": 2.0262208383941127,
+        "conversion_delta_kwh": 0.08713289536539706,
+        "demand_artifact_ref": "448001b423e8288b636bf2e172e5dc8b18c403dbcd7fa4ca59422c9a6194fa61",
+        "demand_bus_energy_kwh": 2.0262208383941167,
+        "distance_km": 0.6890000000000001,
+        "duration_s": 413.2842592592593,
+        "final_planning_soc_1": 0.75,
+        "final_planning_soc_2": 0.75,
+        "final_soc_1": 0.799990968585372,
+        "final_soc_2": 0.7977576749275225,
+        "mode_counts": {
+          "1": 1,
+          "2": 83,
+          "3": 0
+        },
+        "motor_energy_kwh": 1.3650820273912194,
+        "peak_states_per_layer": 5,
+        "propulsion_bus_energy_kwh": 1.4522149227566166,
+        "safe": true,
+        "segment_summary": [
+          {
+            "battery_1_bus_energy_kwh": 0.008128273165215536,
+            "battery_1_discharge_loss_kwh": 0.0009031414628017254,
+            "battery_1_energy_drawn_kwh": 0.009031414628017261,
+            "battery_2_bus_energy_kwh": 2.0180925652289012,
+            "battery_2_discharge_loss_kwh": 0.2242325072476556,
+            "battery_2_energy_drawn_kwh": 2.2423250724765564,
+            "demand_bus_energy_kwh": 2.0262208383941167,
+            "duration_s": 413.284259259,
+            "end_offset_s": 413.284259259,
+            "final_soc_1": 0.799990968585372,
+            "final_soc_2": 0.7977576749275225,
+            "mode_counts": {
+              "1": 1,
+              "2": 83,
+              "3": 0
+            },
+            "phases": [
+              "sailing"
+            ],
+            "segment_id": "s04_luohe_lock_to_luohe_port",
+            "start_offset_s": 0.0
+          }
+        ],
+        "selected_demand_ref": "aa1776f4c02469d8e411268b2b041fcbff01405a42d5787dc5e5918aef4ed721",
+        "speed_vector_kmh": [
+          6.0
+        ],
+        "transitions_seen": 1242
+      },
+      "elapsed_ms": 253.883
+    },
+    {
+      "sequence": 29,
+      "origin": "漯河船闸",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-29-6ebd4ebd",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 46.11308202739337,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 47.122444282712394,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 50.17928993798169,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 415.322
+    },
+    {
+      "sequence": 30,
+      "origin": "漯河船闸",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-30-71d78bc6",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 95.41508202738171,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 100.03125076984365,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 107.88284407449272,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 801.708
+    },
+    {
+      "sequence": 31,
+      "origin": "漯河船闸",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-31-3acc6090",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 149.66708202737908,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 250.3148737670026,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 256.4867277145876,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1159.934
+    },
+    {
+      "sequence": 32,
+      "origin": "漯河船闸",
+      "destination": "周口港",
+      "task_id": "fdp-72-32-08a99cf4",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 188.47508202739726,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 199.75951591582006,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 223.4187894687356,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1508.015
+    },
+    {
+      "sequence": 33,
+      "origin": "漯河港",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-33-2618878f",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 188.67308202739736,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 310.78703887131417,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 322.37342806421157,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1427.464
+    },
+    {
+      "sequence": 34,
+      "origin": "漯河港",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-34-c2c04139",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 138.1830820273737,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 142.89811652846402,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 160.57532669630228,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1163.053
+    },
+    {
+      "sequence": 35,
+      "origin": "漯河港",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-35-dba63fc0",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 88.68308202738436,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 89.69244428270294,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 95.47459386917592,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 748.226
+    },
+    {
+      "sequence": 36,
+      "origin": "漯河港",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-36-b8460d80",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "ok",
+          "diagnostics": [
+            {
+              "stage": "verify",
+              "code": "resampling_difference",
+              "detail": "优化阶段规划网格与核验精度的能量差",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "total_energy_kwh",
+              "observed": -7.558398351648066e-13,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "demand_build",
+              "code": "conversion_is_named_assumption",
+              "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "conversion_model_ref",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [
+                {
+                  "source_id": "simulation:conversion",
+                  "kind": "assumption",
+                  "locator": "configs/research_agent.json",
+                  "confirmed": false,
+                  "note": "具名软件仿真值",
+                  "mode": "simulation"
+                }
+              ],
+              "retryable": false
+            }
+          ]
+        },
+        "Tmanagement": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        }
+      },
+      "outcome_code": "research_feasible",
+      "verification": {
+        "passed": true,
+        "artifact_ref": "be4b45b20f803d2948dc5fca243e533a51978ac4098790d300ae6e9f07235fb0"
+      },
+      "summary": {
+        "auxiliary_bus_energy_kwh": 0.5740059156375,
+        "backend": "analytic",
+        "battery_discharge_loss_1_kwh": 0.0009031414628017254,
+        "battery_discharge_loss_2_kwh": 0.2242325072476556,
+        "battery_energy_drawn_1_kwh": 0.009031414628017261,
+        "battery_energy_drawn_2_kwh": 2.2423250724765564,
+        "bus_energy_1_kwh": 0.008128273165215536,
+        "bus_energy_2_kwh": 2.0180925652289012,
+        "bus_energy_kwh": 2.0262208383941127,
+        "conversion_delta_kwh": 0.08713289536539706,
+        "demand_artifact_ref": "b2b86dcf2fb0886d2ac5ae96c4b63037ef4425dd1f2b8164821c2dc4fd055e5a",
+        "demand_bus_energy_kwh": 2.0262208383941167,
+        "distance_km": 0.6890000000000001,
+        "duration_s": 413.2842592592593,
+        "final_planning_soc_1": 0.75,
+        "final_planning_soc_2": 0.75,
+        "final_soc_1": 0.799990968585372,
+        "final_soc_2": 0.7977576749275225,
+        "mode_counts": {
+          "1": 1,
+          "2": 83,
+          "3": 0
+        },
+        "motor_energy_kwh": 1.3650820273912194,
+        "peak_states_per_layer": 5,
+        "propulsion_bus_energy_kwh": 1.4522149227566166,
+        "safe": true,
+        "segment_summary": [
+          {
+            "battery_1_bus_energy_kwh": 0.008128273165215536,
+            "battery_1_discharge_loss_kwh": 0.0009031414628017254,
+            "battery_1_energy_drawn_kwh": 0.009031414628017261,
+            "battery_2_bus_energy_kwh": 2.0180925652289012,
+            "battery_2_discharge_loss_kwh": 0.2242325072476556,
+            "battery_2_energy_drawn_kwh": 2.2423250724765564,
+            "demand_bus_energy_kwh": 2.0262208383941167,
+            "duration_s": 413.284259259,
+            "end_offset_s": 413.284259259,
+            "final_soc_1": 0.799990968585372,
+            "final_soc_2": 0.7977576749275225,
+            "mode_counts": {
+              "1": 1,
+              "2": 83,
+              "3": 0
+            },
+            "phases": [
+              "sailing"
+            ],
+            "segment_id": "s04_luohe_lock_to_luohe_port_reverse",
+            "start_offset_s": 0.0
+          }
+        ],
+        "selected_demand_ref": "29f3541e63fb9540ef2d7bd79a036f33226524176c71386ac97e995e13257a13",
+        "speed_vector_kmh": [
+          6.0
+        ],
+        "transitions_seen": 1242
+      },
+      "elapsed_ms": 276.897
+    },
+    {
+      "sequence": 37,
+      "origin": "漯河港",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-37-dd46c5bf",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 44.74886202739332,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 46.364065874847434,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 47.22603444131539,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 390.414
+    },
+    {
+      "sequence": 38,
+      "origin": "漯河港",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-38-847b9d19",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 94.05086202738225,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 108.4665340231336,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 118.46732477378889,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 775.279
+    },
+    {
+      "sequence": 39,
+      "origin": "漯河港",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-39-a70af9f9",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 148.30286202737844,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 177.23308716698983,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 198.79521807790826,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1209.57
+    },
+    {
+      "sequence": 40,
+      "origin": "漯河港",
+      "destination": "周口港",
+      "task_id": "fdp-72-40-18e96749",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 187.11086202739662,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 282.30828345848676,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 305.02854312194137,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1474.145
+    },
+    {
+      "sequence": 41,
+      "origin": "大路李船闸",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-41-a87efda9",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 233.42108202741832,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 256.6416206567054,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 257.36226200199286,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1908.998
+    },
+    {
+      "sequence": 42,
+      "origin": "大路李船闸",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-42-c3151638",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 182.93108202739467,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 242.32438656362925,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 246.5963653614899,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1503.551
+    },
+    {
+      "sequence": 43,
+      "origin": "大路李船闸",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-43-859499d5",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 133.43108202737147,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 138.8411070879043,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 152.09521924522835,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1094.358
+    },
+    {
+      "sequence": 44,
+      "origin": "大路李船闸",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-44-0dc64b38",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 46.113082027393375,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 47.05741427841449,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 48.592637340196006,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 410.434
+    },
+    {
+      "sequence": 45,
+      "origin": "大路李船闸",
+      "destination": "漯河港",
+      "task_id": "fdp-72-45-6bb51e75",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 44.74886202739332,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 46.364065874847434,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 47.22603444131539,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 391.239
+    },
+    {
+      "sequence": 46,
+      "origin": "大路李船闸",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-46-a1729ecd",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 49.30286202739349,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 51.08246228064751,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 52.032162617565774,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 421.713
+    },
+    {
+      "sequence": 47,
+      "origin": "大路李船闸",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-47-1b92422a",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 103.5548620273785,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 119.43124413856906,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 130.43696826156744,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 842.024
+    },
+    {
+      "sequence": 48,
+      "origin": "大路李船闸",
+      "destination": "周口港",
+      "task_id": "fdp-72-48-5c344b6a",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 142.36286202737563,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 172.26839350213984,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 197.60199348242605,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1178.525
+    },
+    {
+      "sequence": 49,
+      "origin": "葫芦湾船闸",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-49-e76e3a6e",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 282.72308202744136,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 443.28014857081183,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 447.1453661535644,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2156.291
+    },
+    {
+      "sequence": 50,
+      "origin": "葫芦湾船闸",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-50-29537aa3",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 232.23308202741774,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 255.7561214315898,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 279.4153949845622,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1883.673
+    },
+    {
+      "sequence": 51,
+      "origin": "葫芦湾船闸",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-51-984a237f",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 182.73308202739454,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 277.2784066093155,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 276.118397409281,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1441.558
+    },
+    {
+      "sequence": 52,
+      "origin": "葫芦湾船闸",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-52-10c85d62",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 95.4150820273817,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 109.38773074555856,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 119.05738780839187,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 820.777
+    },
+    {
+      "sequence": 53,
+      "origin": "葫芦湾船闸",
+      "destination": "漯河港",
+      "task_id": "fdp-72-53-68715046",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 94.05086202738224,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 109.01689651766485,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 118.20689431446215,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 774.512
+    },
+    {
+      "sequence": 54,
+      "origin": "葫芦湾船闸",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-54-6d3ea6c3",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 49.30286202739349,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 51.08246228064751,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 52.032162617565774,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 423.826
+    },
+    {
+      "sequence": 55,
+      "origin": "葫芦湾船闸",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-55-3f753e2b",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 54.25286202739369,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 56.21115402608239,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 57.25621498305533,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 466.492
+    },
+    {
+      "sequence": 56,
+      "origin": "葫芦湾船闸",
+      "destination": "周口港",
+      "task_id": "fdp-72-56-f29280ec",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 93.06086202738264,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 108.53028874323729,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 115.19915074230515,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 754.824
+    },
+    {
+      "sequence": 57,
+      "origin": "周口船闸",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-57-58f1a6e3",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 336.97508202746684,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 446.79624144218235,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 481.43513983185017,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2747.702
+    },
+    {
+      "sequence": 58,
+      "origin": "周口船闸",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-58-184e0b18",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 286.4850820274432,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 481.4807562612947,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 488.34874071628604,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2189.023
+    },
+    {
+      "sequence": 59,
+      "origin": "周口船闸",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-59-4e45b5f8",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 236.98508202742,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 274.82427034272246,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 300.89317718742984,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1907.464
+    },
+    {
+      "sequence": 60,
+      "origin": "周口船闸",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-60-da6d33f3",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 149.66708202737908,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 206.16803284176362,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 229.84677893298834,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1212.657
+    },
+    {
+      "sequence": 61,
+      "origin": "周口船闸",
+      "destination": "漯河港",
+      "task_id": "fdp-72-61-d9f42770",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 148.30286202737844,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 178.50748463259688,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 206.70242321777073,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1223.683
+    },
+    {
+      "sequence": 62,
+      "origin": "周口船闸",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-62-0cb3785c",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 103.55486202737852,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 120.02946424131902,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 130.1538916753427,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 846.609
+    },
+    {
+      "sequence": 63,
+      "origin": "周口船闸",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-63-59cfc2d8",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 54.25286202739369,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 56.21115402608239,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 57.25621498305533,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 463.464
+    },
+    {
+      "sequence": 64,
+      "origin": "周口船闸",
+      "destination": "周口港",
+      "task_id": "fdp-72-64-21cedde9",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 38.8088620273931,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 40.209635780325584,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 40.957171602727925,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 347.019
+    },
+    {
+      "sequence": 65,
+      "origin": "周口港",
+      "destination": "平顶山港",
+      "task_id": "fdp-72-65-bc7dc19e",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 375.783082027485,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 411.62236451007743,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 512.5599580454272,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 3071.862
+    },
+    {
+      "sequence": 66,
+      "origin": "周口港",
+      "destination": "军李船闸",
+      "task_id": "fdp-72-66-f4619b00",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 325.29308202746137,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 402.8578600323208,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 485.94974751211385,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2644.921
+    },
+    {
+      "sequence": 67,
+      "origin": "周口港",
+      "destination": "马湾船闸",
+      "task_id": "fdp-72-67-f1722626",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 275.7930820274382,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 431.1957196657041,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 450.92569617620217,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 2133.476
+    },
+    {
+      "sequence": 68,
+      "origin": "周口港",
+      "destination": "漯河船闸",
+      "task_id": "fdp-72-68-ef03b579",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 188.47508202739726,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 215.42453844504104,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 244.11069600945703,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1510.929
+    },
+    {
+      "sequence": 69,
+      "origin": "周口港",
+      "destination": "漯河港",
+      "task_id": "fdp-72-69-f49b0d78",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 187.11086202739662,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 292.0982212258776,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 314.14809262907846,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1487.899
+    },
+    {
+      "sequence": 70,
+      "origin": "周口港",
+      "destination": "大路李船闸",
+      "task_id": "fdp-72-70-0106aff9",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 142.36286202737566,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 170.86124630053286,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 188.8711211404946,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 1177.917
+    },
+    {
+      "sequence": 71,
+      "origin": "周口港",
+      "destination": "葫芦湾船闸",
+      "task_id": "fdp-72-71-f9f6311b",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 93.06086202738264,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 106.66384202265444,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 117.53305064110178,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 774.284
+    },
+    {
+      "sequence": 72,
+      "origin": "周口港",
+      "destination": "周口船闸",
+      "task_id": "fdp-72-72-3bcb620f",
+      "stages": {
+        "Tdata": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tseg": {
+          "outcome_code": "ok",
+          "diagnostics": []
+        },
+        "Tspeed": {
+          "outcome_code": "search_unresolved",
+          "diagnostics": [
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 38.8088620273931,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 40.209635780325584,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "evaluate",
+              "code": "arrival_deadline_missed",
+              "detail": "arrival_deadline_missed",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "constraint_checks",
+              "observed": 40.957171602727925,
+              "limit": null,
+              "unit": "kWh",
+              "source_refs": [],
+              "retryable": false
+            },
+            {
+              "stage": "search",
+              "code": "search_unresolved",
+              "detail": "DE 在 32 次评估内未找到可行候选；不得表述为数学无解",
+              "time_interval_s": null,
+              "segment_id": null,
+              "field_ref": "search_status",
+              "observed": null,
+              "limit": null,
+              "unit": null,
+              "source_refs": [],
+              "retryable": true
+            }
+          ]
+        }
+      },
+      "outcome_code": "solver_unresolved",
+      "elapsed_ms": 357.885
+    }
+  ],
+  "outcome_counts": {
+    "research_feasible": 2,
+    "solver_unresolved": 70
+  }
+}

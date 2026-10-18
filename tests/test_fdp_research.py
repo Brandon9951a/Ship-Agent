@@ -287,6 +287,43 @@ def test_missing_battery_efficiency_stays_missing_and_returns_needs_input():
     )
 
 
+def test_long_horizon_budget_retry_keeps_unresolved_distinct_from_infeasible():
+    """A bounded adaptive retry can finish a long horizon without hiding failure."""
+    base = build_request("success")
+    points = []
+    for index in range(160):
+        points.append(replace(
+            base.demand_series[0],
+            segment_id=f"long-leg-{index // 20}",
+            start_offset_s=index * 60.0,
+            duration_s=60.0,
+            demand_bus_kw=70.0,
+            motor_power_kw=64.0,
+            propulsion_bus_kw=65.0,
+            auxiliary_bus_kw=5.0,
+        ))
+    request = replace(
+        base,
+        demand_series=points,
+        grid=replace(base.grid, soc_step=0.01, max_states_per_layer=5000,
+                     max_transitions=100),
+        battery_1=replace(base.battery_1, capacity_kwh=100000.0),
+        battery_2=replace(base.battery_2, capacity_kwh=100000.0),
+    )
+    result = run_management_fdp(request)
+    assert result["outcome_code"] in ("ok", "grid_unresolved")
+    payload = result.get("payload") or {}
+    if result["outcome_code"] == "ok":
+        assert payload["safe"] is True
+        assert payload["search_strategy"] == "bounded_adaptive_grid"
+        assert payload["search_attempts"][0]["outcome_code"] == "grid_unresolved"
+        assert all(check["passed"] for check in payload["constraint_checks"])
+    else:
+        assert result["outcome_code"] != "infeasible_under_assumptions"
+        assert payload["search_strategy"] == "bounded_adaptive_grid"
+        assert payload["search_attempts"][-1]["outcome_code"] == "grid_unresolved"
+
+
 def test_missing_adapter_components_do_not_turn_into_zero():
     request = build_request("success")
     points = list(request.demand_series)

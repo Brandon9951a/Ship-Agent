@@ -583,7 +583,7 @@ def _feedback(request: BatteryManagementRequest, *, scope: str,
     }
 
 
-def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
+def _run_management_fdp_once(request: BatteryManagementRequest) -> dict[str, Any]:
     """Run the draft v2 FDP and return a complete ToolRun-shaped dictionary."""
     started = _now()
     wall_start = time.perf_counter()
@@ -647,7 +647,10 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
             "mode": initial_mode,
             "previous_mode": request.previous_mode,
             "cost_terms": {key: 0.0 for key in ("power", "switch", "soc_balance", "low_load_mode3")},
-            "rows": [],
+            # Keep a parent pointer while searching. Copying the complete
+            # trajectory for every candidate makes long horizons quadratic.
+            "parent": None,
+            "row": None,
         }
     }
     transitions_seen = 0
@@ -719,7 +722,8 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
                     "previous_mode": (mode if point.demand_bus_kw > EPS
                                        or state["previous_mode"] is not None else None),
                     "cost_terms": cumulative,
-                    "rows": [*state["rows"], row],
+                    "parent": state,
+                    "row": row,
                 }
                 key = _state_key(candidate["soc1"], candidate["soc2"], mode,
                                  request.grid.soc_step, request.battery_1.soc_min,
@@ -772,7 +776,7 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
         layers = next_layer
 
     best = min(layers.values(), key=lambda item: _total_cost(item["cost_terms"]))
-    rows = best["rows"]
+    rows = _materialize_rows(best)
     optimized_costs = {**best["cost_terms"], "total": _total_cost(best["cost_terms"])}
     verification = verify_trajectory(request, rows, optimized_costs)
     replay_costs = {**verification["recomputed_replayed_cost_terms"],
@@ -853,6 +857,67 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
                      diagnostics=diagnostics, payload=payload,
                      payload_ref=artifacts["mode_trajectory_ref"],
                      runtime_ms=(time.perf_counter() - wall_start) * 1000)
+
+
+def _materialize_rows(state: dict[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    cursor = state
+    while cursor is not None and cursor.get("row") is not None:
+        rows.append(cursor["row"])
+        cursor = cursor.get("parent")
+    rows.reverse()
+    return rows
+
+
+def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
+    """Run FDP with one explicit, bounded adaptive retry.
+
+    A budget result is unresolved search evidence, never proof of infeasibility.
+    The retry changes only the research grid and records both attempts; a
+    successful retry still passes the same independent trajectory verifier.
+    """
+    first = _run_management_fdp_once(request)
+    if first.get("outcome_code") != "grid_unresolved":
+        return first
+
+    grid = request.grid
+    retry_grid = replace(
+        grid,
+        soc_step=min(grid.soc_step * 2.0, 0.25),
+        max_states_per_layer=min(grid.max_states_per_layer * 2, 10_000),
+        max_transitions=min(grid.max_transitions * 4, 2_000_000),
+        algorithm_version=f"{grid.algorithm_version}+bounded-adaptive-retry",
+    )
+    if retry_grid == grid:
+        return first
+    retry_request = replace(request, grid=retry_grid)
+    second = _run_management_fdp_once(retry_request)
+    attempts = [
+        {"outcome_code": first.get("outcome_code"),
+         "grid": grid.to_dict(),
+         "diagnostics": first.get("diagnostics", []),
+         "runtime_ms": first.get("runtime_ms")},
+        {"outcome_code": second.get("outcome_code"),
+         "grid": retry_grid.to_dict(),
+         "diagnostics": second.get("diagnostics", []),
+         "runtime_ms": second.get("runtime_ms")},
+    ]
+    # Preserve the first failure evidence when all bounded attempts remain
+    # unresolved. The later attempt may fail at a different interval, but it
+    # must not erase the original budget boundary used by the caller.
+    if second.get("outcome_code") == "grid_unresolved":
+        payload = dict(first.get("payload") or {})
+        payload["original_failure"] = second.get("payload")
+    else:
+        payload = second.get("payload")
+        if payload is None:
+            payload = dict(first.get("payload") or {})
+    payload["search_strategy"] = "bounded_adaptive_grid"
+    payload["search_attempts"] = attempts
+    second["payload"] = payload
+    second["search_attempts"] = attempts
+    second["search_strategy"] = "bounded_adaptive_grid"
+    return second
 
 
 def _total_cost(costs: dict[str, float]) -> float:
