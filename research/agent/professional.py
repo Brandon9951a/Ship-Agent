@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import time
 from dataclasses import asdict, replace
@@ -58,11 +59,15 @@ class ProfessionalTools:
         full = {"request_revision": state["revision"], "scenario_id": state["scenario_id"],
                 "outcome_code": code, **payload}
         ref = self.store.put(state["task_id"], name, full)
-        return {"outcome_code": code, "artifact_ref": ref, "summary": summary or full.get("summary", {}),
+        return {"outcome_code": code, "artifact_ref": ref,
+                **({"backend":full["backend"]} if "backend" in full else {}),
+                "summary": summary or full.get("summary", {}),
                 "diagnostics": full.get("diagnostics", [])}
 
     def data(self, state, call_id):
         cfg = configuration(state["scenario_id"])
+        if state.get("task_type") == "prediction":
+            cfg["backend"] = state["request"].get("prediction_backend") or cfg["backend"]
         batteries = {}
         for i in (1, 2):
             values = dict(cfg["battery"])
@@ -295,7 +300,8 @@ class ProfessionalTools:
         data = self.payload(state,"Tdata")
         cfg = data["config"]
         if cfg["backend"] != "lstm":
-            return self.save(state,"Tenergy",{"diagnostics":[{"code":"select_lstm_scenario"}]},"not_supported")
+            from research.agent.prediction import analytic_energy
+            return analytic_energy(self,state,call_id)
         energy_store = JsonArtifactStore(self.store.directory/"energy"/state["task_id"])
         fixture_dir=ROOT/"configs/examples/tenergy_v2"
         history = json.loads((fixture_dir/"history.json").read_text(encoding="utf-8"))
@@ -303,22 +309,41 @@ class ProfessionalTools:
         history["snapshot_id"] = data["snapshot_id"]
         raw.update(task_id=state["task_id"],request_revision=state["revision"],snapshot_id=data["snapshot_id"],
             scenario_id=state["scenario_id"],call_id=call_id,parent_call_id=None,history_ref=energy_store.put(history,"history"))
-        duration=cfg["duration_s"]
+        duration=state["request"].get("prediction_duration_s")
+        duration=cfg.get("duration_s",20.0) if duration is None else finite(duration,0.001,7*86400)
+        if not state["request"].get("trajectory") and duration % 5:
+            return self.save(state,"Tenergy",{"backend":"lstm","diagnostics":[{
+                "code":"invalid_prediction_duration","field_ref":"prediction_duration_s",
+                "detail":"冻结 LSTM 轨迹须使用 5 秒整数网格。"}]},"invalid_input")
         raw["candidates"]=[{"candidate_id":"short-fixed","trajectory":[{
             "segment_id":"lstm-short","phase":"moving","start_offset_s":i*5,"duration_s":5,
             "planned_speed_kmh":10.0,"environment_ref":None} for i in range(int(duration/5))]}]
+        if state["request"].get("trajectory"):
+            raw["candidates"][0]["trajectory"]=[{**p,"phase":{"sailing":"moving","berthing":"stopped"}.get(p["phase"],p["phase"]),
+                "environment_ref":None} for p in state["request"]["trajectory"]]
+            duration=sum(p["duration_s"] for p in raw["candidates"][0]["trajectory"])
         predictor=TenergyV2(ROOT/"models/tenergy-lstm-v5",energy_store)
         run=predictor.evaluate_batch(raw)
         result=energy_store.get(run["payload_ref"],kind="energy_batch_result") if run.get("payload_ref") else None
         entry=result["candidates"][0] if result else {}
         code=entry.get("outcome_code",run["outcome_code"])
-        body={"request":raw,"run":run,"result":result,"backend":"lstm", "diagnostics":entry.get("diagnostics",[]),
-              "summary":{"backend":"lstm","duration_s":duration,"usage":"research_only"}}
+        body={"request":raw,"run":run,"result":result,"backend":"lstm", "snapshot_id":data["snapshot_id"],
+              "diagnostics":entry.get("diagnostics",[]),
+              "integration_rule":raw["integration_rule"],
+              "history_artifact_ref":self.store.put(state["task_id"],"prediction_history",history),
+              "time_range_s":[0,duration],"units":{"power":"kW","energy":"kWh","time":"s","speed":"km/h"},
+              "sources":{"history":"configs/examples/tenergy_v2/history.json","trajectory":"user" if state["request"].get("trajectory") else "named_short_fixture",
+                         "model_identity":result.get("model_identity") if result else None,
+                         "model_manifest_sha256":hashlib.sha256((ROOT/"models/tenergy-lstm-v5/manifest.json").read_bytes()).hexdigest()},
+              "summary":{"backend":"lstm","model_version":raw["model_version"],"duration_s":duration,"usage":"research_only"}}
         if not body["diagnostics"]:
             body["diagnostics"] = run.get("diagnostics", [])
         if code=="ok":
             ref=entry["power_series_ref"]
             body["power_series"]=energy_store.get(ref,kind="power_series")
+            body["power_series_ref"]=self.store.put(state["task_id"],"prediction_power_series",body["power_series"])
+            body["summary"]["motor_energy_kwh"]=entry["motor_energy_kwh"]
+        if code=="ok" and not state["request"].get("trajectory"):
             bridge=TenergyV2Predictor(predictor,energy_store,history_ref=raw["history_ref"],environment_ref=None,
                 snapshot_id=data["snapshot_id"],scenario_id=state["scenario_id"],model_version=raw["model_version"],
                 task_id=state["task_id"])

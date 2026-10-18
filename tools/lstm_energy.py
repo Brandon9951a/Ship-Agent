@@ -307,7 +307,9 @@ def evaluate(speed_plan, environment_scenario, history, model_version, *, bundle
     steps, segments = [], {}
     for p,power in zip(speed_plan,predicted):
         segment = p["segment_id"]
-        energy = float(power*p["dt_seconds"]/3600)
+        # Integrate the exported Python float, avoiding NumPy float32 scalar
+        # rounding that otherwise disagrees with the v2 power-series verifier.
+        energy = float(power)*p["dt_seconds"]/3600
         steps.append({"time": p.get("time"), "segment_id": segment, "speed_kmh": p["speed_kmh"],
                       "motor_power_kw": float(power), "motor_energy_kwh": energy,
                       "quality": "provisional_csv_units" if not extension else "excel_only",

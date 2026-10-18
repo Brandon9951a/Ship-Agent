@@ -124,9 +124,10 @@ const ResearchBridge = (() => {
 
   async function project(task, events) {
     const refs = task.result_refs || {};
-    const [data, seg, speed, management] = await Promise.all([
+    const [data, seg, speed, management, prediction] = await Promise.all([
       artifact(task.thread_id, refs.Tdata), artifact(task.thread_id, refs.Tseg),
       artifact(task.thread_id, refs.Tspeed), artifact(task.thread_id, refs.Tmanagement),
+      artifact(task.thread_id, refs.Tenergy),
     ]);
     const request = task.request || {};
     const origin = request.origin || "";
@@ -155,15 +156,15 @@ const ResearchBridge = (() => {
       };
     });
     const ok = task.status === "completed" && task.outcome_code === "research_feasible";
+    const predicted = task.status === "completed" && task.outcome_code === "prediction_completed";
     const pending = task.status === "waiting_human" ? task.pending : null;
     const retryableCodes = ["process_interrupted", "model_unavailable", "tool_error",
       "task_timeout", "queue_timeout", "recovery_exhausted", "agent_budget_exhausted"];
     const cancelled = task.status === "cancelled" || ["task_cancelled", "task_timeout"].includes(task.outcome_code);
-    const executionFailure = task.status === "failed" || cancelled || ["not_supported", "tool_error",
-      "model_unavailable", "process_interrupted", "agent_budget_exhausted", "task_cancelled",
-      "task_timeout", "queue_timeout", "recovery_exhausted"].includes(task.outcome_code);
-    const status = ok ? "ok" : pending ? "need_clarification" : executionFailure ? "failed" : "infeasible";
-    const canRetry = (task.status === "failed" || task.status === "cancelled") && retryableCodes.includes(task.outcome_code);
+    const status = ok ? "ok" : predicted ? "prediction_completed" : pending ? "need_clarification"
+      : task.outcome_code === "infeasible_under_assumptions" ? "infeasible" : "failed";
+    const canRetry = (task.status === "failed" || task.status === "cancelled")
+      && retryableCodes.includes(task.outcome_code);
     const canCancel = ["queued", "running", "waiting_human"].includes(task.status);
     const stage = task.status === "queued" ? "排队中"
       : task.status === "running" ? `计算中${task.phase ? ` · ${task.phase}` : ""}`
@@ -205,6 +206,7 @@ const ResearchBridge = (() => {
       workflow_mode: "research_agent", thread_id: task.thread_id, status, outcome_code: task.outcome_code,
       answer_status: task.answer_status, final_answer: finalAnswer || (pending ? reason : ""), research_pending: pending,
       research_events: events, research_metrics: task.metrics || {},
+      research_prediction: prediction ? { ...prediction, artifact_ref: refs.Tenergy } : null,
       research_soc: { battery_1: soc1, battery_2: soc2 },
       research_runtime: {
         task_status: task.status, phase: task.phase || null, stage,
@@ -279,7 +281,9 @@ const ResearchBridge = (() => {
       }
       return `<li><strong>${escapeHtml(event.model || "模型")} · ${event.latency_ms ?? "--"} ms</strong>${answer ? `<p class="agent-raw-answer">模型原始答复：${escapeHtml(answer.replaceAll("\\n", "\n"))}</p>` : ""}<pre>${escapeHtml(JSON.stringify(response, null, 2))}</pre><small>响应 ${escapeHtml(event.request_id || "")} · 序号 ${event.seq}</small></li>`;
     }).join("");
-    decisionList.innerHTML = `<h4>公开决策依据</h4><ol>${decisionLines || "<li>本次没有决策动作。</li>"}</ol><details><summary>查看模型原始响应</summary><ol>${rawLines || "<li>没有模型响应记录。</li>"}</ol></details>`;
+    const prediction = result.research_prediction;
+    const predictionView = prediction ? `<section><h4>独立能耗预测 · ${escapeHtml(prediction.backend || "")}</h4><p>状态：${escapeHtml(prediction.outcome_code)} · 电机侧 ${escapeHtml(prediction.summary?.motor_energy_kwh ?? "未知")} kWh · 时间范围 ${escapeHtml(JSON.stringify(prediction.time_range_s || []))} s</p><p>预测结果不构成航次可行性判定。</p><details><summary>预测工件、来源与诊断</summary><pre>${escapeHtml(JSON.stringify({ artifact_ref: prediction.artifact_ref, power_series_ref: prediction.power_series_ref, demand_ref: prediction.demand_ref, model: prediction.summary?.model_version || prediction.request?.model_version, sources: prediction.sources, units: prediction.units, integration_rule: prediction.integration_rule || prediction.power_series?.integration_rule, diagnostics: prediction.diagnostics }, null, 2))}</pre></details></section>` : "";
+    decisionList.innerHTML = `${predictionView}<h4>公开决策依据</h4><ol>${decisionLines || "<li>本次没有决策动作。</li>"}</ol><details><summary>查看模型原始响应</summary><ol>${rawLines || "<li>没有模型响应记录。</li>"}</ol></details>`;
     $("#agent-decision-meta").textContent = `${models.length} 次模型响应 · ${actions.length} 次动作`;
   }
 
