@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-async function project(outcome, backend = 'analytic') {
+async function project(outcome, backend = 'analytic', events = []) {
   const prediction = { outcome_code: outcome === 'prediction_completed' ? 'ok' : outcome,
     backend, summary: { motor_energy_kwh: 1.5 }, power_series_ref: 'power-hash',
     diagnostics: outcome === 'model_out_of_domain' ? [{ code: 'long_horizon_unvalidated' }] : [] };
@@ -12,7 +12,7 @@ async function project(outcome, backend = 'analytic') {
   const nodes = new Map();
   const context = vm.createContext({
     apiFetch: async path => ({ ok: true, json: async () => path.endsWith('/energy-hash')
-      ? { payload: prediction } : path.includes('/events?') ? { events: [] } : task }),
+      ? { payload: prediction } : path.includes('/events?') ? { events } : task }),
     $: id => { if (!nodes.has(id)) nodes.set(id, {}); return nodes.get(id); },
     escapeHtml: String, formatNumber: String, state: { lastResult: { thread_id: 'task' } },
   });
@@ -63,4 +63,34 @@ test('dashboard prediction rendering clears voyage metrics and never starts voya
   assert.equal(nodes.get('#infeasible-alert').hidden, true);
   assert.equal(nodes.get('#result-actions').hidden, true);
   assert.equal(vessel, 'incomplete');
+});
+
+test('research progress treats completed Tenergy candidates without outcome_code as finished', () => {
+  const app = fs.readFileSync('ui/frontend/app.js', 'utf8');
+  const traceHelper = app.slice(app.indexOf('function researchToolTrace(events)'), app.indexOf('function rawSegments(result)'));
+  const context = vm.createContext({});
+  vm.runInContext(traceHelper, context);
+  const events = [
+    { type: 'tool_completed', tool: 'Tenergy', backend: 'analytic' },
+    { type: 'tool_failed', tool: 'Tmanagement', outcome_code: 'solver_unresolved' },
+  ];
+  context.events = events;
+  const trace = vm.runInContext('researchToolTrace(events)', context);
+  assert.deepEqual(Array.from(trace, item => ({ node: item.node, status: item.status })), [
+    { node: 'Tenergy', status: 'ok' },
+    { node: 'Tmanagement', status: 'failed' },
+  ]);
+});
+
+test('tool call details show finish for completed calls and retain real failures', async () => {
+  const events = [
+    { seq: 1, type: 'tool_completed', tool: 'Tenergy', backend: 'analytic' },
+    { seq: 2, type: 'tool_failed', tool: 'Tmanagement', outcome_code: 'solver_unresolved' },
+  ];
+  const { nodes } = await project('model_out_of_domain', 'lstm', events);
+  const html = nodes.get('#trace-list').innerHTML;
+  assert.match(html, /Tenergy · completed/);
+  assert.match(html, /finish · analytic/);
+  assert.match(html, /Tmanagement · failed/);
+  assert.match(html, /solver_unresolved/);
 });

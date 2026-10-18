@@ -255,6 +255,11 @@ function renderProgress(trace = [], running = false) {
   });
 }
 
+function researchToolTrace(events) {
+  return events.filter(event => event.type === "tool_completed" || event.type === "tool_failed")
+    .map(event => ({ node: event.tool, status: event.type === "tool_completed" ? "ok" : "failed" }));
+}
+
 function rawSegments(result) {
   return result.tseg?.payload?.segments || [];
 }
@@ -658,7 +663,8 @@ function renderTrace(trace) {
     const label = item.node === "prepare_adjustment" && item.status === "awaiting_choice"
       ? "等待用户选择"
       : item.node === "await_choice" ? "用户已选择" : (item.node || "流程");
-    return `<li class="trace-item"><span class="trace-index">${index + 1}</span><div><strong>${escapeHtml(label)}</strong><p>${escapeHtml(`${round} · ${item.status || "完成"}${option}`)}</p></div></li>`;
+    const status = item.status === "ok" ? "finish" : item.status || "完成";
+    return `<li class="trace-item"><span class="trace-index">${index + 1}</span><div><strong>${escapeHtml(label)}</strong><p>${escapeHtml(`${round} · ${status}${option}`)}</p></div></li>`;
   }).join("");
   $("#trace-meta").textContent = state.trace.length ? `${state.trace.length} 个步骤` : "等待任务";
 }
@@ -1585,7 +1591,7 @@ async function runInference(payloadOverride = null) {
   try {
     const onProgress = (task, events) => {
       if (!isCurrentRequest()) return;
-      const trace = events.filter(event => event.type === "tool_completed").map(event => ({ node: event.tool, status: event.outcome_code === "ok" ? "ok" : "failed" }));
+      const trace = researchToolTrace(events);
       renderProgress(trace, true);
       renderTrace(trace);
       if (task?.status === "reconnecting") {

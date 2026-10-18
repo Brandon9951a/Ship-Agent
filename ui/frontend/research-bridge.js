@@ -259,7 +259,11 @@ const ResearchBridge = (() => {
     const actions = events.filter(event => event.type === "action_requested");
     const models = events.filter(event => event.type === "model_completed");
     const tools = $("#trace-list");
-    tools.innerHTML = toolEvents.map(event => `<li class="trace-item"><span class="trace-index">${event.seq}</span><div><strong>${escapeHtml(event.tool || "工具")} · ${escapeHtml(event.type.replace("tool_", ""))}</strong><p>${escapeHtml(event.outcome_code || event.backend || event.parent_call_id || "")}${event.duration_ms != null ? ` · ${event.duration_ms} ms` : ""}</p>${event.artifact_ref ? `<small>工件：${escapeHtml(event.artifact_ref)}</small>` : ""}</div></li>`).join("");
+    tools.innerHTML = toolEvents.map(event => {
+      const outcome = event.type === "tool_completed" ? "finish" : event.outcome_code || event.backend || event.parent_call_id || "";
+      const backend = event.type === "tool_completed" && event.backend ? ` · ${event.backend}` : "";
+      return `<li class="trace-item"><span class="trace-index">${event.seq}</span><div><strong>${escapeHtml(event.tool || "工具")} · ${escapeHtml(event.type.replace("tool_", ""))}</strong><p>${escapeHtml(outcome + backend)}${event.duration_ms != null ? ` · ${event.duration_ms} ms` : ""}</p>${event.artifact_ref ? `<small>工件：${escapeHtml(event.artifact_ref)}</small>` : ""}</div></li>`;
+    }).join("");
     $("#trace-meta").textContent = `${toolEvents.filter(event => event.type === "tool_completed").length} 次完成`;
     const decisionList = $("#agent-decision-list");
     if (!decisionList) return;
