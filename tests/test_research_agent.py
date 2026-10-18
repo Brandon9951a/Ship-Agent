@@ -84,7 +84,33 @@ def test_named_lock_approach_profile_is_applied_to_solver_input(tmp_path):
         assert approach["min_speed_kmh"] == 2.0
         assert approach["max_speed_kmh"] == pytest.approx(11.112)
         assert any("segment_operating_profiles" in ref["source_id"] for ref in approach["source_refs"])
-        assert segments[0]["min_speed_kmh"] == pytest.approx(11.112)
+        ordinary = [item for item in segments if item["segment_id"] != approach["segment_id"]]
+        assert len({round(item["min_speed_kmh"], 3) for item in ordinary}) == len(ordinary)
+        assert all(10 <= item["min_speed_kmh"] <= 14.4456 for item in ordinary)
+        assert all(any("speed_perturbation" in ref["source_id"] for ref in item["source_refs"])
+                   for item in ordinary)
+    finally:
+        store.close()
+
+
+def test_seeded_speed_perturbation_keeps_reverse_lock_handoffs_valid(tmp_path):
+    store = Store(tmp_path)
+    store.create("reverse-perturbation", "local", {})
+    tools = ProfessionalTools(store)
+    state = {"task_id": "reverse-perturbation", "scenario_id": "route_success", "revision": 1,
+             "request": {"origin": "周口港", "destination": "平顶山港"}, "refs": {}}
+    try:
+        for name, fn in (("Tdata", tools.data), ("Tseg", tools.segments)):
+            result = fn(state, name)
+            assert result["outcome_code"] == "ok"
+            state["refs"][name] = result["artifact_ref"]
+        segments = tools.payload(state, "Tseg")["segments"]
+        assert len(segments) == 8
+        assert all(current["min_speed_kmh"] <= previous["max_speed_kmh"]
+                   for previous, current in zip(segments, segments[1:]))
+        assert all(previous["min_speed_kmh"] <= current["max_speed_kmh"]
+                   for previous, current in zip(segments, segments[1:]))
+        assert segments[5]["min_speed_kmh"] == pytest.approx(11.112)
     finally:
         store.close()
 
@@ -105,6 +131,9 @@ def test_named_multisegment_voyage_has_real_speed_difference_and_verified_soc(tm
             state["refs"][name] = result["artifact_ref"]
         speed = tools.payload(state, "Tspeed")["summary"]
         assert speed["speed_vector_kmh"][3] < min(speed["speed_vector_kmh"][:3])
+        assert len({round(value, 3) for value in speed["speed_vector_kmh"]}) == 5
+        assert all(abs(value - 11.112) <= 3 for i, value in enumerate(speed["speed_vector_kmh"])
+                   if i != 3)
         assert speed["distance_km"] == pytest.approx(117.889)
         _, summary = tools.verify(state)
         assert summary["safe"] is True

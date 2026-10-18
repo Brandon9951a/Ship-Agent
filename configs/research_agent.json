@@ -32,7 +32,13 @@
   "fdp": {"soc_step": 0.05, "max_states_per_layer": 1000, "max_transitions": 150000},
   "budgets": {"agent_steps": 16, "aux_calls": 6, "invalid_actions": 3, "speed_cycles": 2},
   "scenarios": {
-    "route_success": {"label": "登记子航线完整求解", "backend": "analytic"},
+    "route_success": {"label": "登记子航线完整求解", "backend": "analytic",
+      "speed_perturbation": {
+        "seed": 11894,
+        "max_abs_kmh": 3.0,
+        "ordinary_speed_floor_kmh": 10.0,
+        "note": "仅供航段差异联调：按固定种子和航段编号生成可复现的速度下限扰动；非实测限速，也不代表模型学到的最优速度。"
+      }},
     "multi_wait": {"label": "多航段与等待仿真", "backend": "analytic", "synthetic_route": true, "waiting_duration_s": 30.0},
     "fdp_reject": {"label": "FDP 功率拒绝", "backend": "analytic", "battery_power_kw": 1.0},
     "missing_conversion": {"label": "缺少转换依据", "backend": "analytic", "conversion_efficiency": null},

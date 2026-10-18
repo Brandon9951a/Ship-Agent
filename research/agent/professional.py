@@ -150,19 +150,39 @@ class ProfessionalTools:
             if a["destination"] != b["origin"]:
                 raise ValueError("route_discontinuous")
         segments = []
-        for s in selected:
+        previous_ceiling = None
+        for index, s in enumerate(selected):
             profile = cfg.get("segment_operating_profiles", {}).get(s["id"], {})
-            low = finite(profile.get("min_speed_kmh", cfg["min_speed_kmh"]), 0, cfg["max_speed_kmh"])
+            low = profile.get("min_speed_kmh", cfg["min_speed_kmh"])
+            jitter_note = None
+            if not profile and cfg.get("speed_perturbation") and not cfg.get("synthetic_route"):
+                jitter = cfg["speed_perturbation"]
+                key = f"{jitter['seed']}:{s['id']}".encode("utf-8")
+                random_bytes = hashlib.sha256(key).digest()
+                magnitude = int.from_bytes(random_bytes[:8], "big") / (2**64 - 1) * jitter["max_abs_kmh"]
+                signed_delta = magnitude if random_bytes[8] & 1 else -magnitude
+                low = min(cfg["max_speed_kmh"], max(jitter["ordinary_speed_floor_kmh"], low + signed_delta))
+                if previous_ceiling is not None:
+                    low = min(low, previous_ceiling)
+                if index + 1 < len(selected):
+                    next_profile = cfg.get("segment_operating_profiles", {}).get(selected[index + 1]["id"], {})
+                    low = min(low, next_profile.get("max_speed_kmh", cfg["max_speed_kmh"]))
+                jitter_note = (f"{jitter['note']} 航段 {s['id']} 的原始扰动为 "
+                               f"{signed_delta:+.3f} km/h，应用后的下限为 {low:.3f} km/h。")
+            low = finite(low, 0, cfg["max_speed_kmh"])
             high = finite(profile.get("max_speed_kmh", cfg["max_speed_kmh"]), low, cfg["max_speed_kmh"])
             refs = (SourceRef(**s["source"]), source("route_constraints"))
             if profile:
                 refs += (replace(source(f"segment_operating_profiles.{s['id']}"), note=profile["note"]),)
+            if jitter_note:
+                refs += (replace(source(f"speed_perturbation.{s['id']}"), note=jitter_note),)
             segments.append(SegmentConstraint(segment_id=s["id"], distance_km=s["distance_km"],
                 min_speed_kmh=low, max_speed_kmh=high,
                 origin_entity_id=s["origin"], destination_entity_id=s["destination"],
                 waiting_duration_s=cfg["waiting_duration_s"], waiting_rule="具名仿真等待规则",
                 phase_or_segment_type="cruise", quality_flags=("simulation",),
                 source_refs=refs).to_dict())
+            previous_ceiling = high
         return self.save(state, "Tseg", {"segments": segments, "snapshot_id": data["snapshot_id"],
             "call_id": call_id}, summary={"segments": segments, "distance_km": sum(s["distance_km"] for s in segments)})
 
