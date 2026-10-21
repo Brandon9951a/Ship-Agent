@@ -4,6 +4,15 @@
 
 当前版本用于软件演示和方法验证。工程数值来自确定性 Python 工具，大语言模型只参与任务理解确认和文字说明。所有结果均标记为 `synthetic_demo`，不代表实船安全认证、航道许可或运营批准。
 
+## 评委体验入口
+
+- 公网网址：[https://ship-agent-0j4d.onrender.com/](https://ship-agent-0j4d.onrender.com/)
+- 账号：`crew01`
+- 密码：`1024002678369860`
+- 角色：普通用户，用于评委登录体验航次规划与仿真结果。
+
+登录后可选择示例航次，或输入起终点、出发时间、甲／乙两组电池 SOC、载况及到达时限，点击“计算仿真方案”。工具调用过程和模型公开决策过程可点击展开。结果用于软件仿真演示与方法验证。
+
 ## 正式网站基线
 
 当前正式网站基线为 `ship-agent-render-release`。版本与参数标识记录在 `configs/release_profile.json`，管理员可通过 `/api/admin/system-status` 查看；`/healthz` 只返回最小健康字段。当前采用 `synthetic_demo_user_override_2026-09-23` 参数档案；具体容量、SOC 规划下限及来源仍以 `configs/demo_policy.yaml` 和 `configs/limits.yaml` 为准。其他工作区中的 `Ship-Agent` 目录保留为原型基线，不应与本目录结果混用或直接比较。
