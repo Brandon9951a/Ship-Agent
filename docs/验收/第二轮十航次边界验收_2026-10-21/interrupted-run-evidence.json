@@ -1,0 +1,405 @@
+{
+  "scope": "real API backend runtime shared by website; not browser acceptance",
+  "started_at": "2026-10-21T15:08:57.138981+08:00",
+  "label": "final",
+  "cases": [
+    {
+      "case": "01_reported_full_load",
+      "text": "从马湾船闸到周口港，2026-10-22 09:00出发，甲组电池SOC80%，乙组电池SOC90%，满载，12小时内到达",
+      "expected": "energy",
+      "task_id": "a473cd36-77cb-46b3-b915-8314bbe43f1b",
+      "runtime_s": 58.375,
+      "outcome_code": "infeasible_under_assumptions",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "周口港",
+        "initial_soc_1": 0.8,
+        "initial_soc_2": 0.9,
+        "load_state": "满载",
+        "objective": null,
+        "origin": "马湾船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 43200,
+        "trajectory": null
+      },
+      "metrics": {},
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "finish_without_plan"
+      ],
+      "diagnostics": [
+        {
+          "available_bus_kwh": 1080.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 495.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.8,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 585.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.9,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "code": "selected_demand_energy_exceeds_available",
+          "demand_artifact_ref": "25edb9b57d9091e073f2fcab377d305662d226f524f0daeda0095349f6e086b5",
+          "detail": "选定航速方案的母线需求超过双电池保留最低 SOC 后可交付的总能量。",
+          "failure_scope": "selected_candidate_energy",
+          "field_ref": "selected_demand_ref,initial_soc_1,initial_soc_2",
+          "insufficient": true,
+          "required_bus_kwh": 1322.5393029902016,
+          "retryable": false,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 242.53930299020158
+        },
+        {
+          "code": "boundary_transition_below_floor",
+          "detail": "当前速度 11.112 km/h 低于首段限速下限 12.552 km/h：入段斜坡从真实当前速度加速过渡，低于下限历时约 2.7s（边界条件，非决策变量）",
+          "field_ref": "current_speed_kmh",
+          "limit": 12.552,
+          "observed": 11.112,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "km/h"
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": 4.7825324145378545e-08,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {
+        "energy_budget": {
+          "available_bus_kwh": 1080.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 495.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.8,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 585.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.9,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "insufficient": true,
+          "required_bus_kwh": 1322.5393029902016,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 242.53930299020158
+        },
+        "reason": "已算出的航速方案需要约 1322.5 kWh；甲组出发电量 80%、乙组 90%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1080.0 kWh，还差约 242.5 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。",
+        "status_label": "候选方案电量不足",
+        "suggestion": "可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+        "title": "本次候选方案电量不足"
+      },
+      "final_answer": "已算出的航速方案需要约 1322.5 kWh；甲组出发电量 80%、乙组 90%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1080.0 kWh，还差约 242.5 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。\n\n建议：可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 1322.5393029902016,
+        "demand_artifact_ref": "25edb9b57d9091e073f2fcab377d305662d226f524f0daeda0095349f6e086b5",
+        "distance_km": 139.289,
+        "duration_s": 42745.55690967352,
+        "environment_hash": "7e0331c7c4250c4b9391b4db9e126a8d952a60c3f74ac1ea644341112dcd22c2",
+        "motor_energy_kwh": 1187.3802455121709,
+        "selected_demand_ref": "610e20983b1215bd5046352892440e1c8fc3c5ce5784bb9ce4cbc0e07fdaefae",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          12.902984525806332,
+          7.351498783897906,
+          12.120000000000001,
+          12.704808436518565,
+          13.347722912685143,
+          9.201482353980648
+        ],
+        "water_speed_vector_kmh": [
+          11.462984525806332,
+          7.243498783897906,
+          11.112,
+          11.444808436518565,
+          12.699722912685143,
+          9.057482353980648
+        ]
+      },
+      "segment_count": 6,
+      "waiting_s": 1200.0,
+      "fdp_attempts": null,
+      "verification": null,
+      "refs": {
+        "Tdata": "0fe8055760463a59f08760624419d374515521307a1c3232728b1c3fcc6d43a6",
+        "Tmanagement": "f72038e025c3981b5ae950aea00e1b133f66c07e1a39ad023b6749014fa99e43",
+        "Tseg": "688100df54f571e670130d050e265822fa91cd2fa27b8921b3fdd9ce753ff8ac",
+        "Tspeed": "8644cd0b6f1bc0e63fa941680f950c6f7487eaf1fd2b5cf707ba66f379feeede"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "no_success_published": true,
+        "separate_actionable_guidance": true,
+        "quantified_shortfall": true
+      },
+      "passed": true
+    },
+    {
+      "case": "03_entire_reverse_empty",
+      "text": "从周口港到平顶山港，2026-10-22 09:00出发，甲组电池SOC100%，乙组电池SOC100%，空载，30小时内到达",
+      "expected": "plan_or_energy",
+      "task_id": "f552c695-f11b-4a9c-a77e-ebfb5d2ac7c0",
+      "runtime_s": 90.969,
+      "outcome_code": "infeasible_under_assumptions",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "平顶山港",
+        "initial_soc_1": 1,
+        "initial_soc_2": 1,
+        "load_state": "空载",
+        "objective": null,
+        "origin": "周口港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 108000,
+        "trajectory": null
+      },
+      "metrics": {},
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "finish_without_plan"
+      ],
+      "diagnostics": [
+        {
+          "available_bus_kwh": 1350.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "code": "selected_demand_energy_exceeds_available",
+          "demand_artifact_ref": "061afc8fcab4c5733de539ef18eafdfd15577ebf0aebeac164752e0faad757c8",
+          "detail": "选定航速方案的母线需求超过双电池保留最低 SOC 后可交付的总能量。",
+          "failure_scope": "selected_candidate_energy",
+          "field_ref": "selected_demand_ref,initial_soc_1,initial_soc_2",
+          "insufficient": true,
+          "required_bus_kwh": 1602.8293743020263,
+          "retryable": false,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 252.82937430202628
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": -3.228706191293895e-11,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {
+        "energy_budget": {
+          "available_bus_kwh": 1350.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "insufficient": true,
+          "required_bus_kwh": 1602.8293743020263,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 252.82937430202628
+        },
+        "reason": "已算出的航速方案需要约 1602.8 kWh；甲组出发电量 100%、乙组 100%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1350.0 kWh，还差约 252.8 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。",
+        "status_label": "候选方案电量不足",
+        "suggestion": "可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+        "title": "本次候选方案电量不足"
+      },
+      "final_answer": "已算出的航速方案需要约 1602.8 kWh；甲组出发电量 100%、乙组 100%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1350.0 kWh，还差约 252.8 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。\n\n建议：可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 1602.8293743020263,
+        "demand_artifact_ref": "061afc8fcab4c5733de539ef18eafdfd15577ebf0aebeac164752e0faad757c8",
+        "distance_km": 189.789,
+        "duration_s": 102019.51524095584,
+        "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+        "motor_energy_kwh": 1373.4674669454719,
+        "selected_demand_ref": "98953af6f929b76b948381b35d9b2f1495d45f93856d69c882f1acb1a2174a9d",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          1.8559999999999999,
+          10.464,
+          9.852,
+          10.104,
+          1.892,
+          9.672,
+          9.96,
+          10.392
+        ],
+        "water_speed_vector_kmh": [
+          2.0,
+          11.112,
+          11.112,
+          11.112,
+          2.0,
+          11.112,
+          11.112000000000002,
+          11.112
+        ]
+      },
+      "segment_count": 8,
+      "waiting_s": 1800.0,
+      "fdp_attempts": null,
+      "verification": null,
+      "refs": {
+        "Tdata": "a5855f07aaa535da6391e529cbffc90ac1f4030b08a4a6061d9f24e074214b3c",
+        "Tmanagement": "17d1a6ec9f390f9b475678afaf9f59334201746f67b6603388e522c9803eeb5c",
+        "Tseg": "79b2b18a8991a4281a6750843a9954982f4a9b2f8ec0b26d9d76b25d64898464",
+        "Tspeed": "2a833451ce6667ac705af56df5808618e7be2658650630268807f7e5732d389d"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "no_success_published": true,
+        "separate_actionable_guidance": true,
+        "quantified_shortfall": true
+      },
+      "passed": true
+    }
+  ],
+  "passed": false
+}

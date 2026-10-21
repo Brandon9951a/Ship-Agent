@@ -62,6 +62,21 @@ test('LSTM domain rejection displays diagnostics and is never voyage infeasibili
   assert.match(nodes.get('#agent-decision-list').innerHTML, /long_horizon_unvalidated/);
 });
 
+test('a recovered feasible dispatch is disclosed as a state-machine path without optimality claim', async () => {
+  const task = { thread_id: 'recover', status: 'completed', task_type: 'planning',
+    outcome_code: 'research_feasible', request: {}, result_refs: { Tmanagement: 'recovered' }, metrics: {} };
+  const context = vm.createContext({
+    apiFetch: async path => ({ ok: true, json: async () => path.endsWith('/recovered')
+      ? { payload: { summary: { dispatch_method: 'verified_state_machine_after_fdp', final_soc_1: .27, final_soc_2: .27 } } }
+      : path.includes('/events?') ? { events: [] } : task }),
+    $: () => ({}), escapeHtml: String, formatNumber: String, state: { lastResult: task },
+  });
+  vm.runInContext(fs.readFileSync('ui/frontend/research-bridge.js', 'utf8'), context);
+  const result = await vm.runInContext('ResearchBridge.load("recover", () => {})', context);
+  assert.match(result.report.management_advice.join(' '), /状态机生成并独立复核/);
+  assert.match(result.report.management_advice.join(' '), /不宣称最优/);
+});
+
 test('dashboard prediction rendering clears voyage metrics and never starts voyage playback', async () => {
   const { result, context, nodes } = await project('prediction_completed');
   const app = fs.readFileSync('ui/frontend/app.js', 'utf8');

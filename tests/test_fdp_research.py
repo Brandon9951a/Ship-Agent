@@ -16,6 +16,35 @@ from scripts.fdp_research_cases import (
 )
 from tools.fdp_verifier import verify_trajectory
 from tools.tmanagement_fdp import compare_policies, run_management_fdp
+from tools.tmanagement_fdp import recover_feasible_management
+
+
+def test_bounded_search_can_return_separately_verified_feasibility_witness():
+    request = build_request("success")
+    request = replace(request, grid=replace(request.grid, max_transitions=1))
+    unresolved = run_management_fdp(request)
+    assert unresolved["outcome_code"] == "grid_unresolved"
+    recovered = recover_feasible_management(request, unresolved)
+    assert recovered["outcome_code"] == "ok"
+    payload = recovered["payload"]
+    assert payload["safe"]
+    assert payload["dispatch_method"] == "verified_state_machine_after_fdp"
+    assert payload["optimality_claim"] is False
+    assert payload["fdp_diagnostics"] == unresolved["diagnostics"]
+    assert verify_trajectory(request, payload["rows"], payload["cost_terms"])["passed"]
+    assert unresolved["outcome_code"] == "grid_unresolved"
+
+
+def test_failed_feasibility_witness_preserves_original_search_diagnostic():
+    request = build_request("success")
+    request = replace(request, battery_1=replace(request.battery_1, max_power_kw=0),
+                      battery_2=replace(request.battery_2, max_power_kw=0))
+    unresolved = {"outcome_code": "grid_unresolved", "diagnostics": [{"code": "original-budget"}],
+                  "payload": {"safe": False}}
+    recovered = recover_feasible_management(request, unresolved)
+    assert recovered["outcome_code"] == "grid_unresolved"
+    assert recovered["diagnostics"] == unresolved["diagnostics"]
+    assert not recovered["payload"]["safe"]
 
 
 EPS = 1e-9

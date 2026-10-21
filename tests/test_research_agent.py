@@ -369,6 +369,23 @@ def test_min_time_objective_reoptimizes_and_passes_fdp(tmp_path):
         runtime.close()
 
 
+@pytest.mark.parametrize("text,model_goal,expected", [
+    ("从军李船闸到马湾船闸，6小时内到达", "min_time", "min_energy"),
+    ("从军李船闸到马湾船闸，优先最短航时", "min_energy", "min_time"),
+    ("从军李船闸到马湾船闸，优先最短时间", "min_energy", "min_time"),
+    ("从军李船闸到马湾船闸，最快到达；改为优先节能", "min_time", "min_energy"),
+])
+def test_user_optimization_preference_and_default_are_not_overwritten_by_model(tmp_path, text, model_goal, expected):
+    runtime = AgentRuntime(tmp_path, ScriptedModel(objective=model_goal))
+    try:
+        runtime.store.create("objective-parse", "local", {"status": "running"})
+        parsed = runtime._parse({"task_id": "objective-parse", "scenario_id": "route_success",
+            "task_type": "auto", "revision": 1, "messages": [{"role": "user", "content": text}]})
+        assert parsed["request"]["objective"] == expected
+    finally:
+        runtime.close()
+
+
 def test_wait_restart_resume_and_duplicate(tmp_path):
     model = ScriptedModel(missing=True)
     runtime = AgentRuntime(tmp_path, model)

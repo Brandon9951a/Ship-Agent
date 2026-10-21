@@ -1,0 +1,1794 @@
+{
+  "scope": "real API backend runtime shared by website; not browser acceptance",
+  "label": "combined_verified",
+  "cases": [
+    {
+      "case": "01_reported_full_load",
+      "text": "从马湾船闸到周口港，2026-10-22 09:00出发，甲组电池SOC80%，乙组电池SOC90%，满载，12小时内到达",
+      "expected": "energy",
+      "task_id": "c6822bec-c312-432d-9dad-68fee56da6f8",
+      "runtime_s": 43.938,
+      "outcome_code": "infeasible_under_assumptions",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "周口港",
+        "initial_soc_1": 0.8,
+        "initial_soc_2": 0.9,
+        "load_state": "满载",
+        "objective": null,
+        "origin": "马湾船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 43200,
+        "trajectory": null
+      },
+      "metrics": {},
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "finish_without_plan"
+      ],
+      "diagnostics": [
+        {
+          "available_bus_kwh": 1080.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 495.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.8,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 585.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.9,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "code": "selected_demand_energy_exceeds_available",
+          "demand_artifact_ref": "1e449a5b4e72a7fae92b4496563b66ed1e3f6a58021134455cc6fee389a27792",
+          "detail": "选定航速方案的母线需求超过双电池保留最低 SOC 后可交付的总能量。",
+          "failure_scope": "selected_candidate_energy",
+          "field_ref": "selected_demand_ref,initial_soc_1,initial_soc_2",
+          "insufficient": true,
+          "required_bus_kwh": 1322.5393029902016,
+          "retryable": false,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 242.53930299020158
+        },
+        {
+          "code": "boundary_transition_below_floor",
+          "detail": "当前速度 11.112 km/h 低于首段限速下限 12.552 km/h：入段斜坡从真实当前速度加速过渡，低于下限历时约 2.7s（边界条件，非决策变量）",
+          "field_ref": "current_speed_kmh",
+          "limit": 12.552,
+          "observed": 11.112,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "km/h"
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": 4.7825324145378545e-08,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {
+        "energy_budget": {
+          "available_bus_kwh": 1080.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 495.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.8,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 585.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 0.9,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "insufficient": true,
+          "required_bus_kwh": 1322.5393029902016,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 242.53930299020158
+        },
+        "reason": "已算出的航速方案需要约 1322.5 kWh；甲组出发电量 80%、乙组 90%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1080.0 kWh，还差约 242.5 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。",
+        "status_label": "候选方案电量不足",
+        "suggestion": "可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+        "title": "本次候选方案电量不足"
+      },
+      "final_answer": "已算出的航速方案需要约 1322.5 kWh；甲组出发电量 80%、乙组 90%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1080.0 kWh，还差约 242.5 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。\n\n建议：可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 1322.5393029902016,
+        "demand_artifact_ref": "1e449a5b4e72a7fae92b4496563b66ed1e3f6a58021134455cc6fee389a27792",
+        "distance_km": 139.289,
+        "duration_s": 42745.55690967352,
+        "environment_hash": "7e0331c7c4250c4b9391b4db9e126a8d952a60c3f74ac1ea644341112dcd22c2",
+        "motor_energy_kwh": 1187.3802455121709,
+        "selected_demand_ref": "610e20983b1215bd5046352892440e1c8fc3c5ce5784bb9ce4cbc0e07fdaefae",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          12.902984525806332,
+          7.351498783897906,
+          12.120000000000001,
+          12.704808436518565,
+          13.347722912685143,
+          9.201482353980648
+        ],
+        "water_speed_vector_kmh": [
+          11.462984525806332,
+          7.243498783897906,
+          11.112,
+          11.444808436518565,
+          12.699722912685143,
+          9.057482353980648
+        ]
+      },
+      "segment_count": 6,
+      "waiting_s": 1200.0,
+      "fdp_attempts": null,
+      "dispatch_method": "not_completed",
+      "verification": null,
+      "refs": {
+        "Tdata": "145d8a0e20bdfc555db0ec00f93468cdf8da3c09ce62ed4e170fd531684e9498",
+        "Tmanagement": "975cdc6c994da63590e13545b8f2800f1ac4768bd6295a1b6850831ca52e2a13",
+        "Tseg": "502d25ebd2c8e652ce3eec9c3e07db61c82be4337f1bbd228e6b3e81238d322d",
+        "Tspeed": "0b6f92301b23a00ff4f38f1d24e12218e4bc46ab919ba9f7ae6db9c58af45dca"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "no_success_published": true,
+        "separate_actionable_guidance": true,
+        "quantified_shortfall": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-serial",
+      "feasibility_recovery": null
+    },
+    {
+      "case": "02_entire_route_empty",
+      "text": "从平顶山港到周口港，2026-10-22 09:00出发，甲组电池SOC100%，乙组电池SOC100%，空载，30小时内到达",
+      "expected": "plan_or_energy",
+      "task_id": "7ec6020e-b743-4f3c-8292-5808d052af01",
+      "runtime_s": 279.641,
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "周口港",
+        "initial_soc_1": 1,
+        "initial_soc_2": 1,
+        "load_state": "空载",
+        "objective": null,
+        "origin": "平顶山港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 108000.0,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 1322.5677092211497,
+        "distance_km": 189.789,
+        "duration_s": 86042.8754903458,
+        "final_soc_1": 0.2652382629017088,
+        "final_soc_2": 0.26524206018554636,
+        "motor_energy_kwh": 1130.879892556093
+      },
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "diagnostics": [
+        {
+          "code": "boundary_transition_below_floor",
+          "detail": "当前速度 11.112 km/h 低于首段限速下限 11.832 km/h：入段斜坡从真实当前速度加速过渡，低于下限历时约 1.3s（边界条件，非决策变量）",
+          "field_ref": "current_speed_kmh",
+          "limit": 11.832,
+          "observed": 11.112,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "km/h"
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": -5.7980287238024175e-11,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {},
+      "final_answer": "已按用户给出的条件（平顶山港至周口港，2026-10-22 09:00 出发，甲、乙两组电池 SOC 均为 100%，空载，30 小时内到达）完成解析后端具名研究仿真。方案可行。\n\n全程用时约 86042.9 s，航程约 189.789 km，均满足用户给出的 30 小时时限要求。\n\n能耗方面，母线侧总耗电约 1322.57 kWh，电机侧约 1130.88 kWh。到达时甲组电池 SOC 约 26.5%，乙组电池 SOC 约 26.5%，均高于电池允许下限，未触发低电量保护。\n\n以上为具名软件仿真结果，流速、载况、风阻、航道修正及船闸等待均为测试假设，不构成实船批准或全局最优结论；距离另附团队资料核对。真实 LSTM 后端仅覆盖短轨迹，本结论不对其作保证。\n\n本次电池分配在动态规划搜索未完成后，采用状态机生成并通过独立复核的可行路径；不宣称最优分配。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 1322.5677092211497,
+        "demand_artifact_ref": "77e4df7e21a37159962f2e7e656c90b105917ed0a95167df727a1bb37074ec56",
+        "distance_km": 189.789,
+        "duration_s": 86042.8754903458,
+        "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+        "motor_energy_kwh": 1130.879892556093,
+        "selected_demand_ref": "0e641cf0fb594ea059d181a13374a2d9ec5f970771b0c3d3685e703d35b1a0d7",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          11.832,
+          12.264,
+          12.552,
+          2.108,
+          12.120000000000001,
+          12.372,
+          11.76,
+          2.144
+        ],
+        "water_speed_vector_kmh": [
+          11.112,
+          11.111999999999998,
+          11.112,
+          2.0,
+          11.112,
+          11.112,
+          11.112,
+          2.0
+        ]
+      },
+      "segment_count": 8,
+      "waiting_s": 1800.0,
+      "fdp_attempts": [
+        {
+          "diagnostics": [
+            {
+              "code": "grid_unresolved",
+              "detail": "FDP transition budget exhausted; rerun with an explicit larger budget or coarser grid.",
+              "field_ref": "grid.max_transitions",
+              "limit": 150000,
+              "observed": 150001,
+              "retryable": true,
+              "source_refs": [],
+              "stage": "fdp",
+              "time_interval_or_segment_id": "s02_junli_to_mawan",
+              "unit": "transitions"
+            }
+          ],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+            "max_states_per_layer": 1000,
+            "max_transitions": 150000,
+            "soc_step": 0.05
+          },
+          "outcome_code": "grid_unresolved",
+          "runtime_ms": 37675.5051
+        },
+        {
+          "diagnostics": [
+            {
+              "code": "grid_unresolved",
+              "detail": "FDP transition budget exhausted; rerun with an explicit larger budget or coarser grid.",
+              "field_ref": "grid.max_transitions",
+              "limit": 600000,
+              "observed": 600001,
+              "retryable": true,
+              "source_refs": [],
+              "stage": "fdp",
+              "time_interval_or_segment_id": "s08_zhoukou_lock_to_zhoukou_port",
+              "unit": "transitions"
+            }
+          ],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0+bounded-adaptive-retry",
+            "max_states_per_layer": 2000,
+            "max_transitions": 600000,
+            "soc_step": 0.1
+          },
+          "outcome_code": "grid_unresolved",
+          "runtime_ms": 145988.1207
+        }
+      ],
+      "dispatch_method": "verified_state_machine_after_fdp",
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 1322.5677092211497,
+          "distance_km": 189.78899999994402,
+          "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+          "passed": true,
+          "rows": 16866
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 4183.714895726943,
+            "soc_balance": 0.9300000000000006,
+            "switch": 11000.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 4183.714895726943,
+            "soc_balance": 0.8798347897273854,
+            "switch": 11000.0
+          },
+          "check_count": 168661,
+          "failed_checks": []
+        },
+        "management_ref": "6d306a4f3ef50ef775774c237f73deea0749381a4b5b1ea139f76889109a146b",
+        "passed": true,
+        "speed_ref": "3f3f46e37646ace450493f78b004a5828873ddc80783b5208b0447a4d1e1b9a5",
+        "artifact_ref": "432d3cbeacd74fdf23615b8dc1d551f63fcd892c19b9226ba18b5a01f5390f8c"
+      },
+      "refs": {
+        "Tdata": "47058f29c3b3ed9684a043dbbeed724d3e7296bac4932ef6361ea3d982bd1a64",
+        "Tmanagement": "6d306a4f3ef50ef775774c237f73deea0749381a4b5b1ea139f76889109a146b",
+        "Tseg": "e0897bed37a3ffe0cbd18594173cc7b13741dd84f2aa10304cdc9f2a2c92b0c2",
+        "Tspeed": "3f3f46e37646ace450493f78b004a5828873ddc80783b5208b0447a4d1e1b9a5"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "verified": true,
+        "duration_within_limit": true,
+        "soc_within_bounds": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-serial",
+      "feasibility_recovery": {
+        "fdp_outcome_code": "grid_unresolved",
+        "method": "reference_state_machine",
+        "optimality_claim": false,
+        "safe": true,
+        "soc_difference_threshold": 0.0
+      }
+    },
+    {
+      "case": "03_entire_reverse_empty",
+      "text": "从周口港到平顶山港，2026-10-22 09:00出发，甲组电池SOC100%，乙组电池SOC100%，空载，30小时内到达",
+      "expected": "plan_or_energy",
+      "task_id": "5d26814f-5e77-43e4-9184-88f7678f6dbe",
+      "runtime_s": 45.344,
+      "outcome_code": "infeasible_under_assumptions",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "平顶山港",
+        "initial_soc_1": 1,
+        "initial_soc_2": 1,
+        "load_state": "空载",
+        "objective": "min_energy",
+        "origin": "周口港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 108000,
+        "trajectory": null
+      },
+      "metrics": {},
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "finish_without_plan"
+      ],
+      "diagnostics": [
+        {
+          "available_bus_kwh": 1350.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "code": "selected_demand_energy_exceeds_available",
+          "demand_artifact_ref": "c206e315d0d817a65778c354b7547ec39679d17cba2717ee48bce698801ca397",
+          "detail": "选定航速方案的母线需求超过双电池保留最低 SOC 后可交付的总能量。",
+          "failure_scope": "selected_candidate_energy",
+          "field_ref": "selected_demand_ref,initial_soc_1,initial_soc_2",
+          "insufficient": true,
+          "required_bus_kwh": 1602.8293743020263,
+          "retryable": false,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 252.82937430202628
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": -3.228706191293895e-11,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {
+        "energy_budget": {
+          "available_bus_kwh": 1350.0,
+          "batteries": [
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_1",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            },
+            {
+              "available_bus_kwh": 675.0,
+              "battery_id": "battery_2",
+              "capacity_kwh": 1000.0,
+              "discharge_efficiency": 0.9,
+              "initial_soc": 1,
+              "soc_min": 0.25
+            }
+          ],
+          "charging_supported": false,
+          "insufficient": true,
+          "required_bus_kwh": 1602.8293743020263,
+          "scope": "selected_candidate",
+          "shortfall_bus_kwh": 252.82937430202628
+        },
+        "reason": "已算出的航速方案需要约 1602.8 kWh；甲组出发电量 100%、乙组 100%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1350.0 kWh，还差约 252.8 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。",
+        "status_label": "候选方案电量不足",
+        "suggestion": "可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+        "title": "本次候选方案电量不足"
+      },
+      "final_answer": "已算出的航速方案需要约 1602.8 kWh；甲组出发电量 100%、乙组 100%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1350.0 kWh，还差约 252.8 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。\n\n建议：可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 1602.8293743020263,
+        "demand_artifact_ref": "c206e315d0d817a65778c354b7547ec39679d17cba2717ee48bce698801ca397",
+        "distance_km": 189.789,
+        "duration_s": 102019.51524095584,
+        "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+        "motor_energy_kwh": 1373.4674669454719,
+        "selected_demand_ref": "98953af6f929b76b948381b35d9b2f1495d45f93856d69c882f1acb1a2174a9d",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          1.8559999999999999,
+          10.464,
+          9.852,
+          10.104,
+          1.892,
+          9.672,
+          9.96,
+          10.392
+        ],
+        "water_speed_vector_kmh": [
+          2.0,
+          11.112,
+          11.112,
+          11.112,
+          2.0,
+          11.112,
+          11.112000000000002,
+          11.112
+        ]
+      },
+      "segment_count": 8,
+      "waiting_s": 1800.0,
+      "fdp_attempts": null,
+      "dispatch_method": "not_completed",
+      "verification": null,
+      "refs": {
+        "Tdata": "1b89b850fb57b1f9cde36c3d2fc0c84297fb57bcf4f74c376a5823a6b4693310",
+        "Tmanagement": "6b47488008353fe25479ce419a299f749670a0fa3395fc1c8434af99753ee612",
+        "Tseg": "fba016a6e2fbf953862aa9ebfbc86d197f90d32e6361da3020cb39c4988a973f",
+        "Tspeed": "a15fd8eafb8b62a9498f1c9349e61886e576be7f5cd915bd32a692e223e6589f"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "no_success_published": true,
+        "separate_actionable_guidance": true,
+        "quantified_shortfall": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-retest",
+      "feasibility_recovery": null
+    },
+    {
+      "case": "04_reverse_many_locks",
+      "text": "从葫芦湾船闸到漯河船闸，2026-10-22 09:00出发，甲组电池SOC95%，乙组电池SOC85%，空载，9小时内到达",
+      "expected": "plan",
+      "task_id": "1bf66dfd-d290-45a7-8a82-4d20c26dd6d7",
+      "runtime_s": 109.125,
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "漯河船闸",
+        "initial_soc_1": 0.95,
+        "initial_soc_2": 0.85,
+        "load_state": "空载",
+        "objective": null,
+        "origin": "葫芦湾船闸",
+        "prediction_backend": "analytic",
+        "prediction_duration_s": null,
+        "remaining_time_s": 32400,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 436.5531925659771,
+        "distance_km": 48.189,
+        "duration_s": 18753.243450359998,
+        "final_soc_1": 0.6648681692791486,
+        "final_soc_2": 0.6500727278696761,
+        "motor_energy_kwh": 385.8765998407305
+      },
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "diagnostics": [
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": -1.6484591469634324e-12,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {},
+      "final_answer": "该方案在给定条件下仿真可行，能够在您规定的9小时时限内完成航行。\n\n从葫芦湾船闸到漯河船闸，2026-10-22 09:00出发，这是用户给出的条件。甲组电池初始SOC为95%、乙组为85%，均为用户给出的条件；空载为载况设定。\n\n仿真采用解析后端（具名软件仿真值，不代表实船测量或通航批准）。全程航行耗时 18753.2 s，航程 48.189 km。\n\n能耗方面：母线侧合计 436.553 kWh，推进电机侧 385.877 kWh。到达时甲组电池SOC为 66.5%，乙组电池SOC为 65.0%，均高于仿真设定的下限，未触发欠荷。\n\n该结果属具名研究仿真，航行中船闸等待、流速、载况修正等均为测试假设，不代表真实的当地水文与通航规则认证。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 436.5531925659771,
+        "demand_artifact_ref": "4bcad2c93e36a6aadacd1f0f976bd842095e45f6a0465ed6a81e5fe465479b84",
+        "distance_km": 48.189,
+        "duration_s": 18753.243450359998,
+        "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+        "motor_energy_kwh": 385.8765998407305,
+        "selected_demand_ref": "a8ef37ea4d6824d83cd8d3a98c020ac2a47df637a0e1ac6d95a10161a407fdf7",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          9.852,
+          10.104,
+          1.892
+        ],
+        "water_speed_vector_kmh": [
+          11.112,
+          11.112,
+          2.0
+        ]
+      },
+      "segment_count": 3,
+      "waiting_s": 300.0,
+      "fdp_attempts": [
+        {
+          "diagnostics": [
+            {
+              "code": "grid_unresolved",
+              "detail": "FDP transition budget exhausted; rerun with an explicit larger budget or coarser grid.",
+              "field_ref": "grid.max_transitions",
+              "limit": 150000,
+              "observed": 150001,
+              "retryable": true,
+              "source_refs": [],
+              "stage": "fdp",
+              "time_interval_or_segment_id": "s05_luohe_port_to_daluli_reverse",
+              "unit": "transitions"
+            }
+          ],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+            "max_states_per_layer": 1000,
+            "max_transitions": 150000,
+            "soc_step": 0.05
+          },
+          "outcome_code": "grid_unresolved",
+          "runtime_ms": 36008.9766
+        },
+        {
+          "diagnostics": [],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0+bounded-adaptive-retry",
+            "max_states_per_layer": 2000,
+            "max_transitions": 600000,
+            "soc_step": 0.1
+          },
+          "outcome_code": "ok",
+          "runtime_ms": 40049.546
+        }
+      ],
+      "dispatch_method": "fdp",
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 436.5531925659771,
+          "distance_km": 48.188999999996895,
+          "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+          "passed": true,
+          "rows": 3694
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 2850.638633591487,
+            "soc_balance": 0.09000000000000001,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 2850.638633591487,
+            "soc_balance": 54.1681449782268,
+            "switch": 0.0
+          },
+          "check_count": 36941,
+          "failed_checks": []
+        },
+        "management_ref": "22b0d8993ba43605cda08c7e07af217ac2a299bccef888176433d4175fd89b32",
+        "passed": true,
+        "speed_ref": "8fc4f79362a0aa064199a0c4746a9fc9f7b302b7b33826795af637c9514a87af",
+        "artifact_ref": "f7b35e77ef3ce14efb134379014175d3b185b889218e23bcd9a54e835b668174"
+      },
+      "refs": {
+        "Tdata": "ccb7be6ff9068a6e7b0050b18f31d276852328b2f0bd77b01971e6cbcf437a34",
+        "Tmanagement": "22b0d8993ba43605cda08c7e07af217ac2a299bccef888176433d4175fd89b32",
+        "Tseg": "573d88459934540fc6d52d5c8f52b3aaacd75070537ee6e27d2cbccd0d26bfa0",
+        "Tspeed": "8fc4f79362a0aa064199a0c4746a9fc9f7b302b7b33826795af637c9514a87af"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "verified": true,
+        "duration_within_limit": true,
+        "soc_within_bounds": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-serial",
+      "feasibility_recovery": null
+    },
+    {
+      "case": "05_unbalanced_energy",
+      "text": "从军李船闸到马湾船闸，2026-10-22 09:00出发，甲组电池SOC31%，乙组电池SOC95%，半载，6小时内到达",
+      "expected": "plan",
+      "task_id": "1b3e423d-261c-405a-b2e9-983a170cbe7b",
+      "runtime_s": 33.266,
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "马湾船闸",
+        "initial_soc_1": 0.31,
+        "initial_soc_2": 0.95,
+        "load_state": "半载",
+        "objective": "min_energy",
+        "origin": "军李船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 21600,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 205.36111497700298,
+        "distance_km": 24.999999999999996,
+        "duration_s": 7338.65205479452,
+        "final_soc_1": 0.25386071812795563,
+        "final_soc_2": 0.7779602652309684,
+        "motor_energy_kwh": 183.45843011795654
+      },
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "diagnostics": [
+        {
+          "code": "boundary_transition_below_floor",
+          "detail": "当前速度 11.112 km/h 低于首段限速下限 12.264 km/h：入段斜坡从真实当前速度加速过渡，低于下限历时约 2.1s（边界条件，非决策变量）",
+          "field_ref": "current_speed_kmh",
+          "limit": 12.264,
+          "observed": 11.112,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "km/h"
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": -1.1766587704187259e-11,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {},
+      "final_answer": "方案可行。按您给定的条件：2026-10-22 09:00 从军李船闸出发、甲组电池 SOC 31%、乙组电池 SOC 95%、半载、时限 6 小时内到达，本航线在满足舱段限速及甲组电池最低 SOC 约束下完成仿真。\n\n全程航行历时 7338.65 s，航程 25 km，满足 6 小时时限的到达要求。母线侧耗能 205.361 kWh，推进电机侧耗能 183.458 kWh。\n\n航行结束时，甲组电池残量降至 25.4%，贴近其最低下限但仍高于下限；乙组电池残量 77.8%。两组电池均处于安全范围内，方案成立。\n\n以上结果来自解析后端；流速、载况、附加阻力、转换效率及船闸等待均为具名研究仿真假设，不代表当地实测或通航规则，也不构成实船批准依据。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 205.36111497700298,
+        "demand_artifact_ref": "90cbbad7c8b42552860d2b923fe0a0ebc43a7d81c9199184dfa936c034f5a72b",
+        "distance_km": 24.999999999999996,
+        "duration_s": 7338.65205479452,
+        "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+        "motor_energy_kwh": 183.45843011795654,
+        "selected_demand_ref": "5419cd4a63bdcc27241dba00a5bbe0ce8b428775e46e5af108f225f0488738d8",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          12.264
+        ],
+        "water_speed_vector_kmh": [
+          11.111999999999998
+        ]
+      },
+      "segment_count": 1,
+      "waiting_s": 0.0,
+      "fdp_attempts": null,
+      "dispatch_method": "fdp",
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 205.36111497700298,
+          "distance_km": 24.999999999998778,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 1469
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 937.6470549496534,
+            "soc_balance": 509.72999999999996,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 937.6470549496534,
+            "soc_balance": 513.0512468356054,
+            "switch": 0.0
+          },
+          "check_count": 14691,
+          "failed_checks": []
+        },
+        "management_ref": "24fb7db7fa709ebe386126c2e4fec4908510ab8e69603fd921ae0f90b85fc0ac",
+        "passed": true,
+        "speed_ref": "c236318da481529961f5b67fdeffe01a3410b0812e798440bdba40910ee6f242",
+        "artifact_ref": "ad1b8806f5d9e62b1d7782d3dbe892ef5ccf5cca1663d4dab97c8431c5bb2d1a"
+      },
+      "refs": {
+        "Tdata": "9844bca518372531a946b63b3b032cf1cfc69a8757d5f42d04ad84ff0bb6e147",
+        "Tmanagement": "24fb7db7fa709ebe386126c2e4fec4908510ab8e69603fd921ae0f90b85fc0ac",
+        "Tseg": "190dff43b7c7ace01dade79db6a06bee4f37cb20ca73ad475d7afbe9baebd26d",
+        "Tspeed": "c236318da481529961f5b67fdeffe01a3410b0812e798440bdba40910ee6f242"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "verified": true,
+        "duration_within_limit": true,
+        "soc_within_bounds": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-retest",
+      "feasibility_recovery": null
+    },
+    {
+      "case": "06_one_at_floor",
+      "text": "从周口港到周口船闸，2026-10-22 09:00出发，甲组电池SOC25%，乙组电池SOC95%，半载，10小时内到达",
+      "expected": "plan",
+      "task_id": "90db298d-6eab-4ec4-9d53-5e06518761ee",
+      "runtime_s": 37.719,
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "周口船闸",
+        "initial_soc_1": 0.25,
+        "initial_soc_2": 0.95,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "周口港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 36000,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 47.14228785464413,
+        "distance_km": 19.6,
+        "duration_s": 19760.984938359776,
+        "final_soc_1": 0.25,
+        "final_soc_2": 0.8976196801615904,
+        "motor_energy_kwh": 18.514686913841167
+      },
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "diagnostics": [
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": 2.5557440608281468e-09,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {},
+      "final_answer": "研究可行，方案已按具名仿真运行完成，结果为解析后端（真实 LSTM 仅覆盖短轨迹，本任务未采用）。\n\n用户给定条件：周口港到周口船闸，2026-10-22 09:00 出发，甲组电池 SOC 25%，乙组电池 SOC 95%，半载，10 小时内到达。方向上为周口船闸至周口港的反向航段，航程为巡航，全程耗时约 19761 s。行程距离约 19.6 km。\n\n能量与电池：母线侧能量 47.1423 kWh，电机能量 18.5147 kWh。甲组电池 SOC 保持用户给出的初值 25% 不变，全程未放电，最终 SOC 为 25.0%；乙组电池承担全部供电，最终 SOC 约为 89.8%。全程在用户给定的 10 小时时限内到达，方案可行。\n\n需说明，以上流速、载况、效率及等待等均为具名软件仿真假设，不等同于当地实测或航行条件批准；距离另据团队资料核对。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 47.14228785464413,
+        "demand_artifact_ref": "cd10594247c53cc09807afb615c279e371351525084750512e4affff1476087e",
+        "distance_km": 19.6,
+        "duration_s": 19760.984938359776,
+        "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+        "motor_energy_kwh": 18.514686913841167,
+        "selected_demand_ref": "42d858bea6476b780380e98637fce919d5bd81cfa5f3911ff64e67af316fe9a3",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          3.568775715738074
+        ],
+        "water_speed_vector_kmh": [
+          3.7127757157380743
+        ]
+      },
+      "segment_count": 1,
+      "waiting_s": 0.0,
+      "fdp_attempts": null,
+      "dispatch_method": "fdp",
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 47.14228785464413,
+          "distance_km": 19.60000000000056,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 3954
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 29.71895412860928,
+            "soc_balance": 768.3450000000329,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 29.71895412860928,
+            "soc_balance": 799.2183947527648,
+            "switch": 0.0
+          },
+          "check_count": 39541,
+          "failed_checks": []
+        },
+        "management_ref": "fd5a8b2a2dd392a2c143705b05aec2b15e01e733a0a9c35034b0db9da93706af",
+        "passed": true,
+        "speed_ref": "3a43f6465853c7bf7d737314c98e622046f36ec36a4afed55fe5367b5d1c5af2",
+        "artifact_ref": "9b66191f3a96ec9729276d9c63efa22aad441ec89b2115802da1f84a8347c8a7"
+      },
+      "refs": {
+        "Tdata": "411961199c76f2165a12163bb70fe2ac13c39a2e39142557b2a4836f073cab9a",
+        "Tmanagement": "fd5a8b2a2dd392a2c143705b05aec2b15e01e733a0a9c35034b0db9da93706af",
+        "Tseg": "321fd6b086c9c3282e6a2f1fcfa78030413f99d757e4454aa1b5d2187e2aaadd",
+        "Tspeed": "3a43f6465853c7bf7d737314c98e622046f36ec36a4afed55fe5367b5d1c5af2"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "verified": true,
+        "duration_within_limit": true,
+        "soc_within_bounds": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-serial",
+      "feasibility_recovery": null
+    },
+    {
+      "case": "07_one_below_floor",
+      "text": "从漯河港到漯河船闸，2026-10-22 09:00出发，甲组电池SOC20%，乙组电池SOC85%，半载，2小时内到达",
+      "expected": "input",
+      "task_id": "4b00086e-6c8e-4bbd-9d74-1136b7d2996f",
+      "runtime_s": 13.765,
+      "outcome_code": "invalid_input",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "漯河船闸",
+        "initial_soc_1": 0.2,
+        "initial_soc_2": 0.85,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "漯河港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 7200.0,
+        "trajectory": null
+      },
+      "metrics": {},
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "finish_without_plan"
+      ],
+      "diagnostics": [
+        {
+          "battery_id": "battery_1",
+          "code": "initial_soc_below_planning_floor",
+          "detail": "该组出发电量已低于当前仿真规划下限；无途中充电模型，不能开始本次规划。",
+          "field_ref": "initial_soc_1",
+          "initial_soc": 0.2,
+          "soc_min": 0.25
+        }
+      ],
+      "guidance": {
+        "reason": "甲组出发电量为 20%，低于本次仿真的最低允许电量 25%。本系统尚不支持途中补电，因此不能按这一初始状态开始规划；即使另一组有电，也不能跳过这组电池的最低电量约束。",
+        "status_label": "出发电量需核对",
+        "suggestion": "请先核对甲组电量；若数值正确，请补电后填写新的实测 SOC 再计算。仅为软件测试时，可修改该组仿真初态后重算，不要把修改值当作实际补电。",
+        "title": "甲组出发电量低于规划下限"
+      },
+      "final_answer": "甲组出发电量为 20%，低于本次仿真的最低允许电量 25%。本系统尚不支持途中补电，因此不能按这一初始状态开始规划；即使另一组有电，也不能跳过这组电池的最低电量约束。\n\n建议：请先核对甲组电量；若数值正确，请补电后填写新的实测 SOC 再计算。仅为软件测试时，可修改该组仿真初态后重算，不要把修改值当作实际补电。",
+      "speed_summary": null,
+      "segment_count": 0,
+      "waiting_s": 0,
+      "fdp_attempts": null,
+      "dispatch_method": "not_completed",
+      "verification": null,
+      "refs": {
+        "Tdata": "1f9edbc235e137fae60834abfd179e0dfeb7c7d35e55e56f0d227416444d54d6"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "no_success_published": true,
+        "separate_actionable_guidance": true,
+        "specific_input_guidance": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-serial"
+    },
+    {
+      "case": "08_full_load_energy_edge",
+      "text": "从马湾船闸到周口港，2026-10-22 09:00出发，甲组电池SOC100%，乙组电池SOC100%，满载，12小时内到达",
+      "expected": "plan",
+      "task_id": "cd7687b0-d9d3-4d9f-962a-1ac25e60cc8f",
+      "runtime_s": 113.11,
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "周口港",
+        "initial_soc_1": 1.0,
+        "initial_soc_2": 1.0,
+        "load_state": "满载",
+        "objective": "min_energy",
+        "origin": "马湾船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 43200,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 1322.5393029902016,
+        "distance_km": 139.289,
+        "duration_s": 42745.55690967352,
+        "final_soc_1": 0.2500007432909575,
+        "final_soc_2": 0.28051114227566687,
+        "motor_energy_kwh": 1187.3802455121709
+      },
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "diagnostics": [
+        {
+          "code": "boundary_transition_below_floor",
+          "detail": "当前速度 11.112 km/h 低于首段限速下限 12.552 km/h：入段斜坡从真实当前速度加速过渡，低于下限历时约 2.7s（边界条件，非决策变量）",
+          "field_ref": "current_speed_kmh",
+          "limit": 12.552,
+          "observed": 11.112,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "km/h"
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": 4.7825324145378545e-08,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {},
+      "final_answer": "该研究可行性方案已在具名软件仿真环境下求解成功，采用解析后端。用户给出的条件为：马湾船闸至周口港，2026-10-22 09:00 出发，甲组、乙组电池初始 SOC 均为 100%，满载，需在 12 小时内到达。仿真结果满足时限约束。\n\n全航程持续 42745.6 s，航行里程 139.289 km。母线侧总耗能 1322.54 kWh，其中推进电机耗能 1187.38 kWh。甲组电池终态 SOC 25.0%，乙组电池终态 SOC 28.1%，两组均未低于仿真设定的 SOC 下限，方案判定为可行。\n\n需说明：以上为具名研究仿真结果，流速、载况、风速、船闸等待与效率等均为软件仿真假设，不代表当地实测、通航规则或实船批准。真实 LSTM 后端仅覆盖短轨迹，本方案采用解析后端求解。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 1322.5393029902016,
+        "demand_artifact_ref": "5d6bed202f31d87a791eaf9a23c4aa8a2ee361f5572d2b41a7d31f35f38c1607",
+        "distance_km": 139.289,
+        "duration_s": 42745.55690967352,
+        "environment_hash": "7e0331c7c4250c4b9391b4db9e126a8d952a60c3f74ac1ea644341112dcd22c2",
+        "motor_energy_kwh": 1187.3802455121709,
+        "selected_demand_ref": "610e20983b1215bd5046352892440e1c8fc3c5ce5784bb9ce4cbc0e07fdaefae",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          12.902984525806332,
+          7.351498783897906,
+          12.120000000000001,
+          12.704808436518565,
+          13.347722912685143,
+          9.201482353980648
+        ],
+        "water_speed_vector_kmh": [
+          11.462984525806332,
+          7.243498783897906,
+          11.112,
+          11.444808436518565,
+          12.699722912685143,
+          9.057482353980648
+        ]
+      },
+      "segment_count": 6,
+      "waiting_s": 1200.0,
+      "fdp_attempts": [
+        {
+          "diagnostics": [
+            {
+              "code": "grid_unresolved",
+              "detail": "FDP transition budget exhausted; rerun with an explicit larger budget or coarser grid.",
+              "field_ref": "grid.max_transitions",
+              "limit": 150000,
+              "observed": 150001,
+              "retryable": true,
+              "source_refs": [],
+              "stage": "fdp",
+              "time_interval_or_segment_id": "s05_luohe_port_to_daluli",
+              "unit": "transitions"
+            }
+          ],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+            "max_states_per_layer": 1000,
+            "max_transitions": 150000,
+            "soc_step": 0.05
+          },
+          "outcome_code": "grid_unresolved",
+          "runtime_ms": 21577.8059
+        },
+        {
+          "diagnostics": [],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0+bounded-adaptive-retry",
+            "max_states_per_layer": 2000,
+            "max_transitions": 600000,
+            "soc_step": 0.1
+          },
+          "outcome_code": "ok",
+          "runtime_ms": 45364.6188
+        }
+      ],
+      "dispatch_method": "fdp",
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 1322.5393029902016,
+          "distance_km": 139.28900000000496,
+          "environment_hash": "7e0331c7c4250c4b9391b4db9e126a8d952a60c3f74ac1ea644341112dcd22c2",
+          "passed": true,
+          "rows": 8321
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 7185.722572601545,
+            "soc_balance": 40.53000000000002,
+            "switch": 5000.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 7185.722572601545,
+            "soc_balance": 76.21781660269453,
+            "switch": 5000.0
+          },
+          "check_count": 83211,
+          "failed_checks": []
+        },
+        "management_ref": "b939fe2088740cc1bf3f7bd4177aea31b9159cd64faca5c9d907f579770f1bd2",
+        "passed": true,
+        "speed_ref": "b4f32e12eebb754d4d5bb639e068d53bdfc95867d60dd8452f794408b6bc9149",
+        "artifact_ref": "e3656d9e3cc9c6cf54a64c54055364ea4dcf5b5a57635a290ff70c114ade58ce"
+      },
+      "refs": {
+        "Tdata": "ff979cb6cf5514be6229f2604005c878085b4d1e0cd3243003bbf3f7df7f6808",
+        "Tmanagement": "b939fe2088740cc1bf3f7bd4177aea31b9159cd64faca5c9d907f579770f1bd2",
+        "Tseg": "d4e23156d0a88fe259b65ad62dcf946bfbd3c42f31c3d2b81c426bbc56f1869f",
+        "Tspeed": "b4f32e12eebb754d4d5bb639e068d53bdfc95867d60dd8452f794408b6bc9149"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "verified": true,
+        "duration_within_limit": true,
+        "soc_within_bounds": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-retest",
+      "feasibility_recovery": null
+    },
+    {
+      "case": "09_impossible_deadline",
+      "text": "从马湾船闸到周口港，2026-10-22 09:00出发，甲组电池SOC100%，乙组电池SOC100%，满载，6小时内到达，优先最短航时",
+      "expected": "time",
+      "task_id": "c591abda-da80-4bc2-9420-e1ace0997cc3",
+      "runtime_s": 21.625,
+      "outcome_code": "infeasible_under_assumptions",
+      "status": "completed",
+      "request": {
+        "departure_at": "2026-10-22 09:00",
+        "destination": "周口港",
+        "initial_soc_1": 1.0,
+        "initial_soc_2": 1.0,
+        "load_state": "满载",
+        "objective": "min_time",
+        "origin": "马湾船闸",
+        "prediction_backend": "analytic",
+        "remaining_time_s": 21600
+      },
+      "metrics": {},
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "finish_without_plan"
+      ],
+      "diagnostics": [
+        {
+          "code": "deadline_below_physical_minimum",
+          "deadline_s": 21600,
+          "deadline_source": "user",
+          "detail": "所选航段共 139.289 km；按情景最高航速和等待时间，最短也需 10.40 小时，当前期限为 6.00 小时。可延长到达期限或选择更短航段后重算。",
+          "field_ref": "remaining_time_s",
+          "minimum_duration_s": 37429.199202525335
+        }
+      ],
+      "guidance": {
+        "reason": "按本次航段和仿真限速，最快约需 10.40 小时，当前给定时限为 6.00 小时。",
+        "suggestion": "请延长到达时限，或改选更短的连续航段后重新计算。",
+        "title": "到达时限短于仿真最快航时"
+      },
+      "final_answer": "按本次航段和仿真限速，最快约需 10.40 小时，当前给定时限为 6.00 小时。\n\n建议：请延长到达时限，或改选更短的连续航段后重新计算。",
+      "speed_summary": {
+        "deadline_s": 21600,
+        "distance_km": 139.28900000000002,
+        "duration_bound_type": "optimistic_lower_bound",
+        "minimum_duration_s": 37429.199202525335
+      },
+      "segment_count": 6,
+      "waiting_s": 1200.0,
+      "fdp_attempts": null,
+      "dispatch_method": "not_completed",
+      "verification": null,
+      "refs": {
+        "Tdata": "89d6edf72e9c4384507ec53863c41f995a5787a2a3e77240b1d4b80c4ec8882d",
+        "Tseg": "4cf75159290fa95c1dd0224770285786db16dd608dabd45207c04f477da61174",
+        "Tspeed": "1f140024df6e1b8d1ac09fe8ca547f20ac9b613a6d02a5a366c7edbf0b85049b"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "no_success_published": true,
+        "separate_actionable_guidance": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-serial"
+    },
+    {
+      "case": "10_decimal_deadline",
+      "text": "从军李船闸到葫芦湾船闸，2026-10-22 09:00出发，甲组电池SOC80%，乙组电池SOC90%，半载，29.006小时内到达",
+      "expected": "plan",
+      "task_id": "22d60ee2-e5eb-4349-b545-3c37e7580fb0",
+      "runtime_s": 149.0,
+      "outcome_code": "research_feasible",
+      "status": "completed",
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "葫芦湾船闸",
+        "initial_soc_1": 0.8,
+        "initial_soc_2": 0.9,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "军李船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 104421.6,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 952.7513970719198,
+        "distance_km": 117.28899999999999,
+        "duration_s": 36036.90693556956,
+        "final_soc_1": 0.3498711294510077,
+        "final_soc_2": 0.2915162071358204,
+        "motor_energy_kwh": 848.5381291929247
+      },
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "diagnostics": [
+        {
+          "code": "boundary_transition_below_floor",
+          "detail": "当前速度 11.112 km/h 低于首段限速下限 12.264 km/h：入段斜坡从真实当前速度加速过渡，低于下限历时约 2.1s（边界条件，非决策变量）",
+          "field_ref": "current_speed_kmh",
+          "limit": 12.264,
+          "observed": 11.112,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "km/h"
+        },
+        {
+          "code": "resampling_difference",
+          "detail": "优化阶段规划网格与核验精度的能量差",
+          "field_ref": "total_energy_kwh",
+          "limit": null,
+          "observed": -1.3301360013429075e-11,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [],
+          "stage": "verify",
+          "time_interval_s": null,
+          "unit": "kWh"
+        },
+        {
+          "code": "conversion_is_named_assumption",
+          "detail": "母线侧取自具名研究假设，不代表实船效率标定",
+          "field_ref": "conversion_model_ref",
+          "limit": null,
+          "observed": null,
+          "retryable": false,
+          "segment_id": null,
+          "source_refs": [
+            {
+              "confirmed": false,
+              "kind": "assumption",
+              "locator": "configs/research_agent.json",
+              "mode": "simulation",
+              "note": "具名软件仿真值",
+              "source_id": "simulation:conversion"
+            }
+          ],
+          "stage": "demand_build",
+          "time_interval_s": null,
+          "unit": null
+        }
+      ],
+      "guidance": {},
+      "final_answer": "本次为具名研究仿真，后端采用解析后端；结果代表测试假设，不代表实船批准或当地通航规则。\n\n用户给出的条件：2026-10-22 09:00 从军李船闸出发，目的地葫芦湾船闸，甲组电池 SOC 80%、乙组电池 SOC 90%，载况半载，时限 29.006 小时内到达。\n\n解析仿真得到的方案关键指标如下：\n\n航行全程耗时 36036.9 s，航程 117.289 km。母线侧总能耗 952.751 kWh，其中推进电机能耗 848.538 kWh。到达葫芦湾船闸时，甲组电池剩余 SOC 35.0%，乙组电池剩余 SOC 29.2%，两组均高于软件仿真设定的 SOC 下限，方案在假设条件下可行。\n\n需说明：本方案未宣称全局最优，流速、载况、风阻、航道修正及船闸等待等均为具名软件仿真假设，不等同于当地实测或通航规则批准。真实 LSTM 后端仅覆盖短轨迹，本次长航程结果由解析后端给出。",
+      "speed_summary": {
+        "backend": "analytic",
+        "bus_energy_kwh": 952.7513970719198,
+        "demand_artifact_ref": "346f6fa78ce3448e39125775d6681ea801e20fc3285896930ba43f903f16a240",
+        "distance_km": 117.28899999999999,
+        "duration_s": 36036.90693556956,
+        "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+        "motor_energy_kwh": 848.5381291929247,
+        "selected_demand_ref": "f6ba123904a9866503c909e73050ba96860dcf15d3e782590b95a0c72aa2f3e9",
+        "speed_semantics": "over_ground",
+        "speed_vector_kmh": [
+          12.264,
+          12.552,
+          2.108,
+          12.120000000000001,
+          12.372
+        ],
+        "water_speed_vector_kmh": [
+          11.111999999999998,
+          11.112,
+          2.0,
+          11.112,
+          11.112
+        ]
+      },
+      "segment_count": 5,
+      "waiting_s": 900.0,
+      "fdp_attempts": [
+        {
+          "diagnostics": [
+            {
+              "code": "grid_unresolved",
+              "detail": "FDP transition budget exhausted; rerun with an explicit larger budget or coarser grid.",
+              "field_ref": "grid.max_transitions",
+              "limit": 150000,
+              "observed": 150001,
+              "retryable": true,
+              "source_refs": [],
+              "stage": "fdp",
+              "time_interval_or_segment_id": "s03_mawan_to_luohe",
+              "unit": "transitions"
+            }
+          ],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0",
+            "max_states_per_layer": 1000,
+            "max_transitions": 150000,
+            "soc_step": 0.05
+          },
+          "outcome_code": "grid_unresolved",
+          "runtime_ms": 35838.5661
+        },
+        {
+          "diagnostics": [],
+          "grid": {
+            "algorithm_version": "fdp-three-mode-conservative-grid/1.0.0+bounded-adaptive-retry",
+            "max_states_per_layer": 2000,
+            "max_transitions": 600000,
+            "soc_step": 0.1
+          },
+          "outcome_code": "ok",
+          "runtime_ms": 72488.4895
+        }
+      ],
+      "dispatch_method": "fdp",
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 952.7513970719198,
+          "distance_km": 117.28900000000986,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 7037
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 6891.2535500738995,
+            "soc_balance": 19.470000000000013,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 6891.2535500738995,
+            "soc_balance": 113.94154277214727,
+            "switch": 0.0
+          },
+          "check_count": 70371,
+          "failed_checks": []
+        },
+        "management_ref": "19fd485238923f07d7ef11987b46658936866a25bb383a9b37dbec194e0de6f9",
+        "passed": true,
+        "speed_ref": "2829d5c8e3b4bd4226d61e148cbb520adcab53f751e8628a8be61db56a6dcff1",
+        "artifact_ref": "3ab0ff6af0dc213f52557d229875dd2b39116a75293a43f2c976d44d9d139d18"
+      },
+      "refs": {
+        "Tdata": "87413147b14cabd735fdae6d819fcc130a3d2a9a8fa673c3f3a90c3d0839754c",
+        "Tmanagement": "19fd485238923f07d7ef11987b46658936866a25bb383a9b37dbec194e0de6f9",
+        "Tseg": "f43512480c9f1ce8d8301053961b38eee17113dcc440b773defe3de11e89d25c",
+        "Tspeed": "2829d5c8e3b4bd4226d61e148cbb520adcab53f751e8628a8be61db56a6dcff1"
+      },
+      "checks": {
+        "terminal": true,
+        "route_preserved": true,
+        "soc_preserved": true,
+        "deadline_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_crash": true,
+        "not_search_unresolved": true,
+        "answer_present": true,
+        "expected_outcome": true,
+        "verified": true,
+        "duration_within_limit": true,
+        "soc_within_bounds": true
+      },
+      "passed": true,
+      "evidence_run_label": "final-serial",
+      "feasibility_recovery": null
+    }
+  ],
+  "passed": true,
+  "note": "Complete serial rerun, followed by affected-case retests. All earlier failures are retained."
+}

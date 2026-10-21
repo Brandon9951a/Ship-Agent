@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import os
 from pathlib import Path
 
 from research.contracts import ArtifactRef, Diagnostic, PowerDemandPoint, PowerDemandSeries, SourceRef
@@ -21,6 +22,15 @@ class DemandArtifactStore:
 
     def __init__(self, directory: str | Path) -> None:
         self.directory = Path(directory)
+        if os.name == "nt":
+            # Content hashes are unchanged. Use the Win32 Unicode extended
+            # path form so a deep checkout/task directory does not prevent
+            # the selected demand from being saved or read back.
+            absolute = str(self.directory.resolve())
+            if not absolute.startswith("\\\\?\\"):
+                absolute = ("\\\\?\\UNC\\" + absolute[2:]
+                            if absolute.startswith("\\\\") else "\\\\?\\" + absolute)
+            self.directory = Path(absolute)
         self.directory.mkdir(parents=True, exist_ok=True)
 
     def put(self, series: PowerDemandSeries) -> ArtifactRef:

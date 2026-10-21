@@ -391,6 +391,13 @@ class AgentRuntime:
             kind = "planning"
             notes.append("用户明确给出航次起终点和到达时限，按航次规划执行完整工具链")
         if kind=="planning":
+            goals = list(re.finditer(
+                r"(?P<time>最短(?:航行)?(?:时间|航时)|最快|尽快|min_time)|"
+                r"(?P<energy>节能|省电|最小能耗|能耗最低|能耗优先|min_energy)", user_text))
+            objective = "min_time" if goals and goals[-1].lastgroup == "time" else "min_energy"
+            if request.get("objective") != objective:
+                request["objective"] = objective
+                notes.append("按用户明确的优化偏好设置目标；未指定时沿用网页默认节能目标，不把到达期限当作最快要求")
             if explicit_deadline is not None and request.get("remaining_time_s")!=explicit_deadline:
                 request["remaining_time_s"]=explicit_deadline
                 notes.append("按用户原文中的到达时限设置 remaining_time_s；已核对小时到秒的换算")
@@ -776,6 +783,10 @@ class AgentRuntime:
             # operator sees a short explanation tied to checked tool facts.
             body=guidance_answer(guidance)
             status="operator_guidance"
+        if outcome == "research_feasible" and s.get("refs", {}).get("Tmanagement"):
+            dispatch = self.professional.payload(s, "Tmanagement").get("summary", {}).get("dispatch_method")
+            if dispatch == "verified_state_machine_after_fdp":
+                body += "\n\n本次电池分配在动态规划搜索未完成后，采用状态机生成并通过独立复核的可行路径；不宣称最优分配。"
         hits=[hit for obs in s["observations"] if obs["tool"]=="search_project_docs" for hit in obs.get("results",[])]
         sources=[];seen=set()
         for hit in sorted(hits,key=lambda item:item.get("score",0),reverse=True):

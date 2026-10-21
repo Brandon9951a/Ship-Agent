@@ -25,7 +25,7 @@ from research.tspeed.tool import SimulationScenario, run_speed_optimization
 from schemas.research_management import BatteryManagementRequest, BatteryParameters, FDPGridConfig
 from schemas.types import SourceRef as LegacySource
 from tools.fdp_verifier import verify_trajectory
-from tools.tmanagement_fdp import run_management_fdp, DEFAULT_TRANSITIONS
+from tools.tmanagement_fdp import run_management_fdp, recover_feasible_management, DEFAULT_TRANSITIONS
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -84,6 +84,13 @@ class ProfessionalTools:
                         "detail":"初始 SOC 须为 0 到 1 的比例；百分数请明确写出 %。"}]},"invalid_input")
             if "battery_power_kw" in cfg:
                 values.update(min_power_kw=0, max_power_kw=cfg["battery_power_kw"])
+            if state.get("task_type") != "prediction" and values["initial_soc"] < values["soc_min"] - 1e-9:
+                return self.save(state, "Tdata", {"diagnostics": [{
+                    "code": "initial_soc_below_planning_floor", "field_ref": key,
+                    "battery_id": f"battery_{i}", "initial_soc": values["initial_soc"],
+                    "soc_min": values["soc_min"],
+                    "detail": "该组出发电量已低于当前仿真规划下限；无途中充电模型，不能开始本次规划。",
+                }]}, "invalid_input")
             values["sources"] = {k: source(f"battery_{i}.{k}").to_dict() for k in values}
             if state["request"].get(key) is not None:
                 combined=bool(state["request"].get("soc_applied_to_both"))
@@ -382,6 +389,7 @@ class ProfessionalTools:
                 "summary": {**speed.get("summary", {}), "safe": False, "energy_budget": budget},
                 "diagnostics": [diagnostic]}, "infeasible_under_assumptions")
         result = run_management_fdp(req)
+        result = recover_feasible_management(req, result)
         payload = result.get("payload") or {}
         original_request = req.to_dict()
         if result.get("outcome_code") == "ok" and payload.get("grid"):

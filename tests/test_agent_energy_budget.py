@@ -23,12 +23,45 @@ def test_bus_budget_includes_both_reserves_and_discharge_losses():
     assert not selected_demand_budget(batteries(), 1080 + 1e-8)["insufficient"]
 
 
+@pytest.mark.parametrize("group,name", [(1, "甲组"), (2, "乙组")])
+def test_below_floor_input_is_rejected_before_route_search_with_specific_guidance(tmp_path, group, name):
+    store = Store(tmp_path)
+    store.create("below", "local", {})
+    try:
+        tool = ProfessionalTools(store)
+        state = dict(task_id="below", scenario_id="route_success", revision=1,
+            request={"initial_soc_1": .85, "initial_soc_2": .85, f"initial_soc_{group}": .2}, refs={})
+        out = tool.data(state, "data")
+        assert out["outcome_code"] == "invalid_input"
+        assert out["diagnostics"][0]["field_ref"] == f"initial_soc_{group}"
+        state["refs"]["Tdata"] = out["artifact_ref"]
+        guidance = operator_guidance(store, "below", "invalid_input", state["request"], state["refs"])
+        assert name in guidance["reason"]
+        assert "20%" in guidance["reason"] and "25%" in guidance["reason"]
+        assert "另一组" in guidance["reason"]
+    finally:
+        store.close()
+
+
 @pytest.mark.parametrize("field,value", [("capacity_kwh", None), ("discharge_efficiency", 0),
     ("initial_soc", float("nan")), ("initial_soc", True), ("soc_min", -1)])
 def test_missing_or_invalid_evidence_is_not_zero_available_energy(field, value):
     values = batteries()
     values["battery_1"][field] = value
     assert selected_demand_budget(values, 1200) is None
+
+
+def test_planning_reserve_does_not_block_independent_power_prediction(tmp_path):
+    store = Store(tmp_path)
+    store.create("predict-low-soc", "local", {})
+    try:
+        out = ProfessionalTools(store).data(dict(task_id="predict-low-soc", scenario_id="route_success",
+            revision=1, task_type="prediction", request={"initial_soc_1": .2, "initial_soc_2": .85}, refs={}), "data")
+        assert out["outcome_code"] == "ok"
+        data = store.read("predict-low-soc", out["artifact_ref"])["payload"]
+        assert data["batteries"]["battery_1"]["initial_soc"] == .2
+    finally:
+        store.close()
 
 
 def test_selected_candidate_energy_failure_stops_before_fdp(tmp_path, monkeypatch):

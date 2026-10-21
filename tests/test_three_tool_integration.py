@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from pathlib import Path
+import os
 
 import pytest
 
@@ -27,6 +28,33 @@ from tools.tmanagement_fdp import run_management_fdp
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows extended-path regression")
+def test_selected_demand_survives_windows_path_longer_than_max_path(tmp_path):
+    from research.contracts import PowerDemandPoint, PowerDemandSeries
+    directory = tmp_path / ("a" * 75) / ("b" * 75) / ("c" * 75)
+    assert len(str(directory.resolve())) > 260
+    store = DemandArtifactStore(directory)
+    series = PowerDemandSeries(series_id="long-path", points=(PowerDemandPoint(
+        phase="sailing", start_offset_s=0, duration_s=5, motor_power_kw=10,
+        propulsion_bus_kw=10, auxiliary_bus_kw=0, demand_bus_kw=10,
+        conversion_model_ref="named"),), conversion_model_ref="named",
+        conversion_config_hash="0" * 64, bus_side_available=True)
+    ref = store.put(series)
+    try:
+        loaded = store.get(ref.artifact_id)
+        assert loaded.points == series.points
+        assert loaded.demand_energy_kwh() == pytest.approx(10 * 5 / 3600)
+        assert loaded.artifact_ref.sha256 == ref.sha256
+    finally:
+        # Remove the exact test file via the same extended path; no recursive
+        # cleanup or change to the workstation's registry is required.
+        (store.directory / f"{ref.artifact_id}.json").unlink()
+        cursor = store.directory
+        for _ in range(3):
+            cursor.rmdir()
+            cursor = cursor.parent
 
 
 def _bridge_request(raw: dict, bridge: TenergyV2Predictor) -> EnergyBatchRequest:

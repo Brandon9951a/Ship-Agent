@@ -777,6 +777,12 @@ def _run_management_fdp_once(request: BatteryManagementRequest) -> dict[str, Any
         layers = next_layer
 
     best = min(layers.values(), key=lambda item: _total_cost(item["cost_terms"]))
+    return _verified_path_result(request, best, started=started, wall_start=wall_start,
+                                 transitions_seen=transitions_seen, peak_states_per_layer=peak_states_per_layer)
+
+
+def _verified_path_result(request, best, *, started, wall_start, transitions_seen, peak_states_per_layer):
+    """Shared serialization and independent checks for a complete dispatch path."""
     rows = _materialize_rows(best)
     optimized_costs = {**best["cost_terms"], "total": _total_cost(best["cost_terms"])}
     verification = verify_trajectory(request, rows, optimized_costs)
@@ -927,6 +933,63 @@ def run_management_fdp(request: BatteryManagementRequest) -> dict[str, Any]:
 def _total_cost(costs: dict[str, float]) -> float:
     return sum(float(costs.get(key, 0.0))
                for key in ("power", "switch", "soc_balance", "low_load_mode3"))
+
+
+def recover_feasible_management(request: BatteryManagementRequest, unresolved: dict) -> dict:
+    """After bounded FDP failure, try the existing state machine as a witness.
+
+    Never call this an optimized FDP path. All hard limits, per-row dispatch
+    rules and the conservative grid representation receive the same replay.
+    A failed witness retains the original unresolved evidence.
+    """
+    if unresolved.get("outcome_code") != "grid_unresolved" or len(request.demand_series) > 100_000:
+        return unresolved
+    wall_start, started = time.perf_counter(), _now()
+    witness = run_state_machine(request, soc_difference_threshold=0.0)
+    if witness.get("outcome_code") != "ok" or not witness.get("safe"):
+        return {**unresolved, "feasibility_recovery": {
+            "method": "reference_state_machine", "outcome_code": witness.get("outcome_code"),
+            "diagnostics": witness.get("diagnostics", []), "safe": False}}
+    grid = request.grid
+    planned = tuple(_floor_to_grid(b.initial_soc, b.soc_min, grid.soc_step)
+                    for b in (request.battery_1, request.battery_2))
+    best = None
+    previous = request.previous_mode
+    costs = {key: 0.0 for key in ("power", "switch", "soc_balance", "low_load_mode3")}
+    for point, original in zip(request.demand_series, witness["rows"]):
+        before = (original["soc_1_before"], original["soc_2_before"])
+        after = (original["soc_1_after"], original["soc_2_after"])
+        mode = original["mode"]
+        transition = {"mode": mode, "battery_1_power_kw": original["battery_1_power_kw"],
+            "battery_2_power_kw": original["battery_2_power_kw"],
+            "cost_terms": _dp_costs(request, mode, original["battery_1_power_kw"],
+                original["battery_2_power_kw"], *planned, point.demand_bus_kw, previous)}
+        following = tuple(_floor_to_grid(soc, b.soc_min, grid.soc_step)
+                          for soc, b in zip(after, (request.battery_1, request.battery_2)))
+        row = _row(request, point, transition, before, after, planned, following)
+        for key in costs:
+            costs[key] += transition["cost_terms"][key]
+        best = {"parent": best, "row": row, "cost_terms": dict(costs),
+                "actual_soc1": after[0], "actual_soc2": after[1], "soc1": following[0], "soc2": following[1]}
+        planned, previous = following, mode
+    if best is None:
+        return unresolved
+    recovered = _verified_path_result(request, best, started=started, wall_start=wall_start,
+                                      transitions_seen=len(witness["rows"]), peak_states_per_layer=1)
+    if recovered.get("outcome_code") != "ok":
+        return {**unresolved, "feasibility_recovery": {"safe": False,
+            "outcome_code": recovered.get("outcome_code"), "diagnostics": recovered.get("diagnostics", [])}}
+    evidence = {"method": "reference_state_machine", "soc_difference_threshold": 0.0,
+                "safe": True, "optimality_claim": False, "fdp_outcome_code": unresolved["outcome_code"]}
+    payload = recovered["payload"]
+    payload.update(dispatch_method="verified_state_machine_after_fdp", optimality_claim=False,
+                   feasibility_recovery=evidence, fdp_diagnostics=unresolved.get("diagnostics", []),
+                   search_attempts=unresolved.get("search_attempts", []))
+    payload["summary"].update(dispatch_method="verified_state_machine_after_fdp", optimality_claim=False)
+    payload["assumptions"].append({"assumption_id": "feasibility-only-recovery",
+        "value": "FDP 有界搜索未完成后，原状态机得到并独立复核一条可行分配路径；不宣称 FDP 最优解。"})
+    recovered["feasibility_recovery"] = evidence
+    return recovered
 
 
 def _segment_summary(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:

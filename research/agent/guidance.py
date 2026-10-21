@@ -27,6 +27,13 @@ def operator_guidance(store, task_id, outcome, request, refs):
     segment = _payload(store, task_id, refs, "Tseg")
     for body in (data, segment, speed, management):
         for diagnostic in body.get("diagnostics", []):
+            if diagnostic.get("code") == "initial_soc_below_planning_floor":
+                name = "甲组" if diagnostic["battery_id"] == "battery_1" else "乙组"
+                return {"title": f"{name}出发电量低于规划下限", "status_label": "出发电量需核对",
+                    "reason": (f"{name}出发电量为 {_percent(diagnostic['initial_soc'])}，低于本次仿真的最低允许电量 "
+                        f"{_percent(diagnostic['soc_min'])}。本系统尚不支持途中补电，因此不能按这一初始状态开始规划；"
+                        "即使另一组有电，也不能跳过这组电池的最低电量约束。"),
+                    "suggestion": f"请先核对{name}电量；若数值正确，请补电后填写新的实测 SOC 再计算。仅为软件测试时，可修改该组仿真初态后重算，不要把修改值当作实际补电。"}
             if diagnostic.get("code") == "environment_no_operating_speed":
                 return {"title": "当前环境下没有可用运行速度",
                     "reason": "所选航段的水流和运行速度范围，与本次仿真的推进功率上限不兼容；未生成可用方案。",

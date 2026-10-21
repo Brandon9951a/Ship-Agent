@@ -251,7 +251,10 @@ const ResearchBridge = (() => {
         },
         checks,
         warnings: [],
-        management_advice: ok ? [`双电池末端 SOC：甲组 ${formatNumber((soc1 ?? 0) * 100, "%")}，乙组 ${formatNumber((soc2 ?? 0) * 100, "%")}`, "当前是具名情景的软件仿真结果，尚未经实船参数校准。"] : [],
+        management_advice: ok ? [`双电池末端 SOC：甲组 ${formatNumber((soc1 ?? 0) * 100, "%")}，乙组 ${formatNumber((soc2 ?? 0) * 100, "%")}`,
+          ...(management?.summary?.dispatch_method === "verified_state_machine_after_fdp"
+            ? ["动态规划搜索未完成后，采用状态机生成并独立复核的可行分配路径；不宣称最优分配。"] : []),
+          "当前是具名情景的软件仿真结果，尚未经实船参数校准。"] : [],
         assumptions: Array.isArray(assumptions) ? assumptions.map(item => typeof item === "string" ? item : JSON.stringify(item)) : [],
       },
       questions: pending ? [pending.question || "请补充缺失任务信息。"] : [],

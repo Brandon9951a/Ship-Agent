@@ -121,6 +121,7 @@ class VerificationReport:
     energy_envelope: EnergyResultEnvelope | None
     diagnostics: tuple[Diagnostic, ...] = ()
     notes: tuple[str, ...] = ()
+    verified_trajectory: tuple[dict, ...] = ()
 
     @property
     def failed_checks(self) -> tuple[str, ...]:
@@ -399,4 +400,5 @@ def verify_candidate(candidate: CandidateTrajectory, *,
         distance_residual_km=expanded.distance_residual_km,
         demand=demand, demand_energy_kwh=demand_energy, energy_envelope=envelope,
         diagnostics=tuple(diagnostics), notes=tuple(notes),
+        verified_trajectory=tuple(point.to_dict() for point in verification_candidate.trajectory),
     )

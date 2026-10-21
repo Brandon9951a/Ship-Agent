@@ -234,6 +234,31 @@ def test_reverse_real_solvers_and_waiting_stop_start(tmp_path):
     assert segments["segments"][0]["stop_for_wait"]
 
 
+def test_exported_long_port_trajectory_uses_verified_demand_time_axis(tmp_path):
+    store = Store(tmp_path)
+    store.create("port-axis", "local", {})
+    tool = ProfessionalTools(store)
+    state = dict(task_id="port-axis", scenario_id="route_success", revision=1, refs={},
+        request={"origin": "周口港", "destination": "周口船闸", "remaining_time_s": 36000,
+            "initial_soc_1": .25, "initial_soc_2": .95, "load_state": "半载"})
+    try:
+        for name, fn in (("Tdata", tool.data), ("Tseg", tool.segments), ("Tspeed", tool.speed), ("Tmanagement", tool.management)):
+            out = fn(state, name)
+            assert out["outcome_code"] == "ok", (name, out)
+            state["refs"][name] = out["artifact_ref"]
+        speed = tool.payload(state, "Tspeed")
+        demand = store.read("port-axis", speed["demand_artifact_ref"])["payload"]
+        for row, point in zip(speed["result"]["selected_trajectory"], demand["points"]):
+            assert row["start_offset_s"] == pytest.approx(point["start_offset_s"], abs=1e-8)
+            assert row["duration_s"] == pytest.approx(point["duration_s"], abs=1e-8)
+        ref, summary = tool.verify(state)
+        assert store.read("port-axis", ref)["payload"]["passed"]
+        assert summary["final_soc_1"] == pytest.approx(.25)
+        assert summary["final_soc_2"] < .95
+    finally:
+        store.close()
+
+
 def test_environment_aware_deadline_precheck_reports_computed_lower_bound(tmp_path):
     store = Store(tmp_path)
     store.create("tight", "local", {})
