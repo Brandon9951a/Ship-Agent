@@ -9,11 +9,13 @@
 |---|---|
 | 系统 `python` | Windows 商店占位符，无法执行，返回 9009 |
 | 验收 Python 环境 | 3.12.14，可执行 |
-| pytest | 初始未安装，已安装 pytest 9.1.1 到 验收 Python 环境 环境 |
+| pytest | 初始未安装，已安装 pytest 9.1.1 到验收 Python 环境 |
 | 工程依赖 | `pyproject.toml` 仍为标准库运行依赖，未修改 |
 | 默认示例 CLI | 可运行，返回 `need_clarification` |
 
 ## 测试命令
+
+以下 `python` 指本次核验的 Python 3.12.14 环境；复现时替换为实际解释器路径。
 
 ```text
 python -m pytest tests/test_d2_tools.py -q
