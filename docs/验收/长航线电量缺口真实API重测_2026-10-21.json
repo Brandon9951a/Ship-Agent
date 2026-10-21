@@ -1,0 +1,106 @@
+{
+  "scope": "backend real API regression; browser acceptance unavailable",
+  "original_task_id": "b7a150a3-9a2b-4d03-bc8a-461728a6aea1",
+  "task_id": "4aa193c5-b713-445b-9c6e-45615d724be9",
+  "task_text": "从马湾船闸到周口港，2026-10-22 09:00出发，甲组电池SOC80%，乙组电池SOC90%，满载，12小时内到达",
+  "runtime_s": 27.71900000000005,
+  "outcome_code": "infeasible_under_assumptions",
+  "request": {
+    "current_speed_kmh": null,
+    "departure_at": "2026-10-22 09:00",
+    "destination": "周口港",
+    "initial_soc_1": 0.8,
+    "initial_soc_2": 0.9,
+    "load_state": "满载",
+    "objective": null,
+    "origin": "马湾船闸",
+    "prediction_backend": null,
+    "prediction_duration_s": null,
+    "remaining_time_s": 43200,
+    "trajectory": null
+  },
+  "models": [
+    "deepseek-v4-pro"
+  ],
+  "actions": [
+    "Tdata",
+    "Tseg",
+    "Tspeed",
+    "Tmanagement",
+    "finish_without_plan"
+  ],
+  "guidance": {
+    "energy_budget": {
+      "available_bus_kwh": 1080.0,
+      "batteries": [
+        {
+          "available_bus_kwh": 495.0,
+          "battery_id": "battery_1",
+          "capacity_kwh": 1000.0,
+          "discharge_efficiency": 0.9,
+          "initial_soc": 0.8,
+          "soc_min": 0.25
+        },
+        {
+          "available_bus_kwh": 585.0,
+          "battery_id": "battery_2",
+          "capacity_kwh": 1000.0,
+          "discharge_efficiency": 0.9,
+          "initial_soc": 0.9,
+          "soc_min": 0.25
+        }
+      ],
+      "charging_supported": false,
+      "insufficient": true,
+      "required_bus_kwh": 1322.5393029902016,
+      "scope": "selected_candidate",
+      "shortfall_bus_kwh": 242.53930299020158
+    },
+    "reason": "已算出的航速方案需要约 1322.5 kWh；甲组出发电量 80%、乙组 90%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1080.0 kWh，还差约 242.5 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。",
+    "status_label": "候选方案电量不足",
+    "suggestion": "可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+    "title": "本次候选方案电量不足"
+  },
+  "diagnostics": [
+    {
+      "available_bus_kwh": 1080.0,
+      "batteries": [
+        {
+          "available_bus_kwh": 495.0,
+          "battery_id": "battery_1",
+          "capacity_kwh": 1000.0,
+          "discharge_efficiency": 0.9,
+          "initial_soc": 0.8,
+          "soc_min": 0.25
+        },
+        {
+          "available_bus_kwh": 585.0,
+          "battery_id": "battery_2",
+          "capacity_kwh": 1000.0,
+          "discharge_efficiency": 0.9,
+          "initial_soc": 0.9,
+          "soc_min": 0.25
+        }
+      ],
+      "charging_supported": false,
+      "code": "selected_demand_energy_exceeds_available",
+      "demand_artifact_ref": "fece93094b2eaf416fec2e1a9a0cce36d014434384924df3be9aaee8a87d7bcd",
+      "detail": "选定航速方案的母线需求超过双电池保留最低 SOC 后可交付的总能量。",
+      "failure_scope": "selected_candidate_energy",
+      "field_ref": "selected_demand_ref,initial_soc_1,initial_soc_2",
+      "insufficient": true,
+      "required_bus_kwh": 1322.5393029902016,
+      "retryable": false,
+      "scope": "selected_candidate",
+      "shortfall_bus_kwh": 242.53930299020158
+    }
+  ],
+  "refs": {
+    "Tdata": "fd7923a50ad6c845e5af32a5c445cc6682bdee7c2ac3955771cab3b5148394f3",
+    "Tmanagement": "5b3682884159efd4adc73be41fc4b1ac582aec7261cd9e36492b3d7092af129c",
+    "Tseg": "874bf67ab03c506de2b015427054aa3569a6433a0f5cec0baab9feeb36679c03",
+    "Tspeed": "7d76e89429f7345b538cdebb7f8f623a6933fa9249f95f0cfbb7a6d7dd4babbd"
+  },
+  "final_answer": "已算出的航速方案需要约 1322.5 kWh；甲组出发电量 80%、乙组 90%，分别保留最低电量 25%、25% 并计入放电损耗后，两组最多可供约 1080.0 kWh，还差约 242.5 kWh。因此这份航速方案无法按当前电量完成；这里比较的都是供给船上负载的电量，未计入途中补电。\n\n建议：可尝试出发前补电，并分别录入两组新 SOC；或把本次目的地改为较近的港口或船闸，缩短单次航程后重算。若允许调整载况或到达时限，也可修改后重新试算。以上调整尚未验证可行；这次结果只排除了当前候选方案，其他航速方案能否满足原任务仍需重新求解。",
+  "passed": true
+}

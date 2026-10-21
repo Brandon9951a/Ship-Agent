@@ -87,6 +87,28 @@ test('dashboard prediction rendering clears voyage metrics and never starts voya
   assert.equal(vessel, 'incomplete');
 });
 
+test('dashboard distinguishes an unfinished solver from a proven candidate energy shortfall', async () => {
+  const app = fs.readFileSync('ui/frontend/app.js', 'utf8');
+  const render = app.slice(app.indexOf('function renderResult(result)'), app.indexOf('function pcm16Base64'));
+  for (const label of ['计算未完成', '候选方案电量不足']) {
+    const { result, context } = await project('solver_unresolved');
+    result.operator_guidance = { title: label, status_label: label, reason: '原因', suggestion: '下一步' };
+    let status;
+    Object.assign(context, {
+      requestCompleteForForm: () => false, syncPartialRequestToInputs: () => {},
+      rawSegments: () => [], planSegments: () => [], updateStatus: (_, text) => { status = text; },
+      renderProgress: () => {}, renderRoute: () => {}, renderModel: () => {}, renderTrace: () => {},
+      renderRecommendations: () => {}, renderEnergyChart: () => {}, renderTable: () => {},
+      renderSafety: () => {}, updateVesselView: () => {}, formatHours: String,
+      userStorageSet: () => {}, operatorSummary: () => '未完成', renderHistory: () => {},
+      refreshIcons: () => {}, renderRuntimeControls: () => {}, showInfeasible: () => {}, ACTIVE_THREAD_KEY: '',
+      ACTIVE_TASK_TEXT_KEY: '', ACTIVE_REQUEST_KEY: '',
+    });
+    vm.runInContext(render + '\nrenderResult(result)', context);
+    assert.equal(status, label);
+  }
+});
+
 test('research progress treats completed Tenergy candidates without outcome_code as finished', () => {
   const app = fs.readFileSync('ui/frontend/app.js', 'utf8');
   const traceHelper = app.slice(app.indexOf('function researchToolTrace(events)'), app.indexOf('function rawSegments(result)'));

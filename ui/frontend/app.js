@@ -1346,7 +1346,7 @@ function renderResult(result) {
   const checks = result.report?.checks || result.tspeed?.payload?.checks || [];
   const warnings = result.report?.warnings || result.tmanagement?.payload?.warnings || [];
 
-  updateStatus(okay || predicted ? "success" : awaiting ? "running" : "error", predicted ? "能耗预测完成" : okay ? "仿真方案已生成" : awaiting ? "等待确认" : result.operator_guidance ? "需调整条件" : infeasible ? "航次不可行" : result.status === "failed" ? "执行未完成" : "需要补充");
+  updateStatus(okay || predicted ? "success" : awaiting ? "running" : "error", predicted ? "能耗预测完成" : okay ? "仿真方案已生成" : awaiting ? "等待确认" : result.operator_guidance?.status_label || (result.outcome_code === "solver_unresolved" ? "计算未完成" : result.operator_guidance ? "需调整条件" : infeasible ? "航次不可行" : result.status === "failed" ? "执行未完成" : "需要补充"));
   $("#mission-title").textContent = predicted ? "独立能耗预测完成" : route.length ? `${route[0].origin} → ${route.at(-1).destination}` : (okay ? "仿真方案已生成" : "任务未完成");
   $("#mission-subtitle").textContent = predicted ? "工具已计算功率与能量；来源、后端和诊断见下方。此结果不代表航次可行。" : okay
     ? "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。"

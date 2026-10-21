@@ -599,7 +599,7 @@ def create_app(
         try:
             store = app.state.research_runtime.store
             record = store.get(thread_id, request.state.session["id"])
-            if record.get("status") == "completed" and not record.get("operator_guidance"):
+            if record.get("status") == "completed":
                 guidance = operator_guidance(store, thread_id, record.get("outcome_code"),
                                              record.get("request") or {}, record.get("result_refs") or {})
                 if guidance:

@@ -10,6 +10,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from research.agent.store import digest
+from research.agent.energy_budget import selected_demand_budget
 from research.agent.environment import (EnvironmentError, RiverPowerPredictor,
     load_environment, resolve_route_environment, validate_snapshot, verify_environment_demand)
 from research.contracts import SourceRef, TimeGridSpec
@@ -364,6 +365,21 @@ class ProfessionalTools:
             return self.save(state, "Tmanagement", {
                 "request": req.to_dict(), "speed_ref": state["refs"]["Tspeed"],
                 "snapshot_id": data["snapshot_id"], "summary": summary,
+                "diagnostics": [diagnostic]}, "infeasible_under_assumptions")
+        budget = selected_demand_budget(data["batteries"], demand.demand_energy_kwh())
+        if budget and budget["insufficient"]:
+            # Necessary bound for this selected trajectory, not a proof that
+            # every other speed profile or voyage is infeasible.
+            diagnostic = {"code": "selected_demand_energy_exceeds_available",
+                "field_ref": "selected_demand_ref,initial_soc_1,initial_soc_2",
+                "failure_scope": "selected_candidate_energy", "retryable": False,
+                "detail": "选定航速方案的母线需求超过双电池保留最低 SOC 后可交付的总能量。",
+                "demand_artifact_ref": speed["demand_artifact_ref"],
+                **budget}
+            return self.save(state, "Tmanagement", {
+                "request": req.to_dict(), "speed_ref": state["refs"]["Tspeed"],
+                "snapshot_id": data["snapshot_id"],
+                "summary": {**speed.get("summary", {}), "safe": False, "energy_budget": budget},
                 "diagnostics": [diagnostic]}, "infeasible_under_assumptions")
         result = run_management_fdp(req)
         payload = result.get("payload") or {}
