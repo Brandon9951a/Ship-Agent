@@ -137,6 +137,8 @@ def effective_bounds(request: SpeedOptimizationRequest) -> list[tuple[float, flo
     segments = list(request.segments)
     grid = request.time_grid
     for prev, current in zip(segments, segments[1:]):
+        if prev.stop_for_wait and prev.waiting_duration_s > 0:
+            continue
         floor_prev = fixed_speed_floor(prev, grid)
         high_current = speed_ceiling(current, grid)
         if floor_prev > high_current + 1e-9:

@@ -48,6 +48,8 @@ class SegmentConstraint(ContractModel):
     waiting_duration_s: float = 0.0
     origin_entity_id: str | None = None
     destination_entity_id: str | None = None
+    stop_for_wait: bool = False
+    cruise_floor_only: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "source_refs", tuple(self.source_refs))

@@ -3,6 +3,28 @@ const { test } = require('node:test');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
+test('environment evidence expands inside existing decision panel with both speed meanings', async () => {
+  const nodes = new Map();
+  const context = vm.createContext({
+    $: id => { if (!nodes.has(id)) nodes.set(id, {}); return nodes.get(id); },
+    escapeHtml: String, formatNumber: value => value == null ? '--' : Number(value).toFixed(3),
+    state: { lastResult: { thread_id: 'env' } },
+  });
+  vm.runInContext(fs.readFileSync('ui/frontend/research-bridge.js', 'utf8'), context);
+  context.result = { thread_id: 'env', research_events: [], research_environment: {
+    snapshot: { label: '分段水流', assumption: '具名测试假设', load_state: '半载', load_factor: 1,
+      version: 'test-v1', content_hash: 'verified-env-hash' },
+    segment_ids: ['leg'], ground_speeds_kmh: [12.72], water_speeds_kmh: [12],
+    segments: { leg: { current_along_route_mps: .2, waiting_duration_s: 300, wind_factor: 1, channel_factor: 1 } },
+  } };
+  await vm.runInContext('ResearchBridge.renderDetails(result)', context);
+  const html = nodes.get('#agent-decision-list').innerHTML;
+  assert.match(html, /<details><summary>本次环境与双航速依据/);
+  for (const label of ['对地 km\/h', '对水 km\/h', '12.720', '12.000', 'verified-env-hash']) {
+    assert.ok(html.includes(label.replace('\\/', '/')));
+  }
+});
+
 async function project(outcome, backend = 'analytic', events = []) {
   const prediction = { outcome_code: outcome === 'prediction_completed' ? 'ok' : outcome,
     backend, summary: { motor_energy_kwh: 1.5 }, power_series_ref: 'power-hash',

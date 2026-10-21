@@ -1,0 +1,1278 @@
+{
+  "scope": "local website; real API model; registered simulation environment",
+  "count": 10,
+  "passed": true,
+  "cases": [
+    {
+      "case": "01_short_forward",
+      "task_id": "b21a72da-8ecc-46f6-a170-7276f9c002e3",
+      "task_text": "从漯河船闸到漯河港，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，2小时内到达",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 19.423377,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 7,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 33,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "漯河港",
+        "initial_soc_1": 0.85,
+        "initial_soc_2": 0.85,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "漯河船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 7200,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 1.5819701349420128,
+        "distance_km": 0.689,
+        "duration_s": 704.9371063450474,
+        "final_soc_1": 0.8499242960159499,
+        "final_soc_2": 0.8483179593896717,
+        "motor_energy_kwh": 0.5667173713395253
+      },
+      "segment_count": 1,
+      "ground_speeds_kmh": [
+        3.4627802204194285
+      ],
+      "water_speeds_kmh": [
+        3.3547802204194284
+      ],
+      "waiting_s": 0.0,
+      "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+      "refs": {
+        "Tdata": "f4a51b8917adc1192a4c82f43fb38890d6106ec430d05a9a8f37a2ddf330be4a",
+        "Tmanagement": "587bcd27fdd926db759ab1db5b8136edb558d09a95c5b3a639f294cf39b0dd4e",
+        "Tseg": "dc91723c00d0857876f6fc9df089dbccdc93876d47e1c0e218767a2e491e900f",
+        "Tspeed": "f490a66502d03b82ece7b7d4df44e0309559f7bcb7771b484e59bdf4b0e293dd"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 1.5819701347721655,
+          "distance_km": 0.688999999922904,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 143
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1.4031864150466173,
+            "soc_balance": 0.015000000000000013,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1.4031864150466173,
+            "soc_balance": 0.033238698624184534,
+            "switch": 0.0
+          },
+          "check_count": 1431,
+          "failed_checks": []
+        },
+        "management_ref": "587bcd27fdd926db759ab1db5b8136edb558d09a95c5b3a639f294cf39b0dd4e",
+        "passed": true,
+        "speed_ref": "f490a66502d03b82ece7b7d4df44e0309559f7bcb7771b484e59bdf4b0e293dd",
+        "artifact_ref": "b6273a2b69519ef3a3da268a490d1823ce45ad9fafad990a3c50912044b8c0af"
+      },
+      "final_answer": "方案可行，仿真行程满足用户给出的 2 小时时限。\n\n用户设定条件：出发 2026-10-22 09:00，甲组电池 SOC 85%，乙组电池 SOC 85%，半载，2 小时内到达。\n\n仿真结果（解析后端）：预计耗时 704.937 s，航程 0.689 km。母线侧耗能 1.58197 kWh，推进电机侧耗能 0.566717 kWh。到达时甲组电池 SOC 85.0%，乙组电池 SOC 84.8%，均高于下限，行程安全。\n\n上述结果基于具名研究仿真假设，流速、载况、风阻及船闸等待均为测试值，不代表当地实测或通航规则，亦非实船批准结论。",
+      "browser_view": {
+        "agent-decision-meta": "7 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "",
+        "infeasible-suggestion": "",
+        "metric-energy": "1.6 kWh",
+        "metric-eta": "2026-10-22 09:11",
+        "metric-soc": "85.0% / 84.8%",
+        "metric-time": "0.196 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "漯河船闸 → 漯河港",
+        "trace-meta": "33 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    },
+    {
+      "case": "02_short_reverse_split_soc",
+      "task_id": "e00fc1c2-44d2-4bcf-bec2-c69425191335",
+      "task_text": "从漯河港到漯河船闸，2026-10-22 09:00出发，甲组电池SOC80%，乙组电池SOC65%，半载，2小时内到达",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 19.592802,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 7,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 33,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "漯河船闸",
+        "initial_soc_1": 0.8,
+        "initial_soc_2": 0.65,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "漯河港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 7200,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 1.6876242379138349,
+        "distance_km": 0.6889999999999998,
+        "duration_s": 743.8007470455127,
+        "final_soc_1": 0.7981248619578668,
+        "final_soc_2": 0.65,
+        "motor_energy_kwh": 0.6152935861080253
+      },
+      "segment_count": 1,
+      "ground_speeds_kmh": [
+        3.2792805011402852
+      ],
+      "water_speeds_kmh": [
+        3.3872805011402853
+      ],
+      "waiting_s": 0.0,
+      "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+      "refs": {
+        "Tdata": "900418cf3fa71e848ae236317e452ecef9e38f834613e172739b4d3500020860",
+        "Tmanagement": "f94bccb76c5ec73a6a33133fb75437b7ee5b43499ca9ac5ce60eaa9fb954f9e3",
+        "Tseg": "aa7310bc45463987bda589dfb9ba60f7b212b9a94f8a8015ae54265a73407c66",
+        "Tspeed": "c2e244841881b998f52e572ebe93b58dcd3c30abdcb9b4cf2a6cb261edc0f7e5"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 1.6876242378474258,
+          "distance_km": 0.6889999999709645,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 151
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1.5298527716250654,
+            "soc_balance": 4.544999999999993,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1.5298527716250654,
+            "soc_balance": 6.750270230706818,
+            "switch": 0.0
+          },
+          "check_count": 1511,
+          "failed_checks": []
+        },
+        "management_ref": "f94bccb76c5ec73a6a33133fb75437b7ee5b43499ca9ac5ce60eaa9fb954f9e3",
+        "passed": true,
+        "speed_ref": "c2e244841881b998f52e572ebe93b58dcd3c30abdcb9b4cf2a6cb261edc0f7e5",
+        "artifact_ref": "1902ab26c9f0072b70b1378d531adbda62b381f513189e5aaee604f2457c3c4f"
+      },
+      "final_answer": "本次为具名研究仿真，采用解析后端，不构成实船或通航批准。\n\n用户给出的条件是：从漯河港到漯河船闸，2026-10-22 09:00 出发，甲组电池 SOC 80%，乙组电池 SOC 65%，半载，要求 2 小时内到达。\n\n仿真结果：全程用时 743.801 s，航程 0.689 km，满足 2 小时时限。母线侧能耗 1.68762 kWh，推进侧能耗 0.615294 kWh。到达时甲组电池 SOC 为 79.8%，乙组电池 SOC 为 65.0%（乙组未参与放电）。\n\n由于仅甲组电池承担供能，乙组 SOC 保持用户给定初值不变，两组均未触发最低 SOC 约束，方案在该仿真条件下可行。流速、载况、风阻、船闸等待及短航段低速进闸范围均为具名软件仿真假设，不代表当地实测或通航规则。",
+      "browser_view": {
+        "agent-decision-meta": "7 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "",
+        "infeasible-suggestion": "",
+        "metric-energy": "1.7 kWh",
+        "metric-eta": "2026-10-22 09:12",
+        "metric-soc": "79.8% / 65.0%",
+        "metric-time": "0.207 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "漯河港 → 漯河船闸",
+        "trace-meta": "33 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    },
+    {
+      "case": "03_normal_forward",
+      "task_id": "53b03287-660f-49dd-8881-e51bc3c51c0a",
+      "task_text": "从平顶山港到军李船闸，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，6小时内到达",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 33.814267,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 7,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 32,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "军李船闸",
+        "initial_soc_1": 0.85,
+        "initial_soc_2": 0.85,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "平顶山港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 21600,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 217.1199562059677,
+        "distance_km": 25.5,
+        "duration_s": 7758.66125760649,
+        "final_soc_1": 0.7293778021078163,
+        "final_soc_2": 0.7293778021078163,
+        "motor_energy_kwh": 193.96339552506714
+      },
+      "segment_count": 1,
+      "ground_speeds_kmh": [
+        11.832
+      ],
+      "water_speeds_kmh": [
+        11.112
+      ],
+      "waiting_s": 0.0,
+      "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+      "refs": {
+        "Tdata": "beb9113ec1c8a5e6ba068ae173dddc91c0c082c664736ab4fb054d533416ed60",
+        "Tmanagement": "e169bc0437bcc179af83e462e1ddf97f2072b31d127f0b714814a7279915a170",
+        "Tseg": "ba3f843c36f623511f694897f4a3554a6dbf2101832a755c30302a5f0e3f5df0",
+        "Tspeed": "b1e2dd2d3feedb3f3b5120dbbe061ad4258b18352e46c02dabe648a1ead6770c"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 217.1199562059677,
+          "distance_km": 25.499999999997662,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 1553
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 788.0212661463167,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 788.0212661463167,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "check_count": 15531,
+          "failed_checks": []
+        },
+        "management_ref": "e169bc0437bcc179af83e462e1ddf97f2072b31d127f0b714814a7279915a170",
+        "passed": true,
+        "speed_ref": "b1e2dd2d3feedb3f3b5120dbbe061ad4258b18352e46c02dabe648a1ead6770c",
+        "artifact_ref": "169657cf4510506dccd5b1909b5d448ac155c8afd54c1ed9fcad49b4675bede0"
+      },
+      "final_answer": "根据研究仿真（解析后端），平顶山港到军李船闸按您给出的条件——2026-10-22 09:00出发、甲组与乙组电池初始SOC均为85%、半载、6小时内到达——可完成行程。\n\n全程距离为 25.5 km，航行耗时为 7758.66 s，低于您给出的6小时时限。母线侧总耗能为 217.12 kWh，推进电机侧耗能为 193.963 kWh。\n\n到达时甲组与乙组电池荷电状态均为 72.9% 与 72.9%。\n\n说明：以上为具名研究仿真结果，流速、载况、附加阻力、船闸等待及转换效率等均为软件仿真假设，不等同于实船测量或航行条件批准，也不构成实船批准结论。",
+      "browser_view": {
+        "agent-decision-meta": "7 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "",
+        "infeasible-suggestion": "",
+        "metric-energy": "217.1 kWh",
+        "metric-eta": "2026-10-22 11:09",
+        "metric-soc": "72.9% / 72.9%",
+        "metric-time": "2.155 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "平顶山港 → 军李船闸",
+        "trace-meta": "32 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    },
+    {
+      "case": "04_normal_reverse",
+      "task_id": "0611c410-2007-4db6-b6f3-275c8b53be88",
+      "task_text": "从军李船闸到平顶山港，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，6小时内到达",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 35.889554,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 8,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 33,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "平顶山港",
+        "initial_soc_1": 0.85,
+        "initial_soc_2": 0.85,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "军李船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 21600,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 247.21006824257123,
+        "distance_km": 25.5,
+        "duration_s": 8833.683602771363,
+        "final_soc_1": 0.7126610731985957,
+        "final_soc_2": 0.7126610731985957,
+        "motor_energy_kwh": 220.8445994443965
+      },
+      "segment_count": 1,
+      "ground_speeds_kmh": [
+        10.392
+      ],
+      "water_speeds_kmh": [
+        11.112
+      ],
+      "waiting_s": 0.0,
+      "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+      "refs": {
+        "Tdata": "75a34339852e9cb04c0333488eb455ae2b83b5149ec4aa8c907062e954059150",
+        "Tmanagement": "0235b3ca30b8d6dd3e95efd5fb70bd7c719ab2b932a018ead632be8c07f47f1f",
+        "Tseg": "44557b7781aa277f2361ce6ae20e13b75d7c4afdd093513351ffa1a5a20334c6",
+        "Tspeed": "15d6f9043957ec659364728156c0d1c8dd38677c71f096c11881ff622be517f1"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 247.21006824257125,
+          "distance_km": 25.49999999999848,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 1768
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 897.3164169861698,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 897.3164169861698,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "check_count": 17681,
+          "failed_checks": []
+        },
+        "management_ref": "0235b3ca30b8d6dd3e95efd5fb70bd7c719ab2b932a018ead632be8c07f47f1f",
+        "passed": true,
+        "speed_ref": "15d6f9043957ec659364728156c0d1c8dd38677c71f096c11881ff622be517f1",
+        "artifact_ref": "77858ae9875c74b94c922e3e6040ac90ac3b7b1e8e7bad31e148dd0659c7456d"
+      },
+      "final_answer": "根据研究仿真结果，军李船闸至平顶山港航程可行。用户给出的出发条件为：2026-10-22 09:00 出发，甲组与乙组电池初始 SOC 均为 85%，半载，要求 6 小时内到达。\n\n仿真采用解析后端，航段全程约 25.5 km，航行用时 8833.68 s，满足用户给定的 6 小时到达时限。\n\n能量与电池方面，母线需求约 247.21 kWh，推进电机侧约 220.845 kWh。甲、乙两组电池均从 85% 初始 SOC 放电至 71.3%（两组一致，即 71.3%），均高于仿真假设的 SOC 下限，未触及安全边界。\n\n上述流速、载况、风阻、航道修正及船闸等待均为具名软件仿真假设，不代表当地实测或通航规则；本文不据此宣称实船批准或全局最优。",
+      "browser_view": {
+        "agent-decision-meta": "8 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "",
+        "infeasible-suggestion": "",
+        "metric-energy": "247.2 kWh",
+        "metric-eta": "2026-10-22 11:27",
+        "metric-soc": "71.3% / 71.3%",
+        "metric-time": "2.454 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "军李船闸 → 平顶山港",
+        "trace-meta": "33 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    },
+    {
+      "case": "05_multi_lock_wait",
+      "task_id": "09ab093a-3a3e-423e-89f3-ae82143a675e",
+      "task_text": "从马湾船闸到漯河港，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，8小时内到达",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 57.79237,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 7,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 34,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "departure_at": "2026-10-22 09:00",
+        "destination": "漯河港",
+        "initial_soc_1": 0.85,
+        "initial_soc_2": 0.85,
+        "load_state": "半载",
+        "origin": "马湾船闸",
+        "remaining_time_s": 28800
+      },
+      "metrics": {
+        "bus_energy_kwh": 356.15176707809445,
+        "distance_km": 44.78900000000001,
+        "duration_s": 14135.665380150976,
+        "final_soc_1": 0.6508579281724106,
+        "final_soc_2": 0.6534178861853122,
+        "motor_energy_kwh": 316.3277645848964
+      },
+      "segment_count": 2,
+      "ground_speeds_kmh": [
+        12.552,
+        2.108
+      ],
+      "water_speeds_kmh": [
+        11.112,
+        2.0
+      ],
+      "waiting_s": 300.0,
+      "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+      "refs": {
+        "Tdata": "83a6691985f6929fd110523239f040df67833bdd4301661fcc7be5b2c3325fb0",
+        "Tmanagement": "389144ad0cca4bf896f5e7ef9b0d762893ebe39e8c91ce295cc8de2954de3bb5",
+        "Tseg": "8bd5b09a3ff7d4e6872d071ee3908d9e476ecd683f5ab4470a1ce924bda339c9",
+        "Tspeed": "5ec9dd2c0aff3efa8ec1df2a7cd2d38ee4ad21bad1a5a7db55bb377d17304690"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 356.15176707809445,
+          "distance_km": 44.78899999999992,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 2770
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1284.9961575172968,
+            "soc_balance": 0.0,
+            "switch": 1000.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1284.9961575172968,
+            "soc_balance": 0.10937616219609897,
+            "switch": 1000.0
+          },
+          "check_count": 27701,
+          "failed_checks": []
+        },
+        "management_ref": "389144ad0cca4bf896f5e7ef9b0d762893ebe39e8c91ce295cc8de2954de3bb5",
+        "passed": true,
+        "speed_ref": "5ec9dd2c0aff3efa8ec1df2a7cd2d38ee4ad21bad1a5a7db55bb377d17304690",
+        "artifact_ref": "f04959c5ca9a07cc1ff542b073e8aad497977654576e9ae28cf15f0df47ea42d"
+      },
+      "final_answer": "方案可行。用户给出的条件是：马湾船闸到漯河港，2026-10-22 09:00 出发，甲组电池 SOC 85%、乙组电池 SOC 85%，半载，8 小时内到达。仿真结果满足时限要求，航行全程甲组、乙组电池均未低于下限。\n\n全程用时 14135.7 s，航程 44.789 km，母线侧总耗电 356.152 kWh，推进电机侧耗电 316.328 kWh。到达终点时，甲组电池剩余 65.1%，乙组电池剩余 65.3%，两组均远高于最低保护线，方案具备可行裕度。\n\n以上为解析后端在分航段常规流况仿真下的结果：流速、载况、附加阻力、船闸等待及母线转换效率均为具名软件仿真假设，不代表当地实测或实船批准；真实 LSTM 仅覆盖短轨迹，未用于本次全程结论。",
+      "browser_view": {
+        "agent-decision-meta": "7 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "",
+        "infeasible-suggestion": "",
+        "metric-energy": "356.2 kWh",
+        "metric-eta": "2026-10-22 12:55",
+        "metric-soc": "65.1% / 65.3%",
+        "metric-time": "3.927 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "马湾船闸 → 漯河港",
+        "trace-meta": "34 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    },
+    {
+      "case": "06_multi_reverse_empty",
+      "task_id": "a58f0478-0940-4782-8b2a-4472a2331375",
+      "task_text": "从漯河港到马湾船闸，2026-10-22 09:00出发，甲组电池SOC95%，乙组电池SOC90%，空载，8小时内到达",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 101.430155,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 8,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 34,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "马湾船闸",
+        "initial_soc_1": 0.95,
+        "initial_soc_2": 0.9,
+        "load_state": "空载",
+        "objective": null,
+        "origin": "漯河港",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 28800,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 417.9854134362159,
+        "distance_km": 44.78900000000001,
+        "duration_s": 17185.24505699044,
+        "final_soc_1": 0.7104893897673844,
+        "final_soc_2": 0.6750823730811865,
+        "motor_energy_kwh": 370.46999647231627
+      },
+      "segment_count": 2,
+      "ground_speeds_kmh": [
+        5.363594417006537,
+        9.672
+      ],
+      "water_speeds_kmh": [
+        5.4715944170065365,
+        11.112
+      ],
+      "waiting_s": 300.0,
+      "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+      "refs": {
+        "Tdata": "da41d49c6c32781d120e7712b8e559d3bbcd678c2c200d7d12d6569f6e78ccb5",
+        "Tmanagement": "1cf8c52247edc5427039f7529c9ea876d35b5f01ff7896c7f150372827f4c593",
+        "Tseg": "b7f80520f4cd6ceb93c807f5fd6005fe972853c1831859235b018c609a6971e0",
+        "Tspeed": "5b120c12be59c2d705da8e1f6c9ad0afe2c0c28f26727f194d30d08fb62c146f"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 417.9854134362159,
+          "distance_km": 44.788999999999845,
+          "environment_hash": "b3b67ae72e5031a8ffde06b7142b455d5415648c6c24887517086c94eea1f7f9",
+          "passed": true,
+          "rows": 3381
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1367.6822603826822,
+            "soc_balance": 69.8100000000012,
+            "switch": 1000.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1367.6822603826822,
+            "soc_balance": 82.78721455861279,
+            "switch": 1000.0
+          },
+          "check_count": 33811,
+          "failed_checks": []
+        },
+        "management_ref": "1cf8c52247edc5427039f7529c9ea876d35b5f01ff7896c7f150372827f4c593",
+        "passed": true,
+        "speed_ref": "5b120c12be59c2d705da8e1f6c9ad0afe2c0c28f26727f194d30d08fb62c146f",
+        "artifact_ref": "1258914f27446f4664ec813bfffa4ece641254cff35dd5ca2bed3f70a1bdff63"
+      },
+      "final_answer": "方案可行。从漯河港到马湾船闸，2026-10-22 09:00 出发，甲组电池 SOC 95%、乙组电池 SOC 90%（均为用户给定初态），空载，要求在 8 小时内到达。\n\n仿真结果为全程用时 17185.2 s，未超过用户给定的 8 小时时限。航程 44.789 km，母线侧能耗 417.985 kWh，电机能耗 370.47 kWh。\n\n到达时甲组电池 SOC 为 71.0%，乙组电池 SOC 为 67.5%，均高于 SOC 下限，全程安全。以上均为具名研究仿真的解析后端结果；流速、载况、风阻、船闸等待等均为软件仿真假设，不代表当地实测或实船批准，真实 LSTM 后端仅覆盖短轨迹。",
+      "browser_view": {
+        "agent-decision-meta": "8 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "甲、乙组出发电量均为 25%，正好是本次仿真设定的最低允许值。本航程需要用电，两组电池在当前约束下都没有可供航行消耗的余量，因此未生成通过核验的方案。",
+        "infeasible-suggestion": "如仅做仿真，可在快捷输入中分别提高两组电池的出发电量并重新计算。实际航次须先补电，再录入两组实测电量重算；若无法补电，请联系调度调整供能安排。仅延长到达时间不能解决出发电量不足。",
+        "metric-energy": "418.0 kWh",
+        "metric-eta": "2026-10-22 13:46",
+        "metric-soc": "71.0% / 67.5%",
+        "metric-time": "4.774 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "漯河港 → 马湾船闸",
+        "trace-meta": "34 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    },
+    {
+      "case": "07_low_soc",
+      "task_id": "2836df90-66fc-413f-9f9f-dfcdfba2b0c6",
+      "task_text": "从漯河船闸到漯河港，2026-10-22 09:00出发，甲组电池SOC25%，乙组电池SOC25%，半载，2小时内到达",
+      "status": "completed",
+      "outcome_code": "infeasible_under_assumptions",
+      "answer_status": "operator_guidance",
+      "runtime_s": 14.949332,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 6,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement"
+      ],
+      "tool_completions": 32,
+      "errors": [],
+      "tool_diagnostics": [
+        {
+          "artifact_ref": "76c98d86549b04b6da3eeb5a48574a4b1b5a928d770ea2dd1b9a7d7e342a6fe4",
+          "call_id": "call_00_LCOpWbID96eQrTx1fN0e9623",
+          "diagnostics": [
+            {
+              "code": "initial_soc_at_planning_floor",
+              "detail": "两组电池出发电量均已达到本次仿真规划下限，航行需要用电；请先补电并录入补电后的两组 SOC 再计算。",
+              "field_ref": "initial_soc_1,initial_soc_2",
+              "initial_soc_1": 0.25,
+              "initial_soc_2": 0.25,
+              "soc_min_1": 0.25,
+              "soc_min_2": 0.25
+            }
+          ],
+          "duration_ms": 47,
+          "outcome_code": "infeasible_under_assumptions",
+          "seq": 81,
+          "summary": {
+            "backend": "analytic",
+            "bus_energy_kwh": 1.5819701349420128,
+            "demand_artifact_ref": "cd6a4bc088eb4ea76070232d27b30d16fb468d963737dd6126b11465542f57a4",
+            "distance_km": 0.689,
+            "duration_s": 704.9371063450474,
+            "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+            "motor_energy_kwh": 0.5667173713395253,
+            "safe": false,
+            "selected_demand_ref": "d523e8b90875982b47cde2dc5502af0cebf7f0fdfc19926002cb93dc06ef6764",
+            "speed_semantics": "over_ground",
+            "speed_vector_kmh": [
+              3.4627802204194285
+            ],
+            "water_speed_vector_kmh": [
+              3.3547802204194284
+            ]
+          },
+          "task_id": "2836df90-66fc-413f-9f9f-dfcdfba2b0c6",
+          "timestamp": "2026-10-21T04:14:14.676810+00:00",
+          "tool": "Tmanagement",
+          "type": "tool_failed"
+        }
+      ],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "漯河港",
+        "initial_soc_1": 0.25,
+        "initial_soc_2": 0.25,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "漯河船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 7200,
+        "trajectory": null
+      },
+      "metrics": {},
+      "segment_count": 1,
+      "ground_speeds_kmh": [
+        3.4627802204194285
+      ],
+      "water_speeds_kmh": [
+        3.3547802204194284
+      ],
+      "waiting_s": 0.0,
+      "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+      "refs": {
+        "Tdata": "85da9f451e984be039c50d03367687d26ae030207dfc71afe620bbcff32adb62",
+        "Tmanagement": "76c98d86549b04b6da3eeb5a48574a4b1b5a928d770ea2dd1b9a7d7e342a6fe4",
+        "Tseg": "221651e939f9a5c4d86c95bd57ad44fee893b6960866d59cf9822e55f89c7ea4",
+        "Tspeed": "1e2c3ac966aafb2c84640e980b3e44ef2a7981a623cf8d19c96d51360f281e77"
+      },
+      "verification": null,
+      "final_answer": "甲、乙组出发电量均为 25%，正好是本次仿真设定的最低允许值。本航程需要用电，两组电池在当前约束下都没有可供航行消耗的余量，因此未生成通过核验的方案。\n\n建议：如仅做仿真，可在快捷输入中分别提高两组电池的出发电量并重新计算。实际航次须先补电，再录入两组实测电量重算；若无法补电，请联系调度调整供能安排。仅延长到达时间不能解决出发电量不足。",
+      "browser_view": {
+        "agent-decision-meta": "6 次模型响应 · 4 次动作",
+        "decision-status": "需调整条件",
+        "infeasible-reason": "甲、乙组出发电量均为 25%，正好是本次仿真设定的最低允许值。本航程需要用电，两组电池在当前约束下都没有可供航行消耗的余量，因此未生成通过核验的方案。",
+        "infeasible-suggestion": "如仅做仿真，可在快捷输入中分别提高两组电池的出发电量并重新计算。实际航次须先补电，再录入两组实测电量重算；若无法补电，请联系调度调整供能安排。仅延长到达时间不能解决出发电量不足。",
+        "metric-energy": "--",
+        "metric-eta": "--",
+        "metric-soc": "--",
+        "metric-time": "--",
+        "mission-subtitle": "出发电量已到仿真下限",
+        "mission-title": "漯河船闸 → 漯河港",
+        "trace-meta": "32 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "no_success_published": true,
+        "actionable_failure": true
+      },
+      "passed": true
+    },
+    {
+      "case": "08_tight_deadline",
+      "task_id": "d8b7e3bd-367f-4c96-8411-051763513516",
+      "task_text": "从平顶山港到军李船闸，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，1小时内到达",
+      "status": "completed",
+      "outcome_code": "infeasible_under_assumptions",
+      "answer_status": "operator_guidance",
+      "runtime_s": 18.805816,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 7,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "finish_without_plan"
+      ],
+      "tool_completions": 2,
+      "errors": [],
+      "tool_diagnostics": [
+        {
+          "artifact_ref": "97b1c8bf13d382ebdda12c497ee2af900c7c7dbb5f7ba7c1ad20e8b036f2bb1e",
+          "call_id": "call_00_atIr9kjIN92E9GMkn2Oe5919",
+          "diagnostics": [
+            {
+              "code": "deadline_below_physical_minimum",
+              "deadline_s": 3600,
+              "deadline_source": "user",
+              "detail": "所选航段共 25.500 km；按情景最高航速和等待时间，最短也需 1.77 小时，当前期限为 1.00 小时。可延长到达期限或选择更短航段后重算。",
+              "field_ref": "remaining_time_s",
+              "minimum_duration_s": 6354.876225286592
+            }
+          ],
+          "duration_ms": 15,
+          "outcome_code": "infeasible_under_assumptions",
+          "seq": 19,
+          "summary": {
+            "deadline_s": 3600,
+            "distance_km": 25.5,
+            "duration_bound_type": "optimistic_lower_bound",
+            "minimum_duration_s": 6354.876225286592
+          },
+          "task_id": "d8b7e3bd-367f-4c96-8411-051763513516",
+          "timestamp": "2026-10-21T04:13:20.199865+00:00",
+          "tool": "Tspeed",
+          "type": "tool_failed"
+        }
+      ],
+      "request": {
+        "departure_at": "2026-10-22 09:00",
+        "destination": "军李船闸",
+        "initial_soc_1": 0.85,
+        "initial_soc_2": 0.85,
+        "load_state": "半载",
+        "origin": "平顶山港",
+        "prediction_backend": "analytic",
+        "remaining_time_s": 3600
+      },
+      "metrics": {},
+      "segment_count": 1,
+      "ground_speeds_kmh": [],
+      "water_speeds_kmh": [],
+      "waiting_s": 0.0,
+      "environment_hash": null,
+      "refs": {
+        "Tdata": "822d4d47cd41d2bf595747ba7ad7abaf7cfacaf52ef790967f5e1048203e93ce",
+        "Tseg": "2a6cae3955751031ea1d55677df0aad570eb6c478ced505541980415f3caeea2",
+        "Tspeed": "97b1c8bf13d382ebdda12c497ee2af900c7c7dbb5f7ba7c1ad20e8b036f2bb1e"
+      },
+      "verification": null,
+      "final_answer": "按本次航段和仿真限速，最快约需 1.77 小时，当前给定时限为 1.00 小时。\n\n建议：请延长到达时限，或改选更短的连续航段后重新计算。",
+      "browser_view": {
+        "agent-decision-meta": "7 次模型响应 · 4 次动作",
+        "decision-status": "需调整条件",
+        "infeasible-reason": "按本次航段和仿真限速，最快约需 1.77 小时，当前给定时限为 1.00 小时。",
+        "infeasible-suggestion": "请延长到达时限，或改选更短的连续航段后重新计算。",
+        "metric-energy": "--",
+        "metric-eta": "--",
+        "metric-soc": "--",
+        "metric-time": "--",
+        "mission-subtitle": "到达时限短于仿真最快航时",
+        "mission-title": "平顶山港 → 军李船闸",
+        "trace-meta": "2 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "no_success_published": true,
+        "actionable_failure": true
+      },
+      "passed": true
+    },
+    {
+      "case": "09_long_explicit_deadline",
+      "task_id": "b5680473-f783-44ef-b319-ac14908b1acf",
+      "task_text": "从军李船闸到葫芦湾船闸，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，29.006小时内到达",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 151.005592,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 7,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 34,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "葫芦湾船闸",
+        "initial_soc_1": 0.85,
+        "initial_soc_2": 0.85,
+        "load_state": "半载",
+        "objective": null,
+        "origin": "军李船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 104421.6,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 952.7513970719198,
+        "distance_km": 117.28899999999999,
+        "duration_s": 36036.90693556956,
+        "final_soc_1": 0.34996204266148373,
+        "final_soc_2": 0.2914252939253442,
+        "motor_energy_kwh": 848.5381291929247
+      },
+      "segment_count": 5,
+      "ground_speeds_kmh": [
+        12.264,
+        12.552,
+        2.108,
+        12.120000000000001,
+        12.372
+      ],
+      "water_speeds_kmh": [
+        11.111999999999998,
+        11.112,
+        2.0,
+        11.112,
+        11.112
+      ],
+      "waiting_s": 900.0,
+      "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+      "refs": {
+        "Tdata": "22f47e0cdf6450376608f8a1199fb9a4740c3fcd964b929645f342a7d0497016",
+        "Tmanagement": "12d8ae226082afee2d71b6f5078f36fd2b0723849d0dcb9271dc46d52bc8f653",
+        "Tseg": "a23748b00ce1e6f82d4c0b1f673867f22d7b20b85a06e3a5b324e5d865045722",
+        "Tspeed": "916aac54d7d065518e16786b38d55262dbb717c972f5a9a84ef9d8f02896e5f3"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 952.7513970719198,
+          "distance_km": 117.28900000000986,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 7037
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 6891.2535500738995,
+            "soc_balance": 0.18000000000000002,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 6891.2535500738995,
+            "soc_balance": 99.67487970538596,
+            "switch": 0.0
+          },
+          "check_count": 70371,
+          "failed_checks": []
+        },
+        "management_ref": "12d8ae226082afee2d71b6f5078f36fd2b0723849d0dcb9271dc46d52bc8f653",
+        "passed": true,
+        "speed_ref": "916aac54d7d065518e16786b38d55262dbb717c972f5a9a84ef9d8f02896e5f3",
+        "artifact_ref": "2da7b65e73d61d165e2e667d8fb6e59d30473ecd3feadf970b20ccd78caad5d9"
+      },
+      "final_answer": "本次为具名研究仿真（解析后端），不具备实船批准效力。用户给出的条件是：军李船闸到葫芦湾船闸，2026-10-22 09:00出发，甲组、乙组初始SOC均为85%，半载，限时29.006小时内到达。\n\n仿真结果表明方案可行：全程约 117.289 km，预计耗时 36036.9 s，未超过到达时限。整个过程母线侧能量约为 952.751 kWh，电机侧能量约为 848.538 kWh。\n\n到达葫芦湾船闸时，甲组电池 SOC 约 35.0%，乙组电池 SOC 约 29.1%，均高于设定的下限，未触发低电量约束。其中各航段流速、载况、风阻、船闸等待及功率效率均为具名软件仿真假设，不等同于当地实测或通航规则，距离另据团队资料核对。",
+      "browser_view": {
+        "agent-decision-meta": "7 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "",
+        "infeasible-suggestion": "",
+        "metric-energy": "952.8 kWh",
+        "metric-eta": "2026-10-22 19:00",
+        "metric-soc": "35.0% / 29.1%",
+        "metric-time": "10.01 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "军李船闸 → 葫芦湾船闸",
+        "trace-meta": "34 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    },
+    {
+      "case": "10_fastest_full_load",
+      "task_id": "b9540ff5-2e80-4f27-a889-abc00fb2c5c3",
+      "task_text": "从大路李船闸到葫芦湾船闸，2026-10-22 09:00出发，甲组电池SOC80%，乙组电池SOC90%，满载，6小时内到达，优先最短航时",
+      "status": "completed",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "runtime_s": 46.141209,
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "model_responses": 7,
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 31,
+      "errors": [],
+      "tool_diagnostics": [],
+      "request": {
+        "current_speed_kmh": null,
+        "departure_at": "2026-10-22 09:00",
+        "destination": "葫芦湾船闸",
+        "initial_soc_1": 0.8,
+        "initial_soc_2": 0.9,
+        "load_state": "满载",
+        "objective": "min_time",
+        "origin": "大路李船闸",
+        "prediction_backend": null,
+        "prediction_duration_s": null,
+        "remaining_time_s": 21600,
+        "trajectory": null
+      },
+      "metrics": {
+        "bus_energy_kwh": 311.8518004610046,
+        "distance_km": 24.900000000000002,
+        "duration_s": 6206.268738993188,
+        "final_soc_1": 0.6369402350530773,
+        "final_soc_2": 0.7165577644346948,
+        "motor_energy_kwh": 285.0380638018755
+      },
+      "segment_count": 1,
+      "ground_speeds_kmh": [
+        14.4456
+      ],
+      "water_speeds_kmh": [
+        13.1856
+      ],
+      "waiting_s": 0.0,
+      "environment_hash": "7e0331c7c4250c4b9391b4db9e126a8d952a60c3f74ac1ea644341112dcd22c2",
+      "refs": {
+        "Tdata": "315a168a1f5fa26cc924331b6d43f974a9affdbd47f381b8633e726e8d5154de",
+        "Tmanagement": "7e3980899ee91c6df61f569aaec85ded8b31ea789925ffa8aa288f25ff18535f",
+        "Tseg": "1e2f67408a1a27d2dd1abf7b2e60bf4987e9d873302138dc6c3d80a32c718e6e",
+        "Tspeed": "30a328f0804a0897939434f8eb6261e40d105d3b06c0c233e1d13824b6e77efc"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 311.8518004610046,
+          "distance_km": 24.90000000000265,
+          "environment_hash": "7e0331c7c4250c4b9391b4db9e126a8d952a60c3f74ac1ea644341112dcd22c2",
+          "passed": true,
+          "rows": 1243
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 2040.0918694246877,
+            "soc_balance": 66.96000000000116,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 2040.0918694246877,
+            "soc_balance": 66.98579816471735,
+            "switch": 0.0
+          },
+          "check_count": 12431,
+          "failed_checks": []
+        },
+        "management_ref": "7e3980899ee91c6df61f569aaec85ded8b31ea789925ffa8aa288f25ff18535f",
+        "passed": true,
+        "speed_ref": "30a328f0804a0897939434f8eb6261e40d105d3b06c0c233e1d13824b6e77efc",
+        "artifact_ref": "4271627c5ee1a99604320071ff67913c8afe3fd21ac904caa2928dccec987344"
+      },
+      "final_answer": "该方案可行。你给出的出发条件为：甲组电池 SOC 80%、乙组电池 SOC 90%、满载，出发时间 2026-10-22 09:00，时限 6 小时并优先最短航时。采用解析后端进行最短航时规划，行程满足时限要求。\n\n全程约 24.9 km，预计航时 6206.27 s，明显少于你给出的 6 小时限制。母线能量消耗 311.852 kWh，其中推进母线能量约占285.038 kWh（电推进电机侧），两电池均保持在 SOC 下限以上。\n\n到达时甲组电池 SOC 约 63.7%，乙组电池 SOC 约 71.7%。以上为具名研究仿真与解析后端结果，不代表实船批准或通航规则许可。",
+      "browser_view": {
+        "agent-decision-meta": "7 次模型响应 · 5 次动作",
+        "decision-status": "仿真方案已生成",
+        "infeasible-reason": "甲、乙组出发电量均为 25%，正好是本次仿真设定的最低允许值。本航程需要用电，两组电池在当前约束下都没有可供航行消耗的余量，因此未生成通过核验的方案。",
+        "infeasible-suggestion": "如仅做仿真，可在快捷输入中分别提高两组电池的出发电量并重新计算。实际航次须先补电，再录入两组实测电量重算；若无法补电，请联系调度调整供能安排。仅延长到达时间不能解决出发电量不足。",
+        "metric-energy": "311.9 kWh",
+        "metric-eta": "2026-10-22 10:43",
+        "metric-soc": "63.7% / 71.7%",
+        "metric-time": "1.724 h",
+        "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+        "mission-title": "大路李船闸 → 葫芦湾船闸",
+        "trace-meta": "31 次完成"
+      },
+      "checks": {
+        "expected_outcome": true,
+        "completed": true,
+        "answer_present": true,
+        "route_preserved": true,
+        "deadline_preserved": true,
+        "soc_preserved": true,
+        "load_preserved": true,
+        "objective_preserved": true,
+        "real_model": true,
+        "no_execution_error": true,
+        "independent_verification": true,
+        "ui_success": true,
+        "metric-energy_matches": true,
+        "metric-time_matches": true,
+        "ui_soc_matches": true,
+        "soc_no_unexplained_charge": true
+      },
+      "passed": true
+    }
+  ]
+}

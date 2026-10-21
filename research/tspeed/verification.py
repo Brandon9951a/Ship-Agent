@@ -187,7 +187,9 @@ def verify_candidate(candidate: CandidateTrajectory, *,
             if position < exempt:
                 continue  # 边界过渡前缀：由 boundary_transition 检查单独复核
             speed = interval.planned_speed_kmh
-            if speed > high + 1e-6 or speed < low - 1e-6:
+            segment = request.segments[fact_index]
+            interval_low = 0.0 if segment.cruise_floor_only and interval.kind in ("accel", "decel") else low
+            if speed > high + 1e-6 or speed < interval_low - 1e-6:
                 speed_violations.append(Violation(
                     code="segment_speed_out_of_range", segment_id=fact.segment_id,
                     detail=f"区间航速 {speed:.6f} 超出航段限速 [{low}, {high}]",

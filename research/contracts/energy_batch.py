@@ -198,6 +198,9 @@ class PowerPoint(ContractModel):
     quality_flags: tuple[str, ...] = ()
     target_speed_kmh: float | None = None
     interval_kind: str | None = None
+    speed_through_water_kmh: float | None = None
+    current_along_route_mps: float | None = None
+    environment_hash: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "quality_flags", tuple(self.quality_flags))
@@ -206,7 +209,8 @@ class PowerPoint(ContractModel):
         if duration <= 0:
             raise ValueError("PowerPoint.duration_s 必须大于 0")
         for name in ("predicted_motor_power_kw", "motor_energy_kwh",
-                     "planned_speed_kmh", "target_speed_kmh"):
+                     "planned_speed_kmh", "target_speed_kmh",
+                     "speed_through_water_kmh", "current_along_route_mps"):
             _require_finite(getattr(self, name), name, allow_none=True)
         for flag in self.quality_flags:
             if flag not in QUALITY_FLAGS:

@@ -187,7 +187,7 @@ const ResearchBridge = (() => {
     const initial2 = request.initial_soc_2 ?? data?.batteries?.battery_2?.initial_soc ?? null;
     const socFloor1 = data?.batteries?.battery_1?.soc_min ?? null;
     const socFloor2 = data?.batteries?.battery_2?.soc_min ?? null;
-    const speedLimit = segmentFacts.length ? Math.min(...segmentFacts.map(item => item.max_speed_kmh)) : null;
+    const speedLimit = segmentFacts.length ? Math.max(...segmentFacts.map(item => item.max_speed_kmh)) : null;
     const checks = [
       { name: "time", actual: duration, limit: request.remaining_time_s, unit: "s",
         passed: duration == null || request.remaining_time_s == null ? null : duration <= request.remaining_time_s },
@@ -216,6 +216,12 @@ const ResearchBridge = (() => {
       research_pending: pending,
       research_events: events, research_metrics: task.metrics || {},
       research_prediction: prediction ? { ...prediction, artifact_ref: refs.Tenergy } : null,
+      research_environment: data?.config?.backend === "analytic" && data?.config?.environment?.content_hash ? {
+        snapshot: data.config.environment, segments: seg?.route_environment || {},
+        ground_speeds_kmh: speed?.summary?.speed_vector_kmh || [],
+        water_speeds_kmh: speed?.summary?.water_speed_vector_kmh || [],
+        segment_ids: segmentFacts.map(item => item.segment_id),
+      } : null,
       research_soc: { battery_1: soc1, battery_2: soc2 },
       research_runtime: {
         task_status: task.status, phase: task.phase || null, stage,
@@ -301,8 +307,10 @@ const ResearchBridge = (() => {
       return `<li><strong>${escapeHtml(event.model || "模型")} · ${event.latency_ms ?? "--"} ms</strong>${answer ? `<p class="agent-raw-answer">模型原始答复：${escapeHtml(answer.replaceAll("\\n", "\n"))}</p>` : ""}<pre>${escapeHtml(JSON.stringify(response, null, 2))}</pre><small>响应 ${escapeHtml(event.request_id || "")} · 序号 ${event.seq}</small></li>`;
     }).join("");
     const prediction = result.research_prediction;
+    const environment = result.research_environment;
+    const environmentView = environment ? `<details><summary>本次环境与双航速依据 · ${escapeHtml(environment.snapshot.label)}</summary><p>${escapeHtml(environment.snapshot.assumption)}</p><p>主方案航速为对地航速；推进功率按对水航速计算。载况：${escapeHtml(environment.snapshot.load_state)}，载况系数 ${escapeHtml(environment.snapshot.load_factor)}。风与航道按具名阻力系数处理，未计算实际水深和通航净空。</p><p>中间船闸等待按系泊处理，进出闸加减速采用局部缓流假设。</p><table><thead><tr><th>航段</th><th>沿航向水流 m/s</th><th>对地 km/h</th><th>对水 km/h</th><th>等待 min</th><th>风阻 / 航道系数</th></tr></thead><tbody>${environment.segment_ids.map((id, i) => { const env = environment.segments[id] || {}; return `<tr><td>${escapeHtml(id)}</td><td>${escapeHtml(env.current_along_route_mps ?? "--")}</td><td>${escapeHtml(formatNumber(environment.ground_speeds_kmh[i], "", 3))}</td><td>${escapeHtml(formatNumber(environment.water_speeds_kmh[i], "", 3))}</td><td>${escapeHtml((env.waiting_duration_s || 0) / 60)}</td><td>${escapeHtml(env.wind_factor ?? "--")} / ${escapeHtml(env.channel_factor ?? "--")}</td></tr>`; }).join("")}</tbody></table><small>环境版本 ${escapeHtml(environment.snapshot.version)} · SHA256 ${escapeHtml(environment.snapshot.content_hash)}</small></details>` : "";
     const predictionView = prediction ? `<section><h4>独立能耗预测 · ${escapeHtml(prediction.backend || "")}</h4><p>状态：${escapeHtml(prediction.outcome_code)} · 电机侧 ${escapeHtml(prediction.summary?.motor_energy_kwh ?? "未知")} kWh · 时间范围 ${escapeHtml(JSON.stringify(prediction.time_range_s || []))} s</p><p>预测结果不构成航次可行性判定。</p><details><summary>预测工件、来源与诊断</summary><pre>${escapeHtml(JSON.stringify({ artifact_ref: prediction.artifact_ref, power_series_ref: prediction.power_series_ref, demand_ref: prediction.demand_ref, model: prediction.summary?.model_version || prediction.request?.model_version, sources: prediction.sources, units: prediction.units, integration_rule: prediction.integration_rule || prediction.power_series?.integration_rule, diagnostics: prediction.diagnostics }, null, 2))}</pre></details></section>` : "";
-    decisionList.innerHTML = `${predictionView}<h4>公开决策依据</h4><ol>${decisionLines || (live ? "<li>模型正在计算，等待首个决策动作。</li>" : "<li>本次没有决策动作。</li>")}</ol><details><summary>查看模型原始响应</summary><ol>${rawLines || (live ? "<li>模型响应尚未产生。</li>" : "<li>没有模型响应记录。</li>")}</ol></details>`;
+    decisionList.innerHTML = `${environmentView}${predictionView}<h4>公开决策依据</h4><ol>${decisionLines || (live ? "<li>模型正在计算，等待首个决策动作。</li>" : "<li>本次没有决策动作。</li>")}</ol><details><summary>查看模型原始响应</summary><ol>${rawLines || (live ? "<li>模型响应尚未产生。</li>" : "<li>没有模型响应记录。</li>")}</ol></details>`;
     $("#agent-decision-meta").textContent = `${live ? "等待任务完成 · " : ""}${models.length} 次模型响应 · ${actions.length} 次动作`;
   }
 

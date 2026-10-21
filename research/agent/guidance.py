@@ -23,6 +23,17 @@ def operator_guidance(store, task_id, outcome, request, refs):
     data = _payload(store, task_id, refs, "Tdata")
     speed = _payload(store, task_id, refs, "Tspeed")
     management = _payload(store, task_id, refs, "Tmanagement")
+    segment = _payload(store, task_id, refs, "Tseg")
+    for body in (data, segment, speed, management):
+        for diagnostic in body.get("diagnostics", []):
+            if diagnostic.get("code") == "environment_no_operating_speed":
+                return {"title": "当前环境下没有可用运行速度",
+                    "reason": "所选航段的水流和运行速度范围，与本次仿真的推进功率上限不兼容；未生成可用方案。",
+                    "suggestion": "请核对本次环境情景和载况，或选择更短航段试算。若需要调整运行范围，应先确认参数依据；提高 SOC 不会提高推进电机功率上限。"}
+            if diagnostic.get("code") == "environment_input_invalid":
+                return {"title": "环境条件需要核对",
+                    "reason": "本次环境或载况配置不完整，无法完成一致的航时和能耗计算。",
+                    "suggestion": "请选用已登记的完整仿真情景；如仍不能计算，请联系技术人员补齐对应航段的环境配置。"}
     batteries = data.get("batteries") or {}
     first, second = batteries.get("battery_1") or {}, batteries.get("battery_2") or {}
     positive_demand = (speed.get("summary") or {}).get("bus_energy_kwh")

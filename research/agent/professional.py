@@ -10,6 +10,8 @@ from pathlib import Path
 from uuid import uuid4
 
 from research.agent.store import digest
+from research.agent.environment import (EnvironmentError, RiverPowerPredictor,
+    load_environment, resolve_route_environment, validate_snapshot, verify_environment_demand)
 from research.contracts import SourceRef, TimeGridSpec
 from research.contracts.speed_optimization import SegmentConstraint, SpeedOptimizationRequest
 from research.demand import AuxiliaryModel, ConversionModel, DemandBuilderSpec
@@ -99,8 +101,16 @@ class ProfessionalTools:
                     "detail":"当前航速须为选定情景限速范围内的有限数值。"}]},"invalid_input")
         assumptions = [cfg["assumption"]]
         load_state = state["request"].get("load_state")
-        if load_state:
-            assumptions.append(f"用户指定{load_state}；当前解析功率系数不按载况区分，结果仅为该载况下的软件仿真假设。")
+        try:
+            cfg["environment"] = load_environment(cfg["environment_scenario_id"], load_state)
+        except EnvironmentError as exc:
+            return self.save(state, "Tdata", {"diagnostics": [{"code": "environment_input_invalid",
+                "field_ref": "environment", "detail": str(exc)}]}, "needs_input")
+        assumptions.extend([cfg["environment"]["assumption"],
+            f"载况档案：{cfg['environment']['load_state']}，修正系数 {cfg['environment']['load_factor']}。",
+            "船闸等待按系泊处理；进出闸加减速区间使用具名缓流假设，不模拟操纵和二维水流。"])
+        if cfg["backend"] == "lstm":
+            assumptions.append("本次真实 LSTM 沿用原短轨迹输入，未应用上述解析环境修正档案。")
         body = {"config": cfg, "batteries": batteries, "source_mode": "simulation",
                 "assumptions": assumptions, "load_state": load_state, "call_id": call_id}
         body["field_sources"]={key:source(key).to_dict() for key in
@@ -150,49 +160,58 @@ class ProfessionalTools:
             if a["destination"] != b["origin"]:
                 raise ValueError("route_discontinuous")
         segments = []
-        previous_ceiling = None
+        try:
+            route_environment = resolve_route_environment(cfg["environment"], selected)
+        except EnvironmentError as exc:
+            return self.save(state, "Tseg", {"diagnostics": [{"code": "environment_input_invalid",
+                "field_ref": "environment", "detail": str(exc)}]}, "needs_input")
+        env_by_id = {s["id"]: env for s, env in zip(selected, route_environment)}
+        river = RiverPowerPredictor(coefficient=cfg["coefficient"], environment=cfg["environment"], segments=env_by_id)
         for index, s in enumerate(selected):
             profile = cfg.get("segment_operating_profiles", {}).get(s["id"], {})
-            low = profile.get("min_speed_kmh", cfg["min_speed_kmh"])
-            jitter_note = None
-            if not profile and cfg.get("speed_perturbation") and not cfg.get("synthetic_route"):
-                jitter = cfg["speed_perturbation"]
-                key = f"{jitter['seed']}:{s['id']}".encode("utf-8")
-                random_bytes = hashlib.sha256(key).digest()
-                magnitude = int.from_bytes(random_bytes[:8], "big") / (2**64 - 1) * jitter["max_abs_kmh"]
-                signed_delta = magnitude if random_bytes[8] & 1 else -magnitude
-                low = min(cfg["max_speed_kmh"], max(jitter["ordinary_speed_floor_kmh"], low + signed_delta))
-                if previous_ceiling is not None:
-                    low = min(low, previous_ceiling)
-                if index + 1 < len(selected):
-                    next_profile = cfg.get("segment_operating_profiles", {}).get(selected[index + 1]["id"], {})
-                    low = min(low, next_profile.get("max_speed_kmh", cfg["max_speed_kmh"]))
-                jitter_note = (f"{jitter['note']} 航段 {s['id']} 的原始扰动为 "
-                               f"{signed_delta:+.3f} km/h，应用后的下限为 {low:.3f} km/h。")
-            low = finite(low, 0, cfg["max_speed_kmh"])
-            high = finite(profile.get("max_speed_kmh", cfg["max_speed_kmh"]), low, cfg["max_speed_kmh"])
+            low, high = river.ground_bounds(s["id"])
+            if low > high:
+                return self.save(state, "Tseg", {"diagnostics": [{"code": "environment_no_operating_speed",
+                    "segment_id": s["id"], "detail": "该航段的水流、最低对水运行速度与推进功率上限没有可用交集。",
+                    "minimum_ground_kmh": low, "maximum_ground_kmh": high}]}, "infeasible_under_assumptions")
             refs = (SourceRef(**s["source"]), source("route_constraints"))
+            refs += (SourceRef("environment:" + cfg["environment"]["content_hash"], "assumption",
+                "configs/environment_scenarios.json", confirmed=False, mode="simulation",
+                note="分航段水流、载况及附加阻力均采用具名仿真参数"),)
             if profile:
                 refs += (replace(source(f"segment_operating_profiles.{s['id']}"), note=profile["note"]),)
-            if jitter_note:
-                refs += (replace(source(f"speed_perturbation.{s['id']}"), note=jitter_note),)
             segments.append(SegmentConstraint(segment_id=s["id"], distance_km=s["distance_km"],
                 min_speed_kmh=low, max_speed_kmh=high,
                 origin_entity_id=s["origin"], destination_entity_id=s["destination"],
-                waiting_duration_s=cfg["waiting_duration_s"], waiting_rule="具名仿真等待规则",
+                waiting_duration_s=route_environment[index]["waiting_duration_s"] or cfg["waiting_duration_s"],
+                waiting_rule="中间船闸系泊等待；出发与目的地船闸不自动计入通闸等待",
+                stop_for_wait=route_environment[index]["waiting_duration_s"] > 0,
+                cruise_floor_only=True,
                 phase_or_segment_type="cruise", quality_flags=("simulation",),
                 source_refs=refs).to_dict())
-            previous_ceiling = high
         return self.save(state, "Tseg", {"segments": segments, "snapshot_id": data["snapshot_id"],
-            "call_id": call_id}, summary={"segments": segments, "distance_km": sum(s["distance_km"] for s in segments)})
+            "call_id": call_id, "route_environment": env_by_id,
+            "environment_hash": cfg["environment"]["content_hash"]},
+            summary={"segments": segments, "distance_km": sum(s["distance_km"] for s in segments),
+                     "environment": cfg["environment"]["label"], "speed_semantics": "over_ground"})
 
     def context(self, state, call_id, segments=None, predictor=None, history=None, environment=None):
         data = self.payload(state, "Tdata")
         cfg = data["config"]
+        validate_snapshot(cfg["environment"])
+        route_conditions = None
         if segments is None:
             segment_data = self.payload(state, "Tseg")
             if segment_data["snapshot_id"] != data["snapshot_id"]:
                 raise ValueError("segment_snapshot_mismatch")
+            if segment_data.get("environment_hash") != cfg["environment"]["content_hash"]:
+                raise EnvironmentError("segment_environment_mismatch")
+            route_conditions = segment_data["route_environment"]
+            identities = [{"id": s["segment_id"], "origin": s["origin_entity_id"],
+                           "destination": s["destination_entity_id"]} for s in segment_data["segments"]]
+            expected = dict(zip((s["id"] for s in identities), resolve_route_environment(cfg["environment"], identities)))
+            if route_conditions != expected:
+                raise EnvironmentError("route_environment_projection_mismatch")
             segments = [SegmentConstraint(**{**s, "source_refs": tuple(SourceRef(**r) for r in s["source_refs"])})
                         for s in segment_data["segments"]]
         grid = TimeGridSpec(5, 5, 0.15, 0.20, 0, cfg["max_speed_kmh"], decelerate_to_stop_at_end=False)
@@ -203,7 +222,7 @@ class ProfessionalTools:
         request = SpeedOptimizationRequest(segments=tuple(segments), time_grid=grid,
             objective=state["request"].get("objective") or "min_energy",
             current_position_km=0, current_speed_kmh=cfg["current_speed_kmh"], remaining_time_s=remaining,
-            history_ref=history or "simulation-history", environment_scenario_ref=environment or "simulation-environment",
+            history_ref=history or state["refs"]["Tdata"], environment_scenario_ref=environment or state["refs"].get("Tseg", state["refs"]["Tdata"]),
             scenario_id=state["scenario_id"], snapshot_id=data["snapshot_id"], request_revision=state["revision"],
             task_id=state["task_id"], call_id=call_id, assumptions=(cfg["assumption"],))
         conversion = None if cfg["conversion_efficiency"] is None else ConversionModel(
@@ -215,7 +234,7 @@ class ProfessionalTools:
                 waiting_kw=cfg["auxiliary_kw"], berthing_kw=cfg["auxiliary_kw"], source_ref=source("auxiliary")))
         if predictor is None:
             store, task, parent = self.store, state["task_id"], call_id
-            class ObservedPredictor(AnalyticPowerPredictor):
+            class ObservedPredictor(RiverPowerPredictor):
                 def predict_profile(self, profile, **kwargs):
                     child = str(uuid4())
                     store.event(task, "tool_started", tool="Tenergy", call_id=child, parent_call_id=parent, backend="analytic")
@@ -226,7 +245,8 @@ class ProfessionalTools:
                     store.event(task, "tool_completed", tool="Tenergy", call_id=child, parent_call_id=parent,
                         backend="analytic", artifact_ref=ref, duration_ms=round((time.monotonic()-start)*1000))
                     return result
-            predictor = ObservedPredictor(coefficient=cfg["coefficient"])
+            predictor = ObservedPredictor(coefficient=cfg["coefficient"],
+                environment=cfg["environment"], segments=route_conditions)
         limit = None
         if state.get("feedback_limit_kw") is not None:
             limit = state["feedback_limit_kw"]
@@ -244,14 +264,19 @@ class ProfessionalTools:
         request, spec, data = self.context(state, call_id)
         if spec.demand_spec.conversion is None:
             return self.save(state, "Tspeed", {"diagnostics": [{"code":"conversion_missing"}]}, "needs_input")
-        fastest_s = sum(3600 * segment.distance_km / segment.max_speed_kmh
-                        + segment.waiting_duration_s for segment in request.segments)
+        # The first boundary speed can exceed a local speed limit while the
+        # vessel decelerates. Use an optimistic ceiling there, so the precheck
+        # never rejects a trajectory that can arrive during that transition.
+        fastest_s = sum(3600 * segment.distance_km /
+                        max(segment.max_speed_kmh, request.current_speed_kmh if index == 0 else 0)
+                        + segment.waiting_duration_s for index, segment in enumerate(request.segments))
         if request.remaining_time_s is not None and fastest_s > request.remaining_time_s + 1e-6:
             distance_km = sum(segment.distance_km for segment in request.segments)
             return self.save(state, "Tspeed", {
                 "request": request.to_dict(), "snapshot_id": data["snapshot_id"],
                 "summary": {"distance_km": distance_km,
                             "minimum_duration_s": fastest_s,
+                            "duration_bound_type": "optimistic_lower_bound",
                             "deadline_s": request.remaining_time_s},
                 "diagnostics": [{
                     "code": "deadline_below_physical_minimum",
@@ -297,11 +322,21 @@ class ProfessionalTools:
                 "bus_energy_kwh":series.demand_energy_kwh(),"motor_energy_kwh":result.total_energy_kwh,
                 "selected_demand_ref":result.selected_demand_ref,"demand_artifact_ref":demand_ref,
                 "speed_vector_kmh":list(result.selected_speed_vector),"backend":"analytic"}
+            body["environment"] = data["config"]["environment"]
+            body["environment_hash"] = data["config"]["environment"]["content_hash"]
+            body["route_environment"] = self.payload(state, "Tseg")["route_environment"]
+            body["summary"]["speed_semantics"] = "over_ground"
+            body["summary"]["environment_hash"] = body["environment_hash"]
+            body["summary"]["water_speed_vector_kmh"] = [v - 3.6 * body["route_environment"][s.segment_id]["current_along_route_mps"]
+                for s, v in zip(request.segments, result.selected_speed_vector)]
         return self.save(state,"Tspeed",body,run.outcome_code)
 
     def management(self,state,call_id):
         speed = self.payload(state,"Tspeed")
         data = self.payload(state,"Tdata")
+        validate_snapshot(data["config"]["environment"])
+        if speed.get("environment_hash") != data["config"]["environment"]["content_hash"]:
+            raise EnvironmentError("management_environment_mismatch")
         if speed["snapshot_id"] != data["snapshot_id"]:
             raise ValueError("snapshot_mismatch")
         req = BatteryManagementRequest.from_dict(speed["fdp_request"])
@@ -359,13 +394,23 @@ class ProfessionalTools:
         payload = management["result"]["payload"]
         check = verify_trajectory(req,payload["rows"],payload["cost_terms"])
         durations = sum(p.duration_s for p in demand.points)
-        segments = self.payload(state,"Tseg")["segments"]
+        segment_body = self.payload(state,"Tseg")
+        segments = segment_body["segments"]
+        env = data["config"]["environment"]
+        if (speed.get("environment_hash") != env["content_hash"] or speed.get("environment") != env
+                or speed["route_environment"] != segment_body["route_environment"]
+                or speed["request"]["environment_scenario_ref"] != state["refs"]["Tseg"]):
+            raise EnvironmentError("plan_environment_mismatch")
+        replay = verify_environment_demand(env, segment_body["route_environment"],
+            speed["result"]["selected_trajectory"], demand,
+            coefficient=data["config"]["coefficient"], efficiency=data["config"]["conversion_efficiency"],
+            auxiliary_kw=data["config"]["auxiliary_kw"])
         checks = [check["passed"], all(x["passed"] for x in speed["result"]["constraint_checks"]),
             math.isclose(durations,speed["result"]["total_duration_s"],abs_tol=1e-6),
             math.isclose(sum(s["distance_km"] for s in segments),speed["result"]["total_distance_km"],abs_tol=1e-6),
             math.isclose(demand.demand_energy_kwh(),payload["summary"]["demand_bus_energy_kwh"],abs_tol=1e-6)]
         ref = self.store.put(state["task_id"],"plan_verification",{"passed":all(checks),"checks":checks,
-            "fdp":check,"speed_ref":state["refs"]["Tspeed"],"management_ref":state["refs"]["Tmanagement"]})
+            "fdp":check,"environment_replay":replay,"speed_ref":state["refs"]["Tspeed"],"management_ref":state["refs"]["Tmanagement"]})
         if not all(checks):
             raise ValueError("independent_verification_failed")
         return ref,management["summary"]

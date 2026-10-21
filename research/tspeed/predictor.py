@@ -280,6 +280,11 @@ class AnalyticPowerPredictor:
         key = stable_hash({
             "context": self._last_key_context,
             "kind": "profile",
+            "model_config": self.config_hash,
+            "segment_ids": list(profile.segment_ids),
+            "starts": list(profile.starts),
+            "kinds": list(profile.kinds),
+            "targets": list(profile.targets),
             "speeds": [None if speed is None else round(speed, 9)
                        for speed in profile.speeds],
             "durations": [round(value, 9) for value in profile.durations],

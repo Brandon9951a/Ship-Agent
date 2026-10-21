@@ -7,6 +7,7 @@ from research.contracts import CandidateTrajectory, EnergyBatchRequest, Trajecto
 from research.demand import build_power_demand, DemandBuilderSpec, AuxiliaryModel, ConversionModel
 from research.tspeed.predictor import AnalyticPowerPredictor, EvaluationGrid
 from research.tspeed.trajectory import expand_trajectory
+from research.agent.environment import RiverPowerPredictor
 
 
 def missing_prediction_fields(request, backend):
@@ -36,7 +37,7 @@ def analytic_energy(tools, state, call_id):
         return reject("prediction_input_missing", missing, "请提供预测航段起终点，或显式时间轨迹。")
     segment_ref = None
     try:
-        predictor = AnalyticPowerPredictor(coefficient=cfg["coefficient"])
+        route_conditions = None
         if req.get("trajectory") is not None:
             points = tuple(TrajectoryPoint(**p) for p in req["trajectory"])
             distances = {}
@@ -62,6 +63,7 @@ def analytic_energy(tools, state, call_id):
             if resolved["outcome_code"] != "ok":
                 return reject("route_not_registered", ["origin","destination"], "请提供已登记的连续航段起终点。")
             segment_ref = resolved["artifact_ref"]
+            route_conditions = tools.store.read(state["task_id"], segment_ref)["payload"]["route_environment"]
             local = {**state,"refs":{**state["refs"],"Tseg":segment_ref}}
             request, _, _ = tools.context(local, call_id)
             speed = cfg["current_speed_kmh"]
@@ -76,6 +78,8 @@ def analytic_energy(tools, state, call_id):
         candidate = CandidateTrajectory("standalone", points)
         if candidate.time_gaps() or points[0].start_offset_s != 0 or candidate.total_duration_s > 7*86400:
             raise ValueError("trajectory_time_axis_invalid_or_over_budget")
+        predictor = RiverPowerPredictor(coefficient=cfg["coefficient"], environment=cfg["environment"],
+            segments=route_conditions, allow_unlocated=segment_ref is None)
     except (ValueError, TypeError, KeyError) as exc:
         return tools.save(state,"Tenergy",{"backend":"analytic","diagnostics":[{
             "code":"invalid_prediction_trajectory","field_ref":"trajectory","detail":str(exc)}]},"invalid_input")
@@ -90,6 +94,10 @@ def analytic_energy(tools, state, call_id):
     result = predictor.predict(raw,grid=EvaluationGrid(5,5,distances))
     entry = result.results[0]
     power_ref = tools.store.put(state["task_id"],"prediction_power_series",entry.to_dict())
+    if entry.outcome_code != "ok":
+        return tools.save(state, "Tenergy", {"backend": "analytic", "result": result.to_dict(),
+            "power_series_ref": power_ref, "environment_ref": environment_ref,
+            "diagnostics": [d.to_dict() for d in entry.diagnostics]}, entry.outcome_code)
     demand = build_power_demand(entry,spec=demand_spec,series_id="standalone",
                                input_energy_ref=power_ref)
     demand_ref = tools.store.put(state["task_id"],"prediction_demand",demand.to_dict())

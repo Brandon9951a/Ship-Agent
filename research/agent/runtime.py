@@ -45,6 +45,22 @@ def explicit_arrival_duration_s(text):
     matches = list(_ARRIVAL_DURATION.finditer(text))
     return float(matches[-1].group("hours")) * 3600 if matches else None
 
+
+def explicit_registered_route(text):
+    """Preserve an unambiguous registered route literally stated by the user."""
+    # A later route to an unknown place must not restore an earlier known route.
+    if "从" in text:
+        text = text[text.rfind("从"):]
+    root = Path(__file__).resolve().parents[2]
+    aliases = json.loads((root / "configs/aliases.yaml").read_text(encoding="utf-8"))["aliases"]
+    names = "|".join(re.escape(name) for name in sorted(aliases, key=len, reverse=True))
+    pattern = rf"(?:从\s*)?(?P<origin>{names})\s*(?:到|至|→|->)\s*(?P<destination>{names})(?=$|[\s，,。；;？！!?])"
+    matches = list(re.finditer(pattern, text))
+    if not matches:
+        return None
+    match = matches[-1]
+    return {key: aliases[match.group(key)]["canonical"] for key in ("origin", "destination")}
+
 # 可由用户显式重试的终态结果码；真实不可行与缺参不在其中。
 RETRYABLE_CODES={"process_interrupted","model_unavailable","tool_error","task_timeout",
                  "queue_timeout","recovery_exhausted","agent_budget_exhausted"}
@@ -361,8 +377,20 @@ class AgentRuntime:
         kind=s["task_type"] if s["task_type"]!="auto" else request.pop("task_type")
         request.pop("task_type",None)
         notes=[]
+        latest_user_text = next(m["content"] for m in reversed(s["messages"]) if m["role"] == "user")
+        registered_route = explicit_registered_route(latest_user_text)
+        if registered_route:
+            for field, value in registered_route.items():
+                if request.get(field) != value:
+                    request[field] = value
+                    notes.append(f"{field}: 按用户原文中的已登记地名设置，港口与船闸分别核对")
+        explicit_deadline=explicit_arrival_duration_s(user_text)
+        prediction_only = re.search(r"(?:只|仅|独立|单独).{0,8}(?:预测|能耗|功率)|不做(?:航速)?优化|不做(?:航次)?规划", user_text)
+        voyage_route = re.search(r"从.+?到.+?(?:[，,。]|$)", user_text)
+        if s["task_type"] == "auto" and voyage_route and explicit_deadline is not None and not prediction_only and kind != "planning":
+            kind = "planning"
+            notes.append("用户明确给出航次起终点和到达时限，按航次规划执行完整工具链")
         if kind=="planning":
-            explicit_deadline=explicit_arrival_duration_s(user_text)
             if explicit_deadline is not None and request.get("remaining_time_s")!=explicit_deadline:
                 request["remaining_time_s"]=explicit_deadline
                 notes.append("按用户原文中的到达时限设置 remaining_time_s；已核对小时到秒的换算")

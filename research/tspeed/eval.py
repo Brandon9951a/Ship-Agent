@@ -184,7 +184,8 @@ def evaluate_candidate(speed_vector, *, context: DEEvaluationContext,
             if fast_analytic_demand and outcome.ok:
                 demand_series = summarize_analytic_profile(
                     profile, power_at_speed=context.predictor.power_kw,
-                    spec=context.spec.demand_spec)
+                    spec=context.spec.demand_spec,
+                    power_for_interval=getattr(context.predictor, "interval_power_kw", None))
             else:
                 demand_series = build_power_demand(
                     outcome.to_envelope(), spec=context.spec.demand_spec,

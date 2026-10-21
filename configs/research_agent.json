@@ -22,28 +22,95 @@
   "waiting_duration_s": 0.0,
   "prediction_step_s": 5.0,
   "coefficient": 0.06559425611908812,
-  "environment": {"scenario": "named-still-water", "current_mps": 0.0, "wind_mps": 0.0,
-                  "model_scope": "解析立方功率假设；未显式建模环境修正"},
+  "environment": {
+    "scenario": "segmented_current_demo",
+    "model_scope": "Versioned per-segment simulation; see configs/environment_scenarios.json"
+  },
   "conversion_efficiency": 0.94,
   "auxiliary_kw": 5.0,
-  "battery": {"capacity_kwh": 1000.0, "initial_soc": 0.8, "soc_min": 0.25,
-              "min_power_kw": 5.0, "max_power_kw": 125.0, "discharge_efficiency": 0.9},
-  "de": {"population": 8, "max_generations": 3, "seeds": [211]},
-  "fdp": {"soc_step": 0.05, "max_states_per_layer": 1000, "max_transitions": 150000},
-  "budgets": {"agent_steps": 16, "aux_calls": 6, "invalid_actions": 3, "speed_cycles": 2},
+  "battery": {
+    "capacity_kwh": 1000.0,
+    "initial_soc": 0.8,
+    "soc_min": 0.25,
+    "min_power_kw": 5.0,
+    "max_power_kw": 125.0,
+    "discharge_efficiency": 0.9
+  },
+  "de": {
+    "population": 8,
+    "max_generations": 3,
+    "seeds": [
+      211
+    ]
+  },
+  "fdp": {
+    "soc_step": 0.05,
+    "max_states_per_layer": 1000,
+    "max_transitions": 150000
+  },
+  "budgets": {
+    "agent_steps": 16,
+    "aux_calls": 6,
+    "invalid_actions": 3,
+    "speed_cycles": 2
+  },
   "scenarios": {
-    "route_success": {"label": "登记子航线完整求解", "backend": "analytic",
-      "speed_perturbation": {
-        "seed": 11894,
-        "max_abs_kmh": 3.0,
-        "ordinary_speed_floor_kmh": 10.0,
-        "note": "仅供航段差异联调：按固定种子和航段编号生成可复现的速度下限扰动；非实测限速，也不代表模型学到的最优速度。"
-      }},
-    "multi_wait": {"label": "多航段与等待仿真", "backend": "analytic", "synthetic_route": true, "waiting_duration_s": 30.0},
-    "fdp_reject": {"label": "FDP 功率拒绝", "backend": "analytic", "battery_power_kw": 1.0},
-    "missing_conversion": {"label": "缺少转换依据", "backend": "analytic", "conversion_efficiency": null},
-    "lstm_short": {"label": "真实 LSTM 20 秒预测", "backend": "lstm", "duration_s": 20.0},
-    "lstm_domain": {"label": "真实 LSTM 超窗口拒绝", "backend": "lstm", "duration_s": 40.0}
+    "route_success": {
+      "label": "登记子航线完整求解",
+      "backend": "analytic"
+    },
+    "multi_wait": {
+      "label": "多航段与等待仿真",
+      "backend": "analytic",
+      "synthetic_route": true,
+      "waiting_duration_s": 30.0,
+      "environment_scenario_id": "calm_reference"
+    },
+    "fdp_reject": {
+      "label": "FDP 功率拒绝",
+      "backend": "analytic",
+      "battery_power_kw": 1.0
+    },
+    "missing_conversion": {
+      "label": "缺少转换依据",
+      "backend": "analytic",
+      "conversion_efficiency": null
+    },
+    "lstm_short": {
+      "label": "真实 LSTM 20 秒预测",
+      "backend": "lstm",
+      "duration_s": 20.0
+    },
+    "lstm_domain": {
+      "label": "真实 LSTM 超窗口拒绝",
+      "backend": "lstm",
+      "duration_s": 40.0
+    },
+    "calm_reference": {
+      "label": "静水回归基线",
+      "backend": "analytic",
+      "environment_scenario_id": "calm_reference"
+    },
+    "segmented_current_demo": {
+      "label": "分航段常规流况仿真",
+      "backend": "analytic",
+      "environment_scenario_id": "segmented_current_demo"
+    },
+    "adverse_current_demo": {
+      "label": "较强水流仿真（返程为逆流）",
+      "backend": "analytic",
+      "environment_scenario_id": "adverse_current_demo"
+    },
+    "lock_delay_demo": {
+      "label": "分航段水流与船闸延误仿真",
+      "backend": "analytic",
+      "environment_scenario_id": "lock_delay_demo"
+    },
+    "adverse_environment_demo": {
+      "label": "水流、附加风阻及航道阻力仿真",
+      "backend": "analytic",
+      "environment_scenario_id": "adverse_environment_demo"
+    }
   },
   "docs": [
     "docs/团队资料/02_当前设计/Agent图结构计划.md",
@@ -52,5 +119,7 @@
     "docs/验收/三PR研究联调统筹审查_2026-10-16.md",
     "research/README.md",
     "docs/团队资料/04_船舶与航线/README_船舶与航线资料.md"
-  ]
+  ],
+  "environment_scenario_id": "segmented_current_demo",
+  "speed_semantics": "over_ground"
 }

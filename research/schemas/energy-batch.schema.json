@@ -64,6 +64,9 @@
         "duration_s": { "type": "number", "exclusiveMinimum": 0 },
         "planned_speed_kmh": { "type": ["number", "null"], "minimum": 0 },
         "target_speed_kmh": { "type": ["number", "null"], "minimum": 0 },
+        "speed_through_water_kmh": { "type": ["number", "null"], "minimum": 0 },
+        "current_along_route_mps": { "type": ["number", "null"] },
+        "environment_hash": { "type": ["string", "null"] },
         "interval_kind": { "enum": ["accel", "cruise", "decel", "waiting", null] },
         "predicted_motor_power_kw": {
           "type": ["number", "null"],

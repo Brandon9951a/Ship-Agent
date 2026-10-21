@@ -58,16 +58,19 @@ class DemandProfileSummary:
 
 
 def summarize_analytic_profile(profile: TrajectoryProfile, *, power_at_speed: Callable[[float], float],
-                               spec: "DemandBuilderSpec") -> DemandProfileSummary:
+                               spec: "DemandBuilderSpec", power_for_interval=None) -> DemandProfileSummary:
     """Use the shared conversion models without constructing thousands of row objects."""
     if spec.conversion is None:
         return DemandProfileSummary(False, None, None, spec.config_hash())
     total = 0.0
     peak: float | None = None
-    for phase, duration, speed in zip(profile.phases, profile.durations, profile.speeds):
+    for index, (phase, duration, speed) in enumerate(zip(profile.phases, profile.durations, profile.speeds)):
         auxiliary_kw = spec.auxiliary.power_kw(phase)
         motor_kw = 0.0 if phase != Phase.SAILING.value else (
             None if speed is None else power_at_speed(speed))
+        if power_for_interval is not None:
+            motor_kw = power_for_interval(speed, profile.segment_ids[index], phase,
+                                          profile.kinds[index] if profile.kinds else None)
         bus_kw = spec.conversion.to_bus_kw(motor_kw)
         if bus_kw is None:
             return DemandProfileSummary(False, None, None, spec.config_hash())

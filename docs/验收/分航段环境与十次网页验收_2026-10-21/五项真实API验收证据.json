@@ -1,0 +1,436 @@
+{
+  "started_at": "2026-10-20T11:07:39.953459+00:00",
+  "cases": [
+    {
+      "case": "forward",
+      "scenario": "route_success",
+      "task_id": "e869f4c0-6eb1-4fcc-999b-47cda72a5b4b",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 32,
+      "tool_errors": [],
+      "metrics": {
+        "bus_energy_kwh": {
+          "field_path": "summary.bus_energy_kwh",
+          "source_ref": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+          "unit": "kWh",
+          "value": 217.1199562059677
+        },
+        "distance_km": {
+          "field_path": "summary.distance_km",
+          "source_ref": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+          "unit": "km",
+          "value": 25.5
+        },
+        "duration_s": {
+          "field_path": "summary.duration_s",
+          "source_ref": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+          "unit": "s",
+          "value": 7758.66125760649
+        },
+        "final_soc_1": {
+          "field_path": "summary.final_soc_1",
+          "source_ref": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+          "unit": "fraction",
+          "value": 0.7293778021078163
+        },
+        "final_soc_2": {
+          "field_path": "summary.final_soc_2",
+          "source_ref": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+          "unit": "fraction",
+          "value": 0.7293778021078163
+        },
+        "motor_energy_kwh": {
+          "field_path": "summary.motor_energy_kwh",
+          "source_ref": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+          "unit": "kWh",
+          "value": 193.96339552506714
+        }
+      },
+      "refs": {
+        "Tdata": "900798f967771e8b09300b25139a20550fd24710f4e6b8976a483fb88c8dc20f",
+        "Tmanagement": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+        "Tseg": "376c07991c1c49f43013285a7ec1a4ed075f208243373d440046a4abcab01af9",
+        "Tspeed": "ad27900603f3b6dc272b7fce73ded28fc3112b0b2c9aae7d0f94ef1eeda841c5"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 217.1199562059677,
+          "distance_km": 25.499999999997662,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 1553
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 788.0212661463167,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 788.0212661463167,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "check_count": 15531,
+          "failed_checks": []
+        },
+        "management_ref": "82a161012116bcd7a21d9f37079353f76b97550552b456938a2987c0556b5244",
+        "passed": true,
+        "speed_ref": "ad27900603f3b6dc272b7fce73ded28fc3112b0b2c9aae7d0f94ef1eeda841c5",
+        "artifact_ref": null
+      },
+      "final_answer": "本次为具名研究仿真，解析后端计算。用户给定出发时间 2026-10-21 09:00、出发港平顶山港、目的港军李船闸，甲组电池初始 SOC 85%、乙组电池初始 SOC 85%，载况半载，时限 6 小时内到达（以上为输入条件）。\n\n仿真结果：航程历时约 7758.66 s，航行距离约 25.5 km，母线侧能耗约 217.12 kWh，电机侧能耗约 193.963 kWh。到达时甲组电池荷电态约为 72.9%，乙组电池荷电态约为 72.9%。\n\n该方案在给定时限内完成，行程可行；结果来自具名软件仿真假设，不等同于实船测量或通航规则批准。",
+      "passed": true
+    },
+    {
+      "case": "reverse",
+      "scenario": "route_success",
+      "task_id": "1d11e7d9-29fa-4d09-9c4a-0aa5b1bc7a50",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 33,
+      "tool_errors": [],
+      "metrics": {
+        "bus_energy_kwh": {
+          "field_path": "summary.bus_energy_kwh",
+          "source_ref": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+          "unit": "kWh",
+          "value": 247.21006824257123
+        },
+        "distance_km": {
+          "field_path": "summary.distance_km",
+          "source_ref": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+          "unit": "km",
+          "value": 25.5
+        },
+        "duration_s": {
+          "field_path": "summary.duration_s",
+          "source_ref": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+          "unit": "s",
+          "value": 8833.683602771363
+        },
+        "final_soc_1": {
+          "field_path": "summary.final_soc_1",
+          "source_ref": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+          "unit": "fraction",
+          "value": 0.7126610731985957
+        },
+        "final_soc_2": {
+          "field_path": "summary.final_soc_2",
+          "source_ref": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+          "unit": "fraction",
+          "value": 0.7126610731985957
+        },
+        "motor_energy_kwh": {
+          "field_path": "summary.motor_energy_kwh",
+          "source_ref": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+          "unit": "kWh",
+          "value": 220.8445994443965
+        }
+      },
+      "refs": {
+        "Tdata": "019e4cc8610398f8bfd308eccc612605a5c56ce77f9533174873f3afbb525995",
+        "Tmanagement": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+        "Tseg": "36b6a31bf6be3e43df93760aaf6cef321c26e891c74cf99335b7c3a55d550f54",
+        "Tspeed": "2a88d46cc1ccb6441bc15599681341a23ddb0c9edd12d129c0b68bc344fd04e0"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 247.21006824257125,
+          "distance_km": 25.49999999999848,
+          "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+          "passed": true,
+          "rows": 1768
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 897.3164169861698,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 897.3164169861698,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "check_count": 17681,
+          "failed_checks": []
+        },
+        "management_ref": "628d0ee9102520bd09508626c46d4ad90c60c0e5da49f3b417e7d005ae2accd7",
+        "passed": true,
+        "speed_ref": "2a88d46cc1ccb6441bc15599681341a23ddb0c9edd12d129c0b68bc344fd04e0",
+        "artifact_ref": null
+      },
+      "final_answer": "方案可行（研究仿真，不等同实船批准）。\n\n从军李船闸至平顶山港，甲、乙组电池初态均为用户给定的 85%。在分航段常规流况仿真下，全程用时约 8833.68 s，未超过用户给出的 6 小时时限；航程约 25.5 km。\n\n能耗方面，母线侧合计约 247.21 kWh，电机驱动约 220.845 kWh。甲、乙两组电池均衡放电，到达后各自剩余荷电状态约 71.3% 与 71.3%，高于保护下限，未出现越限。速度、水速、载况、效率及船闸等待均为具名软件仿真假设，不代表当地实测或通航规则；距离另附团队资料核对，亦不等同于实船测量或航行条件批准。",
+      "passed": true
+    },
+    {
+      "case": "wind_channel",
+      "scenario": "adverse_environment_demo",
+      "task_id": "d335b70d-c87d-4159-a52c-e83d98868de3",
+      "outcome_code": "research_feasible",
+      "answer_status": "accepted",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement",
+        "prepare_final"
+      ],
+      "tool_completions": 32,
+      "tool_errors": [],
+      "metrics": {
+        "bus_energy_kwh": {
+          "field_path": "summary.bus_energy_kwh",
+          "source_ref": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+          "unit": "kWh",
+          "value": 235.21237992918003
+        },
+        "distance_km": {
+          "field_path": "summary.distance_km",
+          "source_ref": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+          "unit": "km",
+          "value": 25.0
+        },
+        "duration_s": {
+          "field_path": "summary.duration_s",
+          "source_ref": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+          "unit": "s",
+          "value": 7009.561121495327
+        },
+        "final_soc_1": {
+          "field_path": "summary.final_soc_1",
+          "source_ref": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+          "unit": "fraction",
+          "value": 0.7193264555949632
+        },
+        "final_soc_2": {
+          "field_path": "summary.final_soc_2",
+          "source_ref": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+          "unit": "fraction",
+          "value": 0.7193264555949632
+        },
+        "motor_energy_kwh": {
+          "field_path": "summary.motor_energy_kwh",
+          "source_ref": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+          "unit": "kWh",
+          "value": 211.9482656692526
+        }
+      },
+      "refs": {
+        "Tdata": "363cbbef95d0999fe960b8bd8515373c018459f34f0729e5c7ced3e49c8cba0b",
+        "Tmanagement": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+        "Tseg": "5b4cf43b3bb654fa3ff43ae3135a0ebb3d6920593a9d98d5be023429345ec17e",
+        "Tspeed": "7e022c6a6c2353af8d4d0d7556f011e909854de4475b36dbc1d64c079e25d17d"
+      },
+      "verification": {
+        "checks": [
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "environment_replay": {
+          "bus_energy_kwh": 235.21237992918003,
+          "distance_km": 24.99999999999831,
+          "environment_hash": "8d84865458267abb26e31ac0849c80ece14ccbaf190e480ea1bb9cc301004a52",
+          "passed": true,
+          "rows": 1403
+        },
+        "fdp": {
+          "passed": true,
+          "recomputed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1023.619587017683,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "recomputed_replayed_cost_terms": {
+            "low_load_mode3": 0.0,
+            "power": 1023.619587017683,
+            "soc_balance": 0.0,
+            "switch": 0.0
+          },
+          "check_count": 14031,
+          "failed_checks": []
+        },
+        "management_ref": "eb1f8dae27896b7463f05644bd9b5178f6e1061dd0a77f74f73aca9d79b49722",
+        "passed": true,
+        "speed_ref": "7e022c6a6c2353af8d4d0d7556f011e909854de4475b36dbc1d64c079e25d17d",
+        "artifact_ref": null
+      },
+      "final_answer": "该航次研究可行。用户给定出发时间为2026-10-21 09:00，出发时甲组电池SOC 85%、乙组电池SOC 85%，半载，并要求在6小时内到达。\n\n仿真按用户给定条件（解析后端）计算：全程耗时 7009.56 s，航程 25 km，满足6小时时限要求。\n\n能耗方面：母线侧能耗 235.212 kWh，电机侧能耗 211.948 kWh。到港时甲组、乙组电池SOC均为 71.9%、71.9%，高于最低保护下限，方案在仿真假设下可行。相关水流、风阻、载况及效率均为具名软件仿真假设，不代表实船测量或通航批准，完整引用保留在证据面板。",
+      "passed": true
+    },
+    {
+      "case": "tight_deadline",
+      "scenario": "adverse_current_demo",
+      "task_id": "afcb15c4-10a9-4ddc-a4a3-b35ec6174e9f",
+      "outcome_code": "infeasible_under_assumptions",
+      "answer_status": "operator_guidance",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "finish_without_plan"
+      ],
+      "tool_completions": 2,
+      "tool_errors": [
+        {
+          "artifact_ref": "acc6a819c64e6f5497fd4bc260cd084cb32b640a42fbe7f13477024855e53088",
+          "call_id": "call_00_j7c69EGVnrlfYh3Wba5W6496",
+          "diagnostics": [
+            {
+              "code": "deadline_below_physical_minimum",
+              "deadline_s": 3600,
+              "deadline_source": "user",
+              "detail": "所选航段共 25.000 km；按情景最高航速和等待时间，最短也需 2.06 小时，当前期限为 1.00 小时。可延长到达期限或选择更短航段后重算。",
+              "field_ref": "remaining_time_s",
+              "minimum_duration_s": 7412.532120972524
+            }
+          ],
+          "duration_ms": 16,
+          "outcome_code": "infeasible_under_assumptions",
+          "seq": 18,
+          "summary": {
+            "deadline_s": 3600,
+            "distance_km": 25,
+            "minimum_duration_s": 7412.532120972524
+          },
+          "task_id": "afcb15c4-10a9-4ddc-a4a3-b35ec6174e9f",
+          "timestamp": "2026-10-20T11:10:02.887981+00:00",
+          "tool": "Tspeed",
+          "type": "tool_failed"
+        }
+      ],
+      "metrics": {},
+      "refs": {
+        "Tdata": "c0be6638a3125c35f811e0df1db0a4bb3e2e33e62441a4e127131a985185c99b",
+        "Tseg": "39d9488dd7f191a63a7714adaec068622e2eec81776dd9f44d4204ceab9b8982",
+        "Tspeed": "acc6a819c64e6f5497fd4bc260cd084cb32b640a42fbe7f13477024855e53088"
+      },
+      "verification": null,
+      "final_answer": "按本次航段和仿真限速，最快约需 2.06 小时，当前给定时限为 1.00 小时。\n\n建议：请延长到达时限，或改选更短的连续航段后重新计算。",
+      "passed": true
+    },
+    {
+      "case": "low_soc",
+      "scenario": "route_success",
+      "task_id": "e3ce9363-8844-42e6-970d-b1ba71289bdd",
+      "outcome_code": "infeasible_under_assumptions",
+      "answer_status": "operator_guidance",
+      "models": [
+        "deepseek-v4-pro"
+      ],
+      "actions": [
+        "Tdata",
+        "Tseg",
+        "Tspeed",
+        "Tmanagement"
+      ],
+      "tool_completions": 32,
+      "tool_errors": [
+        {
+          "artifact_ref": "9fd8ab1655e59f4e49788f0ddaf3a6d8f413c77ac8128da7cd8346ac6df129d5",
+          "call_id": "call_00_p58pbTMR9lSFg1k5vEK67272",
+          "diagnostics": [
+            {
+              "code": "initial_soc_at_planning_floor",
+              "detail": "两组电池出发电量均已达到本次仿真规划下限，航行需要用电；请先补电并录入补电后的两组 SOC 再计算。",
+              "field_ref": "initial_soc_1,initial_soc_2",
+              "initial_soc_1": 0.25,
+              "initial_soc_2": 0.25,
+              "soc_min_1": 0.25,
+              "soc_min_2": 0.25
+            }
+          ],
+          "duration_ms": 62,
+          "outcome_code": "infeasible_under_assumptions",
+          "seq": 81,
+          "summary": {
+            "backend": "analytic",
+            "bus_energy_kwh": 1.5819701349420128,
+            "demand_artifact_ref": "58476013d7a73da6cf44614cd147e138039ca7439275dd5b7a677dc312573391",
+            "distance_km": 0.689,
+            "duration_s": 704.9371063450474,
+            "environment_hash": "d63d977b4d3dee6b57356ed8734273a2e5563344a2fbb6ab042cc739e5b24c0e",
+            "motor_energy_kwh": 0.5667173713395253,
+            "safe": false,
+            "selected_demand_ref": "d523e8b90875982b47cde2dc5502af0cebf7f0fdfc19926002cb93dc06ef6764",
+            "speed_semantics": "over_ground",
+            "speed_vector_kmh": [
+              3.4627802204194285
+            ],
+            "water_speed_vector_kmh": [
+              3.3547802204194284
+            ]
+          },
+          "task_id": "e3ce9363-8844-42e6-970d-b1ba71289bdd",
+          "timestamp": "2026-10-20T11:10:27.241997+00:00",
+          "tool": "Tmanagement",
+          "type": "tool_failed"
+        }
+      ],
+      "metrics": {},
+      "refs": {
+        "Tdata": "8f4e86b45e039112d386cfe61d73d9dac03cf8f02702a200ba919dabfd6223c2",
+        "Tmanagement": "9fd8ab1655e59f4e49788f0ddaf3a6d8f413c77ac8128da7cd8346ac6df129d5",
+        "Tseg": "dacb4bf557803607562236e90cf7492174e73f4ceafc9949df23ee9e2aa5c86a",
+        "Tspeed": "705dd9c8ec2da0f60f3bcc2eef97ebc87afbc8f19b7518bbcab383b303a22f57"
+      },
+      "verification": null,
+      "final_answer": "甲、乙组出发电量均为 25%，正好是本次仿真设定的最低允许值。本航程需要用电，两组电池在当前约束下都没有可供航行消耗的余量，因此未生成通过核验的方案。\n\n建议：如仅做仿真，可在快捷输入中分别提高两组电池的出发电量并重新计算。实际航次须先补电，再录入两组实测电量重算；若无法补电，请联系调度调整供能安排。仅延长到达时间不能解决出发电量不足。",
+      "passed": true
+    }
+  ],
+  "finished_at": "2026-10-20T11:10:35.056908+00:00",
+  "passed": true
+}

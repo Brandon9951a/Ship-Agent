@@ -1,0 +1,59 @@
+[
+  {
+    "case": "01_short_forward",
+    "text": "从漯河船闸到漯河港，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，2小时内到达",
+    "started_at": "2026-10-21T04:01:57.336Z",
+    "observed_elapsed_s": 38.124,
+    "view": {
+      "agent-decision-meta": "7 次模型响应 · 5 次动作",
+      "decision-status": "仿真方案已生成",
+      "infeasible-reason": "",
+      "infeasible-suggestion": "",
+      "metric-energy": "1.6 kWh",
+      "metric-eta": "2026-10-22 09:11",
+      "metric-soc": "85.0% / 84.8%",
+      "metric-time": "0.196 h",
+      "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+      "mission-title": "漯河船闸 → 漯河港",
+      "trace-meta": "33 次完成"
+    }
+  },
+  {
+    "case": "02_short_reverse_split_soc",
+    "text": "从漯河港到漯河船闸，2026-10-22 09:00出发，甲组电池SOC80%，乙组电池SOC65%，半载，2小时内到达",
+    "started_at": "2026-10-21T04:02:35.555Z",
+    "observed_elapsed_s": 75.097,
+    "view": {
+      "agent-decision-meta": "5 次模型响应 · 3 次动作",
+      "decision-status": "能耗预测完成",
+      "infeasible-reason": "",
+      "infeasible-suggestion": "",
+      "metric-energy": "5.6 kWh（电机侧）",
+      "metric-eta": "--",
+      "metric-soc": "--",
+      "metric-time": "0.063 h",
+      "mission-subtitle": "工具已计算功率与能量；来源、后端和诊断见下方。此结果不代表航次可行。",
+      "mission-title": "独立能耗预测完成",
+      "trace-meta": "2 次完成"
+    }
+  },
+  {
+    "case": "03_normal_forward",
+    "text": "从平顶山港到军李船闸，2026-10-22 09:00出发，甲组电池SOC85%，乙组电池SOC85%，半载，6小时内到达",
+    "started_at": "2026-10-21T04:03:50.719Z",
+    "observed_elapsed_s": 43.569,
+    "view": {
+      "agent-decision-meta": "7 次模型响应 · 5 次动作",
+      "decision-status": "仿真方案已生成",
+      "infeasible-reason": "",
+      "infeasible-suggestion": "",
+      "metric-energy": "217.1 kWh",
+      "metric-eta": "2026-10-22 11:09",
+      "metric-soc": "72.9% / 72.9%",
+      "metric-time": "2.155 h",
+      "mission-subtitle": "以下为软件仿真结果，仅供演示和方法验证，不构成实船航行指令。",
+      "mission-title": "平顶山港 → 军李船闸",
+      "trace-meta": "32 次完成"
+    }
+  }
+]

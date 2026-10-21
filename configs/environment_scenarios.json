@@ -1,0 +1,104 @@
+{
+  "schema_version": "river-environment/1",
+  "version": "2026-10-20.1",
+  "assumption": "具名软件仿真：流速、载况、风阻、航道修正及船闸等待均为测试假设，不代表当地实测或通航规则。",
+  "reference_load_state": "半载",
+  "load_profiles": {
+    "空载": 0.9,
+    "半载": 1.0,
+    "满载": 1.1
+  },
+  "ordinary_water_floor_kmh": 11.112,
+  "ground_ceiling_kmh": 14.4456,
+  "water_max_kmh": 14.4456,
+  "motor_limit_kw": 200.0,
+  "physical_segments": {
+    "s01_pingdingshan_gang_to_junli": {
+      "current_mps": 0.2,
+      "channel_factor": 1.0,
+      "berthing": false
+    },
+    "s02_junli_to_mawan": {
+      "current_mps": 0.32,
+      "channel_factor": 1.12,
+      "berthing": false
+    },
+    "s03_mawan_to_luohe": {
+      "current_mps": 0.4,
+      "channel_factor": 1.0,
+      "berthing": false
+    },
+    "s04_luohe_lock_to_luohe_port": {
+      "current_mps": 0.03,
+      "channel_factor": 1.0,
+      "berthing": true
+    },
+    "s05_luohe_port_to_daluli": {
+      "current_mps": 0.28,
+      "channel_factor": 1.0,
+      "berthing": false
+    },
+    "s06_daluli_to_huluwan": {
+      "current_mps": 0.35,
+      "channel_factor": 1.12,
+      "berthing": false
+    },
+    "s07_huluwan_to_zhoukou_lock": {
+      "current_mps": 0.18,
+      "channel_factor": 1.0,
+      "berthing": false
+    },
+    "s08_zhoukou_lock_to_zhoukou_port": {
+      "current_mps": 0.04,
+      "channel_factor": 1.0,
+      "berthing": true
+    }
+  },
+  "scenarios": {
+    "calm_reference": {
+      "label": "静水回归基线",
+      "current_scale": 0,
+      "wind_factor": 1.0,
+      "channel_scale": 0,
+      "lock_wait_s": 0,
+      "unlocated_current_mps": 0.0,
+      "wind_along_canonical_mps": 0.0
+    },
+    "segmented_current_demo": {
+      "label": "分航段常规流况仿真",
+      "current_scale": 1,
+      "wind_factor": 1.0,
+      "channel_scale": 0,
+      "lock_wait_s": 300,
+      "unlocated_current_mps": 0.2,
+      "wind_along_canonical_mps": 0.0
+    },
+    "adverse_current_demo": {
+      "label": "较强水流仿真（返程为逆流）",
+      "current_scale": 2,
+      "wind_factor": 1.0,
+      "channel_scale": 0,
+      "lock_wait_s": 300,
+      "unlocated_current_mps": 0.4,
+      "wind_along_canonical_mps": 0.0
+    },
+    "lock_delay_demo": {
+      "label": "分航段水流与船闸延误仿真",
+      "current_scale": 1,
+      "wind_factor": 1.0,
+      "channel_scale": 0,
+      "lock_wait_s": 1800,
+      "unlocated_current_mps": 0.2,
+      "wind_along_canonical_mps": 0.0
+    },
+    "adverse_environment_demo": {
+      "label": "水流、附加风阻及航道阻力仿真",
+      "current_scale": 1.5,
+      "wind_factor": 1.08,
+      "channel_scale": 1,
+      "lock_wait_s": 600,
+      "unlocated_current_mps": 0.30000000000000004,
+      "wind_along_canonical_mps": -3.0
+    }
+  }
+}

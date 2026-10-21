@@ -168,19 +168,20 @@ def test_named_lock_approach_profile_is_applied_to_solver_input(tmp_path):
             state["refs"][name] = result["artifact_ref"]
         segments = tools.payload(state, "Tseg")["segments"]
         approach = next(item for item in segments if item["segment_id"].startswith("s04_"))
-        assert approach["min_speed_kmh"] == 2.0
+        assert approach["min_speed_kmh"] == pytest.approx(2.0 + 3.6 * .03)
         assert approach["max_speed_kmh"] == pytest.approx(11.112)
         assert any("segment_operating_profiles" in ref["source_id"] for ref in approach["source_refs"])
         ordinary = [item for item in segments if item["segment_id"] != approach["segment_id"]]
         assert len({round(item["min_speed_kmh"], 3) for item in ordinary}) == len(ordinary)
         assert all(10 <= item["min_speed_kmh"] <= 14.4456 for item in ordinary)
-        assert all(any("speed_perturbation" in ref["source_id"] for ref in item["source_refs"])
+        assert all(any(ref["source_id"].startswith("environment:") for ref in item["source_refs"])
                    for item in ordinary)
+        assert not any("speed_perturbation" in ref["source_id"] for item in segments for ref in item["source_refs"])
     finally:
         store.close()
 
 
-def test_seeded_speed_perturbation_keeps_reverse_lock_handoffs_valid(tmp_path):
+def test_environment_keeps_reverse_lock_handoffs_valid(tmp_path):
     store = Store(tmp_path)
     store.create("reverse-perturbation", "local", {})
     tools = ProfessionalTools(store)
@@ -197,7 +198,7 @@ def test_seeded_speed_perturbation_keeps_reverse_lock_handoffs_valid(tmp_path):
                    for previous, current in zip(segments, segments[1:]))
         assert all(previous["min_speed_kmh"] <= current["max_speed_kmh"]
                    for previous, current in zip(segments, segments[1:]))
-        assert segments[5]["min_speed_kmh"] == pytest.approx(11.112)
+        assert segments[5]["min_speed_kmh"] == pytest.approx(11.112 - 3.6 * .4)
     finally:
         store.close()
 
@@ -649,7 +650,8 @@ def test_percent_soc_and_half_load_run_with_explicit_simulation_scope(tmp_path):
         assert all(result["outcomes"][name]=="ok" for name in ("Tdata","Tseg","Tspeed","Tmanagement"))
         snapshot=runtime.store.read(result["task_id"],result["result_refs"]["Tdata"])["payload"]
         assert snapshot["load_state"]=="半载"
-        assert any("不按载况区分" in note for note in snapshot["assumptions"])
+        assert snapshot["config"]["environment"]["load_state"] == "半载"
+        assert snapshot["config"]["environment"]["load_factor"] == 1.0
     finally:
         runtime.close()
 

@@ -303,6 +303,8 @@ class ExpandedTrajectory:
                         code="entry_speed_changed", segment_id=fact.segment_id,
                         detail="首段入口速度被改动：当前速度是边界条件，不得夹取",
                         observed=entry, limit=expected_entry_speed_kmh, unit="km/h"))
+            if index > 0 and self.segment_facts[index - 1].waiting_duration_s > 0 and self.segment_facts[index - 1].exit_speed_kmh == 0:
+                previous_exit = 0.0
             if previous_exit is not None and abs(entry - previous_exit) > 1e-6:
                 issues.append(Violation(
                     code="speed_discontinuity", segment_id=fact.segment_id,
@@ -623,6 +625,9 @@ def expand_trajectory(speed_vector, *, request, time_grid: TimeGridSpec | None =
         else:
             planned_exit = next_segment.fixed_speed_kmh or 0.0
             clamp_exit = True
+        if segment.stop_for_wait and segment.waiting_duration_s > 0:
+            planned_exit = 0.0
+            clamp_exit = False
         target = segment.fixed_speed_kmh if fixed else targets[segment.segment_id]
         phases, segment_violations = plan_segment_phases(
             segment, cruise_speed_kmh=target, entry_speed_kmh=entry_speed,

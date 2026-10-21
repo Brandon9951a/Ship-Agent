@@ -35,7 +35,8 @@ def test_default_route_prediction_recomputes_power_distance_and_bus_integrals(tm
         coefficient=tool.payload(state,"Tdata")["config"]["coefficient"]
         assert len(points)>1
         for p in points:
-            assert p["predicted_motor_power_kw"]==pytest.approx(coefficient*p["planned_speed_kmh"]**3)
+            assert p["speed_through_water_kmh"] == pytest.approx(p["planned_speed_kmh"] - 3.6 * p["current_along_route_mps"])
+            assert p["predicted_motor_power_kw"]==pytest.approx(coefficient*p["speed_through_water_kmh"]**3)
             assert p["motor_energy_kwh"]==pytest.approx(p["predicted_motor_power_kw"]*p["duration_s"]/3600)
         assert sum(p["planned_speed_kmh"]*p["duration_s"]/3600 for p in points)==pytest.approx(summary["distance_km"])
         assert summary["bus_energy_kwh"]==pytest.approx(summary["motor_energy_kwh"]/.94+5*summary["duration_s"]/3600)
@@ -62,7 +63,7 @@ def test_explicit_trajectory_waiting_and_unknown_bus(tmp_path):
         body=energy(tool,state)
         assert body["outcome_code"]=="ok"
         coefficient=tool.payload(state,"Tdata")["config"]["coefficient"]
-        assert verify_prediction(tool,state)["motor_energy_kwh"]==pytest.approx(coefficient*10**3*10/3600)
+        assert verify_prediction(tool,state)["motor_energy_kwh"]==pytest.approx(coefficient*(10 - .2*3.6)**3*10/3600)
         assert body["summary"]["bus_energy_kwh"] is None
     finally: store.close()
 
@@ -72,7 +73,7 @@ def test_duration_and_user_speed_are_actual_prediction_inputs(tmp_path):
     try:
         body=energy(tool,state)
         coefficient=tool.payload(state,"Tdata")["config"]["coefficient"]
-        assert verify_prediction(tool,state)["motor_energy_kwh"]==pytest.approx(coefficient*10**3*20/3600)
+        assert verify_prediction(tool,state)["motor_energy_kwh"]==pytest.approx(coefficient*(10 - .2*3.6)**3*20/3600)
         assert body["summary"]["duration_s"]==20
         assert body["sources"]["trajectory"]=="user"
     finally: store.close()

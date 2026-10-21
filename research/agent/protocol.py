@@ -82,5 +82,6 @@ def render_answer(answer,metrics,user_input_text=""):
         value=metrics[key]["value"]
         if type(value) not in (int,float) or not math.isfinite(value):
             raise ValueError("invalid_metric")
-        text=text.replace("{{"+key+"}}",f"{value:.6g} {metrics[key]['unit']}")
+        display = f"{value * 100:.1f}%" if metrics[key]["unit"] == "fraction" else f"{value:.6g} {metrics[key]['unit']}"
+        text=text.replace("{{"+key+"}}", display)
     return text.replace("\\n","\n")
