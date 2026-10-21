@@ -1,6 +1,6 @@
 # D1 C 补核与合并验收
 
-日期：2026-09-18。A明确授权助手修订C的D1成果并合入main。来源分支：`d1-lgz`；原提交：`853fd1e`；PR：[#2 D1 lgz](https://github.com/Brandon9951a/Ship-Agent/pull/2)。
+日期：2026-09-18。A明确授权项目组修订C的D1成果并合入main。来源分支：`d1-lgz`；原提交：`853fd1e`；PR：[#2 D1 lgz](https://github.com/Brandon9951a/Ship-Agent/pull/2)。
 
 ## 修订内容
 

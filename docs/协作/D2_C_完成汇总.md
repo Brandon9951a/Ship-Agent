@@ -11,7 +11,7 @@
 - 新增 `tests/test_d2_tools.py`：覆盖未知地点、未知限速/等待、子航线和返程。
 - 新增 `configs/examples/segments_d2_subroute.json` 和 `configs/examples/segments_d2_reverse.json`。
 - 新增 `ui/app.py`：文本输入、Tdata/Tseg 状态和 JSON 输出骨架。
-- 新增 `docs/协作/D2_C_环境记录.md`，记录 Bundled Python、pytest 和实际测试结果。
+- 新增 `docs/协作/D2_C_环境记录.md`，记录验收 Python 环境、pytest 和实际测试结果。
 - 补充需求素材索引中的 D2 实现边界。
 - 未修改 PPT，仅保留后续修改意见。
 

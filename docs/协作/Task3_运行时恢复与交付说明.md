@@ -1,9 +1,9 @@
 # 任务 3：服务存活、进行中任务恢复与结果一致性
 
 日期：2026-10-17
-工作基线：`codex/three-tools-review-20261015`
+工作基线：三工具集成审查分支
 负责：徐（Tspeed／联调）
-PR base：`codex/three-tools-review-20261015`（不并入 `main`）
+PR base：三工具集成审查分支（不并入 `main`）
 
 ## 一、本轮修复的问题
 
@@ -116,7 +116,7 @@ Copy-Item .env.example .env    # 填 SHIP_LLM_* 后设 SHIP_LLM_ENABLED=true
 - 本任务专项：**15 项通过**（`test_runtime_recovery.py` 9 + `test_runtime_recovery_api.py` 6）。
 - 相关回归：`test_research_agent.py`、`test_web_frontend.py`、`test_research_workflow.py`、`test_frontend_state.py` 均通过。
 - 全量结果见 PR 描述（附 `pytest -q` 输出）。
-- **基线既有的失败**：`test_actual_lstm_prediction_and_handoff[lstm_short-ok]` 在 `codex/three-tools-review-20261015` 原样失败（`Tenergy interval energy differs from P * duration / 3600`），属任务 1（Tenergy）范围，本轮未改动该路径，也未把它计为本 PR 的修复成果。
+- **基线既有的失败**：`test_actual_lstm_prediction_and_handoff[lstm_short-ok]` 在 三工具集成审查分支 原样失败（`Tenergy interval energy differs from P * duration / 3600`），属任务 1（Tenergy）范围，本轮未改动该路径，也未把它计为本 PR 的修复成果。
 
 ## 七、仍存在的限制
 

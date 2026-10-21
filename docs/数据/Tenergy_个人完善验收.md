@@ -88,7 +88,7 @@
 | `scripts/profile_tenergy_v2.py` | 独立 cProfile 包装，不修改预测内循环 |
 | `.gitignore` | 忽略 `/profile_output/` 原始性能工件 |
 | `models/tenergy-lstm-v5/improvement/performance.json`、`profile_hotspots.json` | 提交的性能数字与热点摘要 |
-| `profile_output/tenergy_v2*` | 本地原始工件，可清理重建；需要时可由助手清理这些目录 |
+| `profile_output/tenergy_v2*` | 本地原始工件，可按复现命令清理重建 |
 
 ## 4. 复现及待裁决项
 

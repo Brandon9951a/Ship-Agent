@@ -6,7 +6,7 @@
 fix(research): 服务重启后进行中任务恢复、取消重试与单次发布
 ```
 
-**base 必须是 `codex/three-tools-review-20261015`，不是 `main`。**
+**base 必须是 三工具集成审查分支，不是 `main`。**
 
 ---
 
@@ -53,7 +53,7 @@ python -m venv .venv
 ```
 
 - **本任务专项：20 项通过**（恢复 13 + 网站接口 7）。
-- **全量：523 通过 / 3 失败**；3 个失败与基线 `codex/three-tools-review-20261015`
+- **全量：523 通过 / 3 失败**；3 个失败与基线 三工具集成审查分支
   完全相同（`Tenergy interval energy differs from P * duration / 3600` 及 LSTM 短时
   用例），属任务 1（Tenergy）范围，本 PR 未改动该路径、未计入修复成果。
 - 中断阶段覆盖：排队、模型调用中、**Tspeed 搜索中**、**FDP 求解中**；
